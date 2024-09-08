@@ -1,4 +1,5 @@
 import express from 'express';
+import session from 'express-session';
 import connectDB from './infrastructure/database/MongoDB.js';
 import authController from './infrastructure/controllers/AuthController.js';
 import bodyParser from 'body-parser';
