@@ -3,6 +3,7 @@ import session from 'express-session';
 import connectDB from './infrastructure/database/MongoDB.js';
 import authController from './infrastructure/controllers/AuthController.js';
 import bodyParser from 'body-parser';
+import passport from 'passport';
 
 const app = express();
 
