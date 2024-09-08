@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import config from '../../config/config.js'; // Update as needed
+import config from '../../config/config.js';
 
 class AuthService {
   constructor(userRepository) {
