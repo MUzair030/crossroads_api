@@ -1,26 +1,26 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import dotenv from 'dotenv';
-import UserRepositoryImpl from '../repositories/UserRepositoryImpl.js'; // Adjust path as needed
+import UserRepositoryImpl from '../../infrastructure/repositories/UserRepositoryImpl.js';
+import config from '../../config/config.js';
 
-dotenv.config();
 
 const userRepository = new UserRepositoryImpl();
 
 passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: '/auth/google/callback',
+  clientID: config.googleClientId,
+  clientSecret: config.googleClientSecret,
+  callbackURL: '/api/auth/google/callback',
 },
 async (accessToken, refreshToken, profile, done) => {
   try {
     // Find or create user
     let user = await userRepository.findByGoogleId(profile.id);
     if (!user) {
-      user = await userRepository.create({
+      user = await userRepository.save({
         googleId: profile.id,
         name: profile.displayName,
         email: profile.emails[0].value,
+        password: "googlePass"
       });
     }
     done(null, user);

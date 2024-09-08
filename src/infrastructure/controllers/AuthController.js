@@ -1,4 +1,5 @@
 import express from 'express';
+import passport from '../../application/services/GoogleAuthService.js';
 import UserRepositoryImpl from '../repositories/UserRepositoryImpl.js';
 import AuthService from '../../application/services/AuthService.js';
 
@@ -34,6 +35,41 @@ router.post('/refresh-token', async (req, res) => {
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
+});
+
+
+// Initiate Google Authentication
+router.get('/google', passport.authenticate('google', {
+  scope: ['profile', 'email'],
+}));
+
+// Route to handle Google authentication callback
+router.get('/google/callback', (req, res, next) => {
+  passport.authenticate('google', { session: true }, (err, user, info) => {
+    if (err) {
+      console.error('Authentication error:', err);
+      return res.status(500).send('Authentication failed');
+    }
+    if (!user) {
+      return res.redirect('/login');
+    }
+    req.logIn(user, (err) => {
+      if (err) {
+        console.error('Login error:', err);
+        return res.status(500).send('Login failed');
+      }
+      return res.status(200).send("Login Successful!");
+    });
+  })(req, res, next);
+});
+
+
+
+
+// Handle Logout
+router.get('/logout', (req, res) => {
+  req.logout();
+  res.redirect('/');
 });
 
 export default router;
