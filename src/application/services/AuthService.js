@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import config from '../../config/config.js';
+import emailService from './EmailService.js';
 
 class AuthService {
   constructor(userRepository) {
@@ -16,15 +17,40 @@ class AuthService {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const user = { name, email, password: hashedPassword };
+    const verificationToken = jwt.sign({ email }, config.jwtSecret, { expiresIn: '1h' });
+    const user = { name, email, password: hashedPassword, verificationToken };
 
-    return this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
+    await emailService.sendVerificationEmail(savedUser, verificationToken);
+    return { message: 'Verification email sent. Please check your email.' };
+  }
+
+  async verifyEmail(token) {
+    try {
+      const decoded = jwt.verify(token, config.jwtSecret);
+      const user = await this.userRepository.findByEmail(decoded.email);
+
+      if (!user || user.isVerified) {
+        throw new Error('Invalid or already verified token');
+      }
+
+      user.isVerified = true;
+      user.verificationToken = undefined;
+      await this.userRepository.update(user);
+      return { message: 'Email verified successfully!' };
+    } catch (err) {
+      throw new Error('Invalid token');
+    }
   }
 
   async signIn({ email, password }) {
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
       throw new Error('Invalid credentials');
+    }
+
+    if (!user.isVerified) {
+      throw new Error('Please verify your email first');
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -50,4 +76,3 @@ class AuthService {
 }
 
 export default AuthService;
-

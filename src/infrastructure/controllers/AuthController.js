@@ -64,6 +64,16 @@ router.get('/google/callback', (req, res, next) => {
 });
 
 
+router.get('/verify-email', async (req, res) => {
+  const { token } = req.query;
+  try {
+    console.log(token);
+    const result = await authService.verifyEmail(token);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
 
 
 // Handle Logout

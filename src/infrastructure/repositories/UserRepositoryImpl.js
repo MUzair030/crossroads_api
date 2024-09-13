@@ -18,6 +18,15 @@ class UserRepositoryImpl extends UserRepository {
     const newUser = new User(user);
     return newUser.save();
   }
+
+  async update(user) {
+    try {
+      const updatedUser = await User.findByIdAndUpdate(user._id, user, { new: true });
+      return updatedUser;
+    } catch (error) {
+      throw new Error(`Failed to update user: ${error.message}`);
+    }
+  }
 }
 
 export default UserRepositoryImpl;
