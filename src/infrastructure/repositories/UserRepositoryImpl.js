@@ -3,7 +3,7 @@ import UserRepository from '../../domain/repositories/UserRepository.js';
 
 class UserRepositoryImpl extends UserRepository {
   async findById(id) {
-    return User.findOne({ id });
+    return User.findOne({ _id: id });
   }
 
   async findByEmail(email) {
@@ -17,6 +17,15 @@ class UserRepositoryImpl extends UserRepository {
   async save(user) {
     const newUser = new User(user);
     return newUser.save();
+  }
+
+  async update(user) {
+    try {
+      const updatedUser = await User.findByIdAndUpdate(user._id, user, { new: true });
+      return updatedUser;
+    } catch (error) {
+      throw new Error(`Failed to update user: ${error.message}`);
+    }
   }
 }
 
