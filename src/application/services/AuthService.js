@@ -103,7 +103,6 @@ class AuthService {
     const hashedPassword = await bcrypt.hash(temPass, await bcrypt.genSalt(10));
     user.password = hashedPassword;
     let savedUser = await this.userRepository.update(user);
-    console.log("savedUser ::: ", savedUser);
     await emailService.sendPasswordResetEmail(savedUser, temPass);
   }
 

@@ -64,9 +64,14 @@ router.get('/google/callback', (req, res, next) => {
 });
 
 // Handle Logout
-router.get('/logout', (req, res) => {
-  req.logout();
-  res.redirect('/');
+router.get('/logout', (req, res, next) => {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+    res.redirect('/');
+  });
 });
+
 
 export default router;
