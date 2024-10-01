@@ -3,7 +3,7 @@ import UserRepository from '../../domain/repositories/UserRepository.js';
 
 class UserRepositoryImpl extends UserRepository {
   async findById(id) {
-    return User.findOne({ id });
+    return User.findOne({ _id: id });
   }
 
   async findByEmail(email) {

@@ -49,6 +49,10 @@ class AuthService {
       throw new Error('Invalid credentials');
     }
 
+    if (user.isDeleted) {
+      throw new Error('Account marked as Deleted.');
+    }
+
     if (!user.isVerified) {
       throw new Error('Please verify your email first');
     }
@@ -73,6 +77,47 @@ class AuthService {
       throw new Error('Invalid refresh token');
     }
   }
+
+  async changePassword(userId, currentPassword, newPassword) {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      throw new Error('Current password is incorrect');
+    }
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password = hashedPassword;
+    await this.userRepository.update(user);
+  }
+
+  async resetPassword(email) {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const temPass = "tempPassword@123";
+    const hashedPassword = await bcrypt.hash(temPass, await bcrypt.genSalt(10));
+    user.password = hashedPassword;
+    let savedUser = await this.userRepository.update(user);
+    console.log("savedUser ::: ", savedUser);
+    await emailService.sendPasswordResetEmail(savedUser, temPass);
+  }
+
+
+  async markAccountAsDeleted(userId) {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    user.isDeleted = true;
+    await this.userRepository.update(user);
+  }
+
+
 }
 
 export default AuthService;

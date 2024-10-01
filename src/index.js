@@ -2,6 +2,7 @@ import express from 'express';
 import session from 'express-session';
 import connectDB from './infrastructure/database/MongoDB.js';
 import authController from './infrastructure/controllers/AuthController.js';
+import profileController from './infrastructure/controllers/ProfileController.js';
 import bodyParser from 'body-parser';
 import passport from './application/services/GoogleAuthService.js';
 
@@ -28,6 +29,7 @@ app.use(session({
 
 // Routes
 app.use('/api/auth', authController);
+app.use('/api/account', profileController);
 
 const PORT = process.env.PORT || 5000;
 
