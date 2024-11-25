@@ -2,6 +2,7 @@ import express from 'express';
 import passport from '../../application/services/GoogleAuthService.js';
 import UserRepositoryImpl from '../repositories/UserRepositoryImpl.js';
 import AuthService from '../../application/services/AuthService.js';
+import CommonResponse from '../../application/common/CommonResponse.js';
 
 const router = express.Router();
 const userRepository = new UserRepositoryImpl();
@@ -13,9 +14,10 @@ router.get('/verify-email', async (req, res) => {
   const { token } = req.query;
   try {
     const result = await authService.verifyEmail(token);
-    res.status(200).json(result);
+    CommonResponse.success(res, result);
+    // res.status(200).json(result);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    CommonResponse.error(res, err.message, 400);
   }
 });
 
@@ -26,9 +28,10 @@ router.put('/change-password', passport.authenticate('jwt', { session: false }),
   try {
     const userId = req.user.id;
     await authService.changePassword(userId, currentPassword, newPassword);
-    res.status(200).json({ message: 'Password changed successfully' });
+    CommonResponse.success(res, null, 'Password changed successfully');
+    // res.status(200).json({ message: 'Password changed successfully' });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    CommonResponse.error(res, err.message, 400);
   }
 });
 
@@ -36,9 +39,10 @@ router.put('/change-password', passport.authenticate('jwt', { session: false }),
 router.post('/reset-password', async (req, res) => {
   try {
     await authService.resetPassword(req.body.email);
-    res.status(200).json(true);
+    CommonResponse.success(res, true);
+    // res.status(200).json(true);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    CommonResponse.error(res, err.message, 400);
   }
 });
 
@@ -46,9 +50,10 @@ router.get('/delete', passport.authenticate('jwt', { session: false }), async (r
   try {
     const userId = req.user.id;
     await authService.markAccountAsDeleted(userId);
-    res.status(200).json({ message: 'Account deleted successfully' });
+    CommonResponse.success(res, null,  'Account deleted successfully');
+    // res.status(200).json({ message: 'Account deleted successfully' });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    CommonResponse.error(res, err.message, 400);
   }
 });
 

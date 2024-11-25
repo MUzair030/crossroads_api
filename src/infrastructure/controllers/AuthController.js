@@ -2,6 +2,7 @@ import express from 'express';
 import passport from '../../application/services/GoogleAuthService.js';
 import UserRepositoryImpl from '../repositories/UserRepositoryImpl.js';
 import AuthService from '../../application/services/AuthService.js';
+import CommonResponse from '../../application/common/CommonResponse.js';
 
 const router = express.Router();
 const userRepository = new UserRepositoryImpl();
@@ -11,29 +12,45 @@ router.post('/signup', async (req, res) => {
   try {
     const { name, email, password } = req.body;
     const user = await authService.signUp({ name, email, password });
-    res.json(user);
+    CommonResponse.success(res, { user });
+    // res.json(user);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    CommonResponse.error(err)
   }
 });
+
+router.post('/send-verification-email', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return CommonResponse.error(res, { message: 'Email is required' }, 400);
+    }
+
+    const response = await authService.sendVerificationEmail({ email });
+    CommonResponse.success(res, response);
+  } catch (err) {
+    CommonResponse.error(res, err);
+  }
+});
+
 
 router.post('/signin', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const { accessToken, refreshToken } = await authService.signIn({ email, password });
-    res.json({ accessToken, refreshToken });
+    const { accessToken, refreshToken, isProfileSetup, isEmailVerified } = await authService.signIn({ email, password });
+    CommonResponse.success(res, { accessToken, refreshToken, isProfileSetup, isEmailVerified});
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    CommonResponse.error(res, err.message, 400);
   }
 });
 
 router.post('/refresh-token', async (req, res) => {
-  try {
+  try {    CommonResponse.success(res, { accessToken, refreshToken }, null, 200);
     const { refreshToken } = req.body;
     const { accessToken } = await authService.refreshAccessToken(refreshToken);
-    res.json({ accessToken });
+    CommonResponse.success(res, { accessToken });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    CommonResponse.error(res, err.message, 400);
   }
 });
 
@@ -48,7 +65,8 @@ router.get('/google/callback', (req, res, next) => {
   passport.authenticate('google', { session: true }, (err, user, info) => {
     if (err) {
       console.error('Authentication error:', err);
-      return res.status(500).send('Authentication failed');
+      return CommonResponse.error(res, 'Authentication failed');
+      // return res.status(500).send('Authentication failed');
     }
     if (!user) {
       return res.redirect('/login');
@@ -56,9 +74,11 @@ router.get('/google/callback', (req, res, next) => {
     req.logIn(user, (err) => {
       if (err) {
         console.error('Login error:', err);
-        return res.status(500).send('Login failed');
+        return CommonResponse.error(res, 'Login failed');
+        // return res.status(500).send('Login failed');
       }
-      return res.status(200).send("Login Successful!");
+      CommonResponse.success(res, null, "Login Successful!");
+      // return res.status(200).send("Login Successful!");
     });
   })(req, res, next);
 });
