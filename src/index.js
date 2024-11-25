@@ -31,6 +31,11 @@ app.use(session({
 app.use('/api/auth', authController);
 app.use('/api/account', profileController);
 
+app.use((err, req, res, next) => {
+  console.error(err);
+  CommonResponse.error(res, err);
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

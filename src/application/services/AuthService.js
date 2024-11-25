@@ -25,6 +25,21 @@ class AuthService {
     return { message: 'Verification email sent. Please check your email.' };
   }
 
+  async sendVerificationEmail({ email }) {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+        throw new Error('User does not exist');
+    }
+
+    const verificationToken = jwt.sign({ email }, config.jwtSecret, { expiresIn: '1h' });
+    user.verificationToken = verificationToken;
+    await this.userRepository.update(user);
+
+    await emailService.sendVerificationEmail(user.email, verificationToken);
+    return { message: 'Verification email sent successfully.' };
+}
+
+
   async verifyEmail(token) {
     try {
       const decoded = jwt.verify(token, config.jwtSecret);
@@ -53,9 +68,9 @@ class AuthService {
       throw new Error('Account marked as Deleted.');
     }
 
-    if (!user.isVerified) {
-      throw new Error('Please verify your email first');
-    }
+    // if (!user.isVerified) {
+    //   throw new Error('Please verify your email first');
+    // }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -65,7 +80,7 @@ class AuthService {
     const accessToken = jwt.sign({ userId: user.id }, config.jwtSecret, { expiresIn: '15m' });
     const refreshToken = jwt.sign({ userId: user.id }, config.refreshTokenSecret, { expiresIn: '7d' });
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, isProfileSetup: user.isProfileSetup, isEmailVerified: user.isVerified};
   }
 
   async refreshAccessToken(refreshToken) {
