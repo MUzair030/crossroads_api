@@ -39,24 +39,47 @@ class AuthService {
     return { message: 'Verification email sent successfully.' };
 }
 
-
-  async verifyEmail(token) {
+  async verifyEmail(email, code) {
     try {
-      const decoded = jwt.verify(token, config.jwtSecret);
-      const user = await this.userRepository.findByEmail(decoded.email);
+      const user = await this.userRepository.findByEmail(email);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      if (user.isVerified) {
+        throw new Error('User is already verified');
+      }
 
-      if (!user || user.isVerified) {
-        throw new Error('Invalid or already verified token');
+      if (user.verificationCode !== parseInt(code, 10)) {
+        throw new Error('Invalid verification code');
       }
 
       user.isVerified = true;
-      user.verificationToken = undefined;
+      user.verificationCode = null;
       await this.userRepository.update(user);
       return { message: 'Email verified successfully!' };
     } catch (err) {
-      throw new Error('Invalid token');
+      throw new Error(err.message || 'Verification failed');
     }
   }
+
+
+  // async verifyEmail(token) {
+  //   try {
+  //     const decoded = jwt.verify(token, config.jwtSecret);
+  //     const user = await this.userRepository.findByEmail(decoded.email);
+  //
+  //     if (!user || user.isVerified) {
+  //       throw new Error('Invalid or already verified token');
+  //     }
+  //
+  //     user.isVerified = true;
+  //     user.verificationToken = undefined;
+  //     await this.userRepository.update(user);
+  //     return { message: 'Email verified successfully!' };
+  //   } catch (err) {
+  //     throw new Error('Invalid token');
+  //   }
+  // }
 
   async signIn({ email, password }) {
     const user = await this.userRepository.findByEmail(email);
