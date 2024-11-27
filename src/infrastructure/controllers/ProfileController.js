@@ -11,15 +11,19 @@ const authService = new AuthService(userRepository);
 
 
 router.get('/verify-email', async (req, res) => {
-  const { token } = req.query;
+  const { email, code } = req.query;
   try {
-    const result = await authService.verifyEmail(token);
+    if (!email || !code) {
+      return CommonResponse.error(res, 'Email and verification code are required', 400);
+    }
+
+    const result = await authService.verifyEmail(email, code);
     CommonResponse.success(res, result);
-    // res.status(200).json(result);
   } catch (error) {
-    CommonResponse.error(res, err.message, 400);
+    CommonResponse.error(res, error.message, 400);
   }
 });
+
 
 
 router.put('/change-password', passport.authenticate('jwt', { session: false }), async (req, res) => {
