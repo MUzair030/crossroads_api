@@ -19,7 +19,7 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-router.post('/send-verification-email', async (req, res) => {
+router.post('/resend-verification-email', async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) {

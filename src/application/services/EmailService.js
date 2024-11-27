@@ -24,13 +24,15 @@ class EmailService {
         }
       });
 
+    console.log("useruseruser", user , token)
       
-    const verificationUrl = `${config.baseUrl}/api/auth/verify-email?token=${token}`;
+    // const verificationUrl = `${config.baseUrl}/api/auth/verify-email?token=${token}`;
+    const verificationUrl = token;
     const mailOptions = {
       from: config.smtpUser,
       to: user.email,
       subject: 'Email Verification',
-      text: `Please click the following link to verify your email: ${verificationUrl}`,
+      text: `Please enter the following Verification Code: ${verificationUrl}`,
     };
 
     try {
