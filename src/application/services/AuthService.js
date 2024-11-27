@@ -17,9 +17,9 @@ class AuthService {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const verificationToken = jwt.sign({ email }, config.jwtSecret, { expiresIn: '1h' });
-    const user = { name, email, password: hashedPassword, verificationToken };
+    const verificationToken = Math.floor(10000 + Math.random() * 90000);
 
+    const user = { name, email, password: hashedPassword, verificationToken };
     const savedUser = await this.userRepository.save(user);
     await emailService.sendVerificationEmail(savedUser, verificationToken);
     return { message: 'Verification email sent. Please check your email.' };
@@ -31,11 +31,11 @@ class AuthService {
         throw new Error('User does not exist');
     }
 
-    const verificationToken = jwt.sign({ email }, config.jwtSecret, { expiresIn: '1h' });
+    const verificationToken = Math.floor(10000 + Math.random() * 90000);
     user.verificationToken = verificationToken;
     await this.userRepository.update(user);
 
-    await emailService.sendVerificationEmail(user.email, verificationToken);
+    await emailService.sendVerificationEmail(user, verificationToken);
     return { message: 'Verification email sent successfully.' };
 }
 
