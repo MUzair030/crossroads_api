@@ -49,12 +49,12 @@ class AuthService {
         throw new Error('User is already verified');
       }
 
-      if (user.verificationCode !== parseInt(code, 10)) {
+      if (user.verificationToken !== parseInt(code, 10)) {
         throw new Error('Invalid verification code');
       }
 
       user.isVerified = true;
-      user.verificationCode = null;
+      user.verificationToken = null;
       await this.userRepository.update(user);
       return { message: 'Email verified successfully!' };
     } catch (err) {
