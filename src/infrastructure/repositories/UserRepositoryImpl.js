@@ -14,6 +14,10 @@ class UserRepositoryImpl extends UserRepository {
     return User.findOne({ googleId });
   }
 
+  async findAll() {
+    return User.find();
+  }
+
   async save(user) {
     const newUser = new User(user);
     return newUser.save();
@@ -21,8 +25,16 @@ class UserRepositoryImpl extends UserRepository {
 
   async update(user) {
     try {
-      const updatedUser = await User.findByIdAndUpdate(user._id, user, { new: true });
+      const updatedUser = await User.findByIdAndUpdate(user._id, user, { new: true, runValidators: true });
       return updatedUser;
+    } catch (error) {
+      throw new Error(`Failed to update user: ${error.message}`);
+    }
+  }
+
+  async findByIdAndUpdate(id, updatedData) {
+    try {
+      return await User.findByIdAndUpdate(id, {$set: updatedData}, {new: true, runValidators: true});
     } catch (error) {
       throw new Error(`Failed to update user: ${error.message}`);
     }

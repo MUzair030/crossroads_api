@@ -1,21 +1,26 @@
 import express from 'express';
+import cors from 'cors';
 import session from 'express-session';
 import connectDB from './infrastructure/database/MongoDB.js';
 import authController from './infrastructure/controllers/AuthController.js';
 import profileController from './infrastructure/controllers/ProfileController.js';
 import bodyParser from 'body-parser';
 import passport from './application/services/GoogleAuthService.js';
+import CommonResponse from "./application/common/CommonResponse.js";
 
 const app = express();
+const corsOptions = {
+    origin: process.env.ALLOWED_ORIGIN || '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true,
+};
 
 // Connect to MongoDB
 connectDB();
 
 // Middleware
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
-
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
     secret: process.env.SESSION_SECRET || 'secret',
@@ -30,6 +35,7 @@ app.use(session({
 // Routes
 app.use('/api/auth', authController);
 app.use('/api/account', profileController);
+app.use('/api/users', profileController);
 
 app.use((err, req, res, next) => {
   console.error(err);

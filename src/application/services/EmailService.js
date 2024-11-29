@@ -67,6 +67,31 @@ class EmailService {
         console.error('Error sending email:', error.message);
       }
   }
+
+  async sendForgotPasswordEmail(user, otp) {
+    this.transporter.verify(function (error, success) {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log('Server is ready to take our messages');
+      }
+    });
+
+
+    const mailOptions = {
+      from: config.smtpUser,
+      to: user.email,
+      subject: 'Your Password Reset OTP',
+      text: `Please use the following OTP: ${otp}`,
+    };
+
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log('Verification email sent');
+    } catch (error) {
+      console.error('Error sending email:', error.message);
+    }
+  }
 }
 
 export default new EmailService();

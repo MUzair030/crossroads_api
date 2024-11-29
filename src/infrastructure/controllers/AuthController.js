@@ -13,7 +13,6 @@ router.post('/signup', async (req, res) => {
     const { name, email, password } = req.body;
     const user = await authService.signUp({ name, email, password });
     CommonResponse.success(res, { user });
-    // res.json(user);
   } catch (err) {
     CommonResponse.error(err)
   }
@@ -23,9 +22,8 @@ router.post('/resend-verification-email', async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) {
-      return CommonResponse.error(res, { message: 'Email is required' }, 400);
+      return CommonResponse.error(res, 'Email is required', 400);
     }
-
     const response = await authService.sendVerificationEmail({ email });
     CommonResponse.success(res, response);
   } catch (err) {

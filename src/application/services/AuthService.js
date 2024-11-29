@@ -16,8 +16,7 @@ class AuthService {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-
-    const verificationToken = Math.floor(10000 + Math.random() * 90000);
+    const verificationToken = Math.floor(10000 + Math.random() * 90000).toString();
 
     const user = { name, email, password: hashedPassword, verificationToken };
     const savedUser = await this.userRepository.save(user);
@@ -31,7 +30,7 @@ class AuthService {
         throw new Error('User does not exist');
     }
 
-    const verificationToken = Math.floor(10000 + Math.random() * 90000);
+    const verificationToken = Math.floor(10000 + Math.random() * 90000).toString();
     user.verificationToken = verificationToken;
     await this.userRepository.update(user);
 
@@ -49,10 +48,9 @@ class AuthService {
         throw new Error('User is already verified');
       }
 
-      if (user.verificationToken !== parseInt(code, 10)) {
+      if (user.verificationToken !== code) {
         throw new Error('Invalid verification code');
       }
-
       user.isVerified = true;
       user.verificationToken = null;
       await this.userRepository.update(user);
@@ -62,39 +60,14 @@ class AuthService {
     }
   }
 
-
-  // async verifyEmail(token) {
-  //   try {
-  //     const decoded = jwt.verify(token, config.jwtSecret);
-  //     const user = await this.userRepository.findByEmail(decoded.email);
-  //
-  //     if (!user || user.isVerified) {
-  //       throw new Error('Invalid or already verified token');
-  //     }
-  //
-  //     user.isVerified = true;
-  //     user.verificationToken = undefined;
-  //     await this.userRepository.update(user);
-  //     return { message: 'Email verified successfully!' };
-  //   } catch (err) {
-  //     throw new Error('Invalid token');
-  //   }
-  // }
-
   async signIn({ email, password }) {
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
       throw new Error('Invalid credentials');
     }
-
     if (user.isDeleted) {
       throw new Error('Account marked as Deleted.');
     }
-
-    // if (!user.isVerified) {
-    //   throw new Error('Please verify your email first');
-    // }
-
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       throw new Error('Invalid credentials');
@@ -132,18 +105,49 @@ class AuthService {
     await this.userRepository.update(user);
   }
 
-  async resetPassword(email) {
+  async sendForgotPasswordOTP(email) {
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
       throw new Error('User not found');
     }
-    const temPass = "tempPassword@123";
-    const hashedPassword = await bcrypt.hash(temPass, await bcrypt.genSalt(10));
-    user.password = hashedPassword;
-    let savedUser = await this.userRepository.update(user);
-    await emailService.sendPasswordResetEmail(savedUser, temPass);
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+    user.verificationToken = otp;
+    user.resetOtpExpiry = otpExpiry;
+    await this.userRepository.update(user);
+
+    await emailService.sendForgotPasswordEmail({email, otp});
   }
 
+  async verifyOtp(email, otp) {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (user.verificationToken !== otp || user.resetOtpExpiry < new Date()) {
+      throw new Error('Invalid or expired OTP');
+    }
+    return true;
+  }
+
+  async resetPasswordWithOtp(email, newPassword) {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    if (!user.verificationToken || user.resetOtpExpiry < new Date()) {
+      throw new Error('OTP verification required');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, await bcrypt.genSalt(10));
+    user.password = hashedPassword;
+    user.verificationToken = null;
+    user.resetOtpExpiry = null;
+    await this.userRepository.update(user);
+    return { message: 'Password reset successful' };
+  }
 
   async markAccountAsDeleted(userId) {
     const user = await this.userRepository.findById(userId);
