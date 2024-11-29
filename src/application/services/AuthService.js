@@ -47,7 +47,6 @@ class AuthService {
       if (user.isVerified) {
         throw new Error('User is already verified');
       }
-
       if (user.verificationToken !== code) {
         throw new Error('Invalid verification code');
       }
@@ -116,8 +115,7 @@ class AuthService {
     user.verificationToken = otp;
     user.resetOtpExpiry = otpExpiry;
     await this.userRepository.update(user);
-
-    await emailService.sendForgotPasswordEmail({email, otp});
+    await emailService.sendForgotPasswordEmail(email, otp);
   }
 
   async verifyOtp(email, otp) {

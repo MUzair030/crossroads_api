@@ -14,7 +14,7 @@ router.post('/signup', async (req, res) => {
     const user = await authService.signUp({ name, email, password });
     CommonResponse.success(res, { user });
   } catch (err) {
-    CommonResponse.error(err)
+    CommonResponse.error(res, err);
   }
 });
 

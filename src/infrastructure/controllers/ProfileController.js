@@ -63,8 +63,8 @@ router.post('/:id/profile-picture', upload.single('file'), async (req, res) => {
   }
 });
 
-router.get('/verify-email', async (req, res) => {
-  const { email, code } = req.query;
+router.post('/verify-email', async (req, res) => {
+  const { email, code } = req.body;
   try {
     if (!email || !code) {
       return CommonResponse.error(res, 'Email and verification code are required', 400);
@@ -117,15 +117,6 @@ router.post('/reset-password', async (req, res) => {
     CommonResponse.error(res, error.message, 400);
   }
 });
-
-// router.post('/reset-password', async (req, res) => {
-//   try {
-//     await authService.resetPassword(req.body.email);
-//     CommonResponse.success(res, true);
-//   } catch (error) {
-//     CommonResponse.error(res, err.message, 400);
-//   }
-// });
 
 router.get('/delete', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {

@@ -54,7 +54,7 @@ class UserManagementService {
 
   async uploadUserProfilePicture(file, user) {
     console.log("uploadUserProfilePicture:::::::: ", user);
-    const uniqueFileName = `Users/${uuidv4()}_${file.originalname}`;
+    const uniqueFileName = `images/users/${uuidv4()}_${file.originalname}`;
     const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
     console.log("uploadResult:::::::: ", uploadResult);
     await this.updateUserById(user.id, {profilePicture: uploadResult?.Location});
