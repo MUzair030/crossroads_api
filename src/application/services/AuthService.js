@@ -16,7 +16,7 @@ class AuthService {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    const verificationToken = Math.floor(10000 + Math.random() * 90000).toString();
+    const verificationToken = Math.floor(100000 + Math.random() * 90000).toString();
 
     const user = { name, email, password: hashedPassword, verificationToken };
     const savedUser = await this.userRepository.save(user);
@@ -30,7 +30,7 @@ class AuthService {
         throw new Error('User does not exist');
     }
 
-    const verificationToken = Math.floor(10000 + Math.random() * 90000).toString();
+    const verificationToken = Math.floor(100000 + Math.random() * 90000).toString();
     user.verificationToken = verificationToken;
     await this.userRepository.update(user);
 
