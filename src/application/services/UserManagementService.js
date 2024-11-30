@@ -1,6 +1,8 @@
 import {v4 as uuidv4} from 'uuid';
 import FileUploadService from "./FileUploadService.js";
 import UserRepositoryImpl from "../../infrastructure/repositories/UserRepositoryImpl.js";
+import {mapToDomainUpdateReq, mapToDto} from "../common/mapper/User.js";
+import {UserType} from "../common/UserType.js";
 
 class UserManagementService {
   constructor() {
@@ -9,10 +11,10 @@ class UserManagementService {
 
   async getAllUsers() {
     const users = await this.userRepository.findAll();
-    if (!users || users.length === 0) {
+    if (!users || users?.length === 0) {
       throw new Error('Users not found');
     }
-    return users;
+    return users?.map(user => mapToDto(user));
   }
 
   async getUserById(id) {
@@ -23,7 +25,7 @@ class UserManagementService {
     if (!user) {
       throw new Error('User not found');
     }
-    return user;
+    return mapToDto(user);
   }
 
   async getUserByEmail(email) {
@@ -34,33 +36,52 @@ class UserManagementService {
     if (!user) {
       throw new Error('User not found');
     }
-    return user;
+    return mapToDto(user);
   }
 
-  async updateUserById(id, updateData) {
+  async updateUserById(id, updateData, isSetup) {
     if (!id) {
       throw new Error('User ID is required');
     }
     if (!updateData || Object.keys(updateData).length === 0) {
       throw new Error('Update data is required');
     }
-
-    const updatedUser = await this.userRepository.findByIdAndUpdate(id, updateData);
+    const data = mapToDomainUpdateReq(updateData);
+    const isValid = this.validateUserData(data);
+    if(!isValid) throw new Error('User data is not valid / missing required information');
+    if(isSetup) data.isProfileSetup = true;
+    const updatedUser = await this.userRepository.findByIdAndUpdate(id, data);
     if (!updatedUser) {
       throw new Error('User not found');
     }
-    return updatedUser;
+    return mapToDto(updatedUser);
+  }
+
+  validateUserData = (user) => {
+    if(user && user.userType){
+      if(user.userType === UserType.FREE_TIER) return true;
+
+      if(user.userType === UserType.VERIFIED_TIER || user.userType === UserType.PREMIUM_TIER){
+        console.log(user.userType, user.identificationNumber, user.identificationRecord)
+        return user.identificationNumber != null && user.identificationRecord != null;
+      }
+
+      if(user.userType === UserType.COMPANY_ACCOUNT){
+        return user.identificationNumber != null && user.identificationRecord != null
+            && user.companyName !== null && user.companyRegistrationNumber !== null;
+      }
+    }
+    return true;
   }
 
   async uploadUserProfilePicture(file, user) {
-    console.log("uploadUserProfilePicture:::::::: ", user);
     const uniqueFileName = `images/users/${uuidv4()}_${file.originalname}`;
     const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
     console.log("uploadResult:::::::: ", uploadResult);
     await this.updateUserById(user.id, {profilePicture: uploadResult?.Location});
     return uploadResult;
-
   }
+
 }
 
 export default UserManagementService;

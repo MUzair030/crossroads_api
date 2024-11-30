@@ -37,11 +37,22 @@ router.put('/:id', async (req, res) => {
   const updateData = req.body;
 
   try {
-    const updatedPatient = await userService.updateUserById(id, updateData);
-    CommonResponse.success(res, updatedPatient);
+    const updatedUser = await userService.updateUserById(id, updateData);
+    CommonResponse.success(res, updatedUser);
   } catch (error) {
     CommonResponse.error(res, error.message, 404);
+  }
+});
 
+router.post('/:id/setup', async (req, res) => {
+  const { id } = req.params;
+  const updateData = req.body;
+
+  try {
+    const updatedUser = await userService.updateUserById(id, updateData, true);
+    CommonResponse.success(res, updatedUser);
+  } catch (error) {
+    CommonResponse.error(res, error.message, 404);
   }
 });
 
@@ -118,14 +129,13 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
-router.get('/delete', passport.authenticate('jwt', { session: false }), async (req, res) => {
+router.delete('/', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const userId = req.user.id;
     await authService.markAccountAsDeleted(userId);
     CommonResponse.success(res, null,  'Account deleted successfully');
-    // res.status(200).json({ message: 'Account deleted successfully' });
   } catch (error) {
-    CommonResponse.error(res, err.message, 400);
+    CommonResponse.error(res, error.message, 400);
   }
 });
 
