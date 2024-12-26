@@ -99,11 +99,11 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Handle user disconnections
+    // Handle user disconnections and clean up userSocketMap
     socket.on('disconnect', () => {
         for (let userId in userSocketMap) {
             if (userSocketMap[userId] === socket.id) {
-                delete userSocketMap[userId];
+                delete userSocketMap[userId]; // Remove the disconnected user from the map
                 console.log(`User ${userId} disconnected and removed from map`);
                 break;
             }
