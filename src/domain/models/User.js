@@ -24,6 +24,16 @@ const UserSchema = new mongoose.Schema({
   verificationToken: String,
   resetOtpExpiry: { type: Date, default: null },
   isDeleted: { type: Boolean, default: false },
+
+  friendRequests: [
+    {
+      from: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
+    },
+  ],
+  friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+
+
 });
 
 const User = mongoose.model('User', UserSchema);

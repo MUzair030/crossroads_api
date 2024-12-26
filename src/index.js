@@ -2,11 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import session from 'express-session';
 import connectDB from './infrastructure/database/MongoDB.js';
-import authController from './infrastructure/controllers/AuthController.js';
-import profileController from './infrastructure/controllers/ProfileController.js';
 import bodyParser from 'body-parser';
 import passport from './application/services/GoogleAuthService.js';
 import CommonResponse from "./application/common/CommonResponse.js";
+import authController from './infrastructure/controllers/AuthController.js';
+import profileController from './infrastructure/controllers/ProfileController.js';
+import friendController from './infrastructure/controllers/FriendController.js';
 
 const app = express();
 const corsOptions = {
@@ -36,6 +37,9 @@ app.use(session({
 app.use('/api/auth', authController);
 app.use('/api/account', profileController);
 app.use('/api/users', profileController);
+app.use('/api/posts', profileController);
+// app.use('/api/chat', profileController);
+app.use('/api/friend', friendController);
 
 app.use((err, req, res, next) => {
   console.error(err);

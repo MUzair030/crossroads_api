@@ -39,6 +39,24 @@ class UserRepositoryImpl extends UserRepository {
       throw new Error(`Failed to update user: ${error.message}`);
     }
   }
+
+  async pushToField(userId, field, value) {
+    return User.findByIdAndUpdate(userId, { $push: { [field]: value } }, { new: true });
+  }
+
+  async pullFromField(userId, field, value) {
+    return User.findByIdAndUpdate(userId, { $pull: { [field]: value } }, { new: true });
+  }
+
+  async findFriendRequests(userId) {
+    const user = await User.findOne({_id: userId}).populate('friendRequests.from', 'name email');
+    return user ? user.friendRequests : [];
+  }
+
+  async findFriends(userId) {
+    const user = await User.findOne({_id: userId}).populate('friends', 'name email');
+    return user ? user.friends : [];
+  }
 }
 
 export default UserRepositoryImpl;
