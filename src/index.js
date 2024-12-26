@@ -69,19 +69,33 @@ io.on('connection', (socket) => {
 
     // Listen for 'sendMessage' events from users
     socket.on('sendMessage', async (data) => {
-        const { senderId, receiverId, chatId, message } = data;
+        const { senderId, chatId, content } = data;
         handleSendMessage(socket, data, io);
 
-        const receiverSocketId = getReceiverSocketId(receiverId);
-        if (receiverSocketId) {
-            io.to(receiverSocketId).emit('newMessageNotification', {
-                senderId,
-                message,
-                notification: 'You have a new message!',
-            });
-            console.log(`Notification sent to receiver ${receiverId} with socket ID: ${receiverSocketId}`);
-        } else {
-            console.log(`Receiver ${receiverId} is not online`);
+        try {
+            // Fetch the participants for the given chatId
+            const participants = await getReceiverSocketId(chatId);
+            if (participants) {
+                participants.forEach((participant) => {
+                    const receiverSocketId = userSocketMap[participant.userId]; // Use userId to get socket ID
+
+                    if (receiverSocketId) {
+                        // Send notification to the receiver
+                        io.to(receiverSocketId).emit('newMessageNotification', {
+                            senderId,
+                            content,
+                            notification: 'You have a new message!',
+                        });
+                        console.log(`Notification sent to receiver ${participant.userId} in chat ID: ${chatId}`);
+                    } else {
+                        console.log(`User ${participant.userId} is not online`);
+                    }
+                });
+            } else {
+                console.log(`No participants found for chat ID: ${chatId}`);
+            }
+        } catch (err) {
+            console.error('Error sending message notification:', err);
         }
     });
 

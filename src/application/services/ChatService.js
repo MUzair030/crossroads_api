@@ -19,6 +19,10 @@ class ChatService {
         return ChatRepository.findChatsByUser(userId);
     }
 
+    static async getChatById(chatId) {
+        return ChatRepository.findChatById(chatId);
+    }
+
     static async addMessage(chatId, senderId, content) {
         const chat = await ChatRepository.findChatById(chatId);
         if (!chat) throw new Error('Chat not found');

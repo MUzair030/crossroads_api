@@ -28,6 +28,16 @@ router.get('/user/:userId', async (req, res) => {
     }
 });
 
+router.get('/:chatId', async (req, res) => {
+    const { chatId } = req.params;
+    try {
+        const chat = await ChatService.getChatById(chatId);
+        CommonResponse.success(res, chat);
+    } catch (err) {
+        CommonResponse.error(res, err.message, 400);
+    }
+});
+
 router.post('/:chatId/message', async (req, res) => {
     const { chatId } = req.params;
     const { senderId, content } = req.body;
@@ -50,8 +60,20 @@ export async function handleSendMessage(socket, data, io) {
     }
 }
 
-export function getReceiverSocketId(userId) {
-    return userSocketMap[userId];
+// Helper function to get the socket IDs of participants in a chat
+export async function getReceiverSocketId(chatId) {
+    try {
+        const chat = await ChatService.getChatById(chatId);
+        if (chat) {
+            return chat.participants;
+        } else {
+            console.log(`Chat ${chatId} not found.`);
+            return null;
+        }
+    } catch (err) {
+        console.error('Error fetching chat participants:', err);
+        return null;
+    }
 }
 
 
