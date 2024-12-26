@@ -1,13 +1,20 @@
 import mongoose from 'mongoose';
 
-const messageSchema = new mongoose.Schema({
+const commentSchema = new mongoose.Schema({
     content: { type: String, required: true },
-    media: [{ type: String }],
-    thread: { type: mongoose.Schema.Types.ObjectId, ref: 'Thread' },
-    sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    timestamp: { type: Date, default: Date.now },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        refPath: 'User',
+        required: true,
+    },
+    thread: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Thread',
+        required: true,
+    },
+    createdAt: { type: Date, default: Date.now },
 });
 
-const Comment = mongoose.model('Comment', messageSchema);
+const Comment = mongoose.model('Comment', commentSchema);
 
 export default Comment;

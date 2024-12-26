@@ -1,15 +1,24 @@
+// models/Thread.js
 import mongoose from 'mongoose';
 
 const threadSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    description: { type: String, required: true },
-    media: [{ type: String }],
-    creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    timestamp: { type: Date, default: Date.now },
-    // comments: [{
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: 'Comment',
-    // }],
+    topic: { type: String, required: true },
+    content: { type: String, required: true },
+    image: [{
+        url: { type: String, required: false },
+        mimeType: { type: String, required: false },
+        uploadedAt: { type: Date, default: Date.now }
+    }],
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        refPath: 'User',
+        required: true,
+    },
+    comments: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Comment',
+    }],
+    createdAt: { type: Date, default: Date.now },
 });
 
 const Thread = mongoose.model('Thread', threadSchema);

@@ -2,43 +2,45 @@ import express from 'express';
 import multer from 'multer';
 import CommonResponse from '../../application/common/CommonResponse.js';
 import ThreadService from "../../application/services/ThreadService.js";
-import CommentService from "../../application/services/CommentService.js";
+// import { io } from '../../index.js';
+import UserManagementService from "../../application/services/UserManagementService.js";
 
+
+const userManagementService = new UserManagementService();
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+    storage: multer.memoryStorage(),
+    fileFilter: (req, file, cb) => {
+        if (file && !file.mimetype.startsWith('image/')) {
+            return cb(new Error('Only image files are allowed'), false);
+        }
+        cb(null, true);
+    },
+});
 
-router.post('/thread', upload.array('media', 10), async (req, res) => {
-    const { title, description, creatorId } = req.body;
+// Create a thread with optional image uploads
+router.post('/', upload.array('images', 5), async (req, res) => {
+    const { topic, content, createdBy } = req.body;
+    const imageFiles = req.files || [];
+    const user = await userManagementService.getUserById(createdBy);
+    // const creatorModel = user?.userType;
 
     try {
-        const newThread = await ThreadService.createThread(title, description, creatorId, req.files);
+        const newThread = await ThreadService.createThread({
+            topic,
+            content,
+            createdBy,
+            // creatorModel,
+            imageFiles,
+        });
         CommonResponse.success(res, newThread);
     } catch (err) {
-        CommonResponse.error(res, err.message, 500);
+        CommonResponse.error(res, err.message, 400);
     }
 });
 
-router.get('/threads', async (req, res) => {
-    try {
-        const threads = await ThreadService.getAllThreads();
-        CommonResponse.success(res, threads);
-    } catch (err) {
-        CommonResponse.error(res, err.message, 500);
-    }
-});
-
-router.post('/comment', upload.array('media', 10), async (req, res) => {
-    const { content, threadId, senderId } = req.body;
-
-    try {
-        const newMessage = await CommentService.createComment(content, threadId, senderId, req.files);
-        CommonResponse.success(res, newMessage);
-    } catch (err) {
-        CommonResponse.error(res, err.message, 500);
-    }
-});
-
-router.get('/thread/:threadId', async (req, res) => {
+// Get a thread by ID
+router.get('/:threadId', async (req, res) => {
     const { threadId } = req.params;
 
     try {
@@ -46,11 +48,38 @@ router.get('/thread/:threadId', async (req, res) => {
         if (!thread) {
             return CommonResponse.error(res, 'Thread not found', 404);
         }
-
-        const comments = await CommentService.getCommentsByThread(threadId);
-        CommonResponse.success(res, { thread, comments });
+        CommonResponse.success(res, thread);
     } catch (err) {
-        CommonResponse.error(res, err.message, 500);
+        CommonResponse.error(res, err.message, 400);
+    }
+});
+
+// Get all threads
+router.get('/', async (req, res) => {
+    try {
+        const threads = await ThreadService.getAllThreads();
+        CommonResponse.success(res, threads);
+    } catch (err) {
+        CommonResponse.error(res, err.message, 400);
+    }
+});
+
+// Add a comment to a thread
+router.post('/:threadId/comment', async (req, res) => {
+    const { threadId } = req.params;
+    const { content, createdBy } = req.body;
+    const user = await userManagementService.getUserById(createdBy);
+    // const creatorModel = user?.userType;
+
+    try {
+        const updatedThread = await ThreadService.addCommentToThread(threadId, {
+            content,
+            createdBy,
+            // creatorModel,
+        });
+        CommonResponse.success(res, updatedThread);
+    } catch (err) {
+        CommonResponse.error(res, err.message, 400);
     }
 });
 
