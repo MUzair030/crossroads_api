@@ -76,6 +76,7 @@ export function mapToDto(data) {
     if (data.isCompany !== undefined) dto.isCompany = Boolean(data.isCompany);
     if (data.companyName) dto.companyName = data.companyName;
     if (data.companyRegistrationNumber) dto.companyRegistrationNumber = data.companyRegistrationNumber;
+    if (data.verificationToken) dto.otp = data.verificationToken;
     if (data.isDeleted !== undefined) dto.isDeleted = data.isDeleted;
 
     return dto;
