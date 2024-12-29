@@ -35,8 +35,8 @@ router.post('/resend-verification-email', async (req, res) => {
 router.post('/signin', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const { accessToken, refreshToken, isProfileSetup, isEmailVerified } = await authService.signIn({ email, password });
-    CommonResponse.success(res, { accessToken, refreshToken, isProfileSetup, isEmailVerified});
+    const { accessToken, refreshToken, userId, isProfileSetup, isEmailVerified } = await authService.signIn({ email, password });
+    CommonResponse.success(res, { accessToken, refreshToken, userId, isProfileSetup, isEmailVerified});
   } catch (err) {
     CommonResponse.error(res, err.message, 400);
   }
