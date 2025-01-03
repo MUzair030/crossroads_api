@@ -10,8 +10,8 @@ const authService = new AuthService(userRepository);
 
 router.post('/signup', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    const user = await authService.signUp({ name, email, password });
+    const { name, userName, email, password } = req.body;
+    const user = await authService.signUp({ name, userName, email, password });
     CommonResponse.success(res, { user });
   } catch (err) {
     CommonResponse.error(res, err);
@@ -34,8 +34,8 @@ router.post('/resend-verification-email', async (req, res) => {
 
 router.post('/signin', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const { accessToken, refreshToken, userId, isProfileSetup, isEmailVerified } = await authService.signIn({ email, password });
+    const { email, userName, password } = req.body;
+    const { accessToken, refreshToken, userId, isProfileSetup, isEmailVerified } = await authService.signIn({ email, userName, password });
     CommonResponse.success(res, { accessToken, refreshToken, userId, isProfileSetup, isEmailVerified});
   } catch (err) {
     CommonResponse.error(res, err.message, 400);

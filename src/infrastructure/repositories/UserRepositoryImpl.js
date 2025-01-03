@@ -10,6 +10,10 @@ class UserRepositoryImpl extends UserRepository {
     return User.findOne({ email });
   }
 
+  async findByUserName(userName) {
+    return User.findOne({ userName });
+  }
+
   async findByGoogleId(googleId) {
     return User.findOne({ googleId });
   }

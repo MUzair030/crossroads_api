@@ -7,6 +7,7 @@ function mapToDomain(data) {
     if (data.name) domainData.name = data.name;
     if (data.firstName) domainData.firstName = data.firstName;
     if (data.lastName) domainData.lastName = data.lastName;
+    if (data.userName) domainData.userName = data.userName;
     if (data.email) domainData.email = data.email;
     if (data.phone) domainData.phone = data.phone;
     if (data.dob) domainData.dob = new Date(data.dob); // Ensure it's a Date
@@ -37,12 +38,15 @@ export function mapToDomainUpdateReq(data) {
     if (data.name) domain.name = data.name;
     if (data.firstName) domain.firstName = data.firstName;
     if (data.lastName) domain.lastName = data.lastName;
+    if (data.userName) domain.userName = data.userName;
     if (data.email) domain.email = data.email;
     if (data.phone) domain.phone = data.phone;
     if (data.dob) domain.dob = new Date(data.dob);
     if (data.city) domain.city = data.city;
     if (data.state) domain.state = data.state;
     if (data.country) domain.country = data.country;
+    if (data.profilePicture) domainData.profilePicture = data.profilePicture;
+    if (data.isProfileSetup !== undefined) domainData.isProfileSetup = Boolean(data.isProfileSetup);
     if (data.identificationNumber) domain.identificationNumber = data.identificationNumber;
     if (data.identificationRecord) domain.identificationRecord = data.identificationRecord;
     if (data.companyName) domain.companyName = data.companyName;
@@ -61,6 +65,7 @@ export function mapToDto(data) {
     if (data.name) dto.name = data.name;
     if (data.firstName) dto.firstName = data.firstName;
     if (data.lastName) dto.lastName = data.lastName;
+    if (data.userName) dto.userName = data.userName;
     if (data.email) dto.email = data.email;
     if (data.phone) dto.phone = data.phone;
     if (data.dob) dto.dob = new Date(data.dob);

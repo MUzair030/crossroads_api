@@ -8,17 +8,21 @@ class AuthService {
     this.userRepository = userRepository;
   }
 
-  async signUp({ name, email, password }) {
+  async signUp({ name, userName, email, password }) {
     const existingUser = await this.userRepository.findByEmail(email);
     if (existingUser) {
-      throw new Error('User already exists');
+      throw new Error('User email already exists');
+    }
+    const existingUserName = await this.userRepository.findByUserName(userName);
+    if (existingUserName) {
+      throw new Error('Username already exists');
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     const verificationToken = Math.floor(10000 + Math.random() * 90000).toString();
 
-    const user = { name, email, password: hashedPassword, verificationToken };
+    const user = { name, email, userName, password: hashedPassword, verificationToken };
     const savedUser = await this.userRepository.save(user);
     await emailService.sendVerificationEmail(savedUser, verificationToken);
     return { message: 'Verification email sent. Please check your email.' };
@@ -59,8 +63,15 @@ class AuthService {
     }
   }
 
-  async signIn({ email, password }) {
-    const user = await this.userRepository.findByEmail(email);
+  async signIn({ email, userName, password }) {
+    let user = null;
+    const userByEmail = await this.userRepository.findByEmail(email);
+    if(userByEmail){
+      user = userByEmail;
+    }
+    else {
+      user = await this.userRepository.findByUserName(userName);
+    }
     if (!user) {
       throw new Error('Invalid credentials');
     }
