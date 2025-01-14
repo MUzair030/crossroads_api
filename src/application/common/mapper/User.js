@@ -45,8 +45,8 @@ export function mapToDomainUpdateReq(data) {
     if (data.city) domain.city = data.city;
     if (data.state) domain.state = data.state;
     if (data.country) domain.country = data.country;
-    if (data.profilePicture) domainData.profilePicture = data.profilePicture;
-    if (data.isProfileSetup !== undefined) domainData.isProfileSetup = Boolean(data.isProfileSetup);
+    if (data.profilePicture) domain.profilePicture = data.profilePicture;
+    if (data.isProfileSetup !== undefined) domain.isProfileSetup = Boolean(data.isProfileSetup);
     if (data.identificationNumber) domain.identificationNumber = data.identificationNumber;
     if (data.identificationRecord) domain.identificationRecord = data.identificationRecord;
     if (data.companyName) domain.companyName = data.companyName;
