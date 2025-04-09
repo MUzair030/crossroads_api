@@ -8,18 +8,21 @@ class AuthService {
     this.userRepository = userRepository;
   }
 
-  async signUp({ name, email, password }) {
+  async signUp({ name, userName, email, password }) {
     const existingUser = await this.userRepository.findByEmail(email);
     if (existingUser) {
-      throw new Error('User already exists');
+      throw new Error('User email already exists');
+    }
+    const existingUserName = await this.userRepository.findByUserName(userName);
+    if (existingUserName) {
+      throw new Error('Username already exists');
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    const verificationToken = Math.floor(10000 + Math.random() * 90000).toString();
 
-    const verificationToken = Math.floor(10000 + Math.random() * 90000);
-
-    const user = { name, email, password: hashedPassword, verificationToken };
+    const user = { name, email, userName, password: hashedPassword, verificationToken };
     const savedUser = await this.userRepository.save(user);
     await emailService.sendVerificationEmail(savedUser, verificationToken);
     return { message: 'Verification email sent. Please check your email.' };
@@ -31,7 +34,7 @@ class AuthService {
         throw new Error('User does not exist');
     }
 
-    const verificationToken = Math.floor(10000 + Math.random() * 90000);
+    const verificationToken = Math.floor(10000 + Math.random() * 90000).toString();
     user.verificationToken = verificationToken;
     await this.userRepository.update(user);
 
@@ -48,13 +51,11 @@ class AuthService {
       if (user.isVerified) {
         throw new Error('User is already verified');
       }
-
-      if (user.verificationCode !== parseInt(code, 10)) {
+      if (user.verificationToken !== code) {
         throw new Error('Invalid verification code');
       }
-
       user.isVerified = true;
-      user.verificationCode = null;
+      user.verificationToken = null;
       await this.userRepository.update(user);
       return { message: 'Email verified successfully!' };
     } catch (err) {
@@ -62,39 +63,21 @@ class AuthService {
     }
   }
 
-
-  // async verifyEmail(token) {
-  //   try {
-  //     const decoded = jwt.verify(token, config.jwtSecret);
-  //     const user = await this.userRepository.findByEmail(decoded.email);
-  //
-  //     if (!user || user.isVerified) {
-  //       throw new Error('Invalid or already verified token');
-  //     }
-  //
-  //     user.isVerified = true;
-  //     user.verificationToken = undefined;
-  //     await this.userRepository.update(user);
-  //     return { message: 'Email verified successfully!' };
-  //   } catch (err) {
-  //     throw new Error('Invalid token');
-  //   }
-  // }
-
-  async signIn({ email, password }) {
-    const user = await this.userRepository.findByEmail(email);
+  async signIn({ email, userName, password }) {
+    let user = null;
+    const userByEmail = await this.userRepository.findByEmail(email);
+    if(userByEmail){
+      user = userByEmail;
+    }
+    else {
+      user = await this.userRepository.findByUserName(userName);
+    }
     if (!user) {
       throw new Error('Invalid credentials');
     }
-
     if (user.isDeleted) {
       throw new Error('Account marked as Deleted.');
     }
-
-    // if (!user.isVerified) {
-    //   throw new Error('Please verify your email first');
-    // }
-
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       throw new Error('Invalid credentials');
@@ -103,7 +86,7 @@ class AuthService {
     const accessToken = jwt.sign({ userId: user.id }, config.jwtSecret, { expiresIn: '15m' });
     const refreshToken = jwt.sign({ userId: user.id }, config.refreshTokenSecret, { expiresIn: '7d' });
 
-    return { accessToken, refreshToken, isProfileSetup: user.isProfileSetup, isEmailVerified: user.isVerified};
+    return { accessToken, refreshToken, userId: user.id, isProfileSetup: user.isProfileSetup, isEmailVerified: user.isVerified};
   }
 
   async refreshAccessToken(refreshToken) {
@@ -132,18 +115,48 @@ class AuthService {
     await this.userRepository.update(user);
   }
 
-  async resetPassword(email) {
+  async sendForgotPasswordOTP(email) {
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
       throw new Error('User not found');
     }
-    const temPass = "tempPassword@123";
-    const hashedPassword = await bcrypt.hash(temPass, await bcrypt.genSalt(10));
-    user.password = hashedPassword;
-    let savedUser = await this.userRepository.update(user);
-    await emailService.sendPasswordResetEmail(savedUser, temPass);
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+    user.verificationToken = otp;
+    user.resetOtpExpiry = otpExpiry;
+    await this.userRepository.update(user);
+    await emailService.sendForgotPasswordEmail(email, otp);
   }
 
+  async verifyOtp(email, otp) {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (user.verificationToken !== otp || user.resetOtpExpiry < new Date()) {
+      throw new Error('Invalid or expired OTP');
+    }
+    return true;
+  }
+
+  async resetPasswordWithOtp(email, newPassword) {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    if (!user.verificationToken || user.resetOtpExpiry < new Date()) {
+      throw new Error('OTP verification required');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, await bcrypt.genSalt(10));
+    user.password = hashedPassword;
+    user.verificationToken = null;
+    user.resetOtpExpiry = null;
+    await this.userRepository.update(user);
+    return { message: 'Password reset successful' };
+  }
 
   async markAccountAsDeleted(userId) {
     const user = await this.userRepository.findById(userId);
