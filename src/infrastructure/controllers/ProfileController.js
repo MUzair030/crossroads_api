@@ -22,6 +22,23 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/search', async (req, res) => {
+  try {
+    const { query } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+
+    if (!query || query.trim() === '') {
+      return CommonResponse.error(res, 'Search query is required', 400);
+    }
+
+    const results = await userService.searchUsers(query, page, limit);
+    CommonResponse.success(res, results);
+  } catch (error) {
+    CommonResponse.error(res, error.message, 500);
+  }
+});
+
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -74,22 +91,6 @@ router.post('/:id/profile-picture', upload.single('file'), async (req, res) => {
   }
 });
 
-router.get('/search', async (req, res) => {
-  try {
-    const { query } = req.query;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-
-    if (!query || query.trim() === '') {
-      return CommonResponse.error(res, 'Search query is required', 400);
-    }
-
-    const results = await userService.searchUsers(query, page, limit);
-    CommonResponse.success(res, results);
-  } catch (error) {
-    CommonResponse.error(res, error.message, 500);
-  }
-});
 
 
 router.post('/verify-email', async (req, res) => {
