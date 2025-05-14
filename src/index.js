@@ -121,6 +121,6 @@ app.use((err, req, res, next) => {
 
 // Start the server
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {  // Make sure you're using server.listen() to bind with HTTP server
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server started on port ${PORT}`);
 });
