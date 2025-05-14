@@ -21,6 +21,36 @@ class UserRepositoryImpl extends UserRepository {
   async findAll() {
     return User.find();
   }
+  
+  async searchUsers(query, page = 1, limit = 20) {
+  if (!query || query.trim() === '') {
+    throw new Error('Search query is required');
+  }
+
+  const regex = new RegExp(query, 'i');
+  const skip = (page - 1) * limit;
+
+  const [users, total] = await Promise.all([
+    User.find({
+      $or: [
+        { name: { $regex: regex } },
+        { userName: { $regex: regex } },
+        { email: { $regex: regex } }
+      ]
+    })
+      .skip(skip)
+      .limit(limit),
+    User.countDocuments({
+      $or: [
+        { name: { $regex: regex } },
+        { userName: { $regex: regex } },
+        { email: { $regex: regex } }
+      ]
+    })
+  ]);
+
+  return { users, total };
+}
 
   async save(user) {
     const newUser = new User(user);

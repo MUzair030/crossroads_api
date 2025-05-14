@@ -17,6 +17,22 @@ class UserManagementService {
     return users?.map(user => mapToDto(user));
   }
 
+
+  async searchUsers(query, page = 1, limit = 20) {
+    const { users, total } = await this.userRepository.searchUsers(query, page, limit);
+
+    if (!users || users.length === 0) {
+      throw new Error('No users found');
+    }
+
+    return {
+      results: users.map(user => mapToDto(user)),
+      total,
+      page,
+      pages: Math.ceil(total / limit)
+    };
+}
+
   async getUserById(id) {
     if (!id) {
       throw new Error('User ID is required');
