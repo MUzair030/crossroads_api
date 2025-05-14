@@ -27,8 +27,10 @@ class UserRepositoryImpl extends UserRepository {
     throw new Error('Search query is required');
   }
 
-  const regex = new RegExp('^' + query, 'i'); // starts with query, case-insensitive
+  const regex = new RegExp('^' + query, 'i'); // starts with query
   const skip = (page - 1) * limit;
+
+  const projection = '_id name email userName profilePicture';
 
   const [users, total] = await Promise.all([
     User.find({
@@ -38,8 +40,10 @@ class UserRepositoryImpl extends UserRepository {
         { email: { $regex: regex } }
       ]
     })
-      .skip(skip)
-      .limit(limit),
+    .select(projection)  // ⬅️ Only return these fields
+    .skip(skip)
+    .limit(limit),
+
     User.countDocuments({
       $or: [
         { name: { $regex: regex } },
@@ -51,6 +55,7 @@ class UserRepositoryImpl extends UserRepository {
 
   return { users, total };
 }
+
 
 
   async save(user) {
