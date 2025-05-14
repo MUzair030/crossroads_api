@@ -21,13 +21,13 @@ class UserRepositoryImpl extends UserRepository {
   async findAll() {
     return User.find();
   }
-  
-  async searchUsers(query, page = 1, limit = 20) {
+
+ async searchUsers(query, page = 1, limit = 20) {
   if (!query || query.trim() === '') {
     throw new Error('Search query is required');
   }
 
-  const regex = new RegExp(query, 'i');
+  const regex = new RegExp('^' + query, 'i'); // starts with query, case-insensitive
   const skip = (page - 1) * limit;
 
   const [users, total] = await Promise.all([
@@ -51,6 +51,7 @@ class UserRepositoryImpl extends UserRepository {
 
   return { users, total };
 }
+
 
   async save(user) {
     const newUser = new User(user);
