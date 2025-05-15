@@ -3,6 +3,7 @@ import Event from "../../domain/models/Event.js";
 class EventRepository {
   async create(data) {
     const event = new Event(data);
+    
     return event.save();
   }
 
