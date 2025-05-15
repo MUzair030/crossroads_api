@@ -23,8 +23,6 @@ class UserManagementService {
 
     if (!users || users.length === 0) {
     return {
-      success: false,
-      message: 'No users found',
       users: [],
       total: 0,
       page,
@@ -34,7 +32,7 @@ class UserManagementService {
 
 
     return {
-      data: users.map(user => mapToDto(user)),
+      users: users.map(user => mapToDto(user)),
       total,
       page,
       pages: Math.ceil(total / limit)
