@@ -36,7 +36,7 @@ router.post(
       });
 
         await User.findByIdAndUpdate(
-      creatorId,
+      req.user.id,
       { $push: { myEventIds: event._id } },
       { new: true }
     );
