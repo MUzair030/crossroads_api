@@ -19,7 +19,7 @@ class EventRepository {
   endDate, 
   page = 1, 
   limit = 10 
-}) {
+}={}) {
   const filter = {
     type: 'public',
     isDeleted: false,
