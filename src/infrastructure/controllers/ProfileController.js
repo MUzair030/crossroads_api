@@ -33,7 +33,7 @@ router.get('/search', async (req, res) => {
     }
 
     const results = await userService.searchUsers(query, page, limit);
-    CommonResponse.success(res, results);
+    CommonResponse.success(res, results.data,results.total, results.page, results.pages);
   } catch (error) {
     CommonResponse.error(res, error.message, 500);
   }
