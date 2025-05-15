@@ -19,6 +19,7 @@ router.post(
       bannerImages,
       tags,
       categories,
+      isLive,
       groupId,
     } = req.body;
 
@@ -29,6 +30,7 @@ router.post(
         locations,
         dates,
         bannerImages,
+        isLive,
         tags,
         categories,
         groupId,

@@ -83,6 +83,8 @@ const eventSchema = new mongoose.Schema({
   // State
   isCancelled: { type: Boolean, default: false },
   isDeleted: { type: Boolean, default: false },
+  isLive: { type: Boolean, default: false },
+
 
   // Poll toggles
   wherePoll: { type: Boolean, default: false },
