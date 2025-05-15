@@ -22,8 +22,16 @@ class UserManagementService {
     const { users, total } = await this.userRepository.searchUsers(query, page, limit);
 
     if (!users || users.length === 0) {
-      throw new Error('No users found');
-    }
+    return {
+      success: false,
+      message: 'No users found',
+      users: [],
+      total: 0,
+      page,
+      pages: 0
+    };
+}
+
 
     return {
       data: users.map(user => mapToDto(user)),
