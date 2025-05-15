@@ -19,7 +19,6 @@ router.post(
       bannerImages,
       tags,
       categories,
-      isLive,
       groupId,
     } = req.body;
 
@@ -32,7 +31,6 @@ router.post(
         bannerImages,
         tags,
         categories,
-        isLive,
         groupId,
         creatorId: req.user.id,
       });
