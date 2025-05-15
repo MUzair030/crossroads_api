@@ -14,7 +14,7 @@ async findPublicEvents({
   long,
   maxDistance = 50000,
   category,
-  query,
+  query: searchQuery,
   startDate,
   endDate,
   page = 1,
@@ -27,7 +27,7 @@ async findPublicEvents({
   };
 
   if (category) baseFilter.category = category;
-  if (query) baseFilter.title = { $regex: query, $options: 'i' };
+  if (searchQuery) baseFilter.title = { $regex: searchQuery, $options: 'i' };
 
   if (startDate || endDate) {
     baseFilter.date = {};
@@ -59,7 +59,6 @@ async findPublicEvents({
     .skip(skipCount)
     .limit(limit);
 
-  // If no geo filter applied, sort alphabetically by title
   if (!lat || !long) {
     query = query.sort({ title: 1 });
   }
