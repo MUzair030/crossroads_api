@@ -12,6 +12,7 @@ import profileController from './infrastructure/controllers/ProfileController.js
 import friendController from './infrastructure/controllers/FriendController.js';
 import postsController from './infrastructure/controllers/ThreadController.js';
 import groupController from './infrastructure/controllers/GroupController.js';
+import eventController from './infrastructure/controllers/EventController.js';
 import chatController, {
     getReceiverSocketId,
     handleSendMessage,
@@ -58,6 +59,8 @@ app.use('/api/friend', friendController);
 app.use('/api/posts', postsController);
 app.use('/api/chat', chatController);
 app.use('/api/groups', groupController);
+app.use('/api/events', eventController);
+
 
 // Socket.IO Connection
 io.on('connection', (socket) => {
