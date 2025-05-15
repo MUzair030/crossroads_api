@@ -40,6 +40,8 @@ class EventService {
         // No group linked — create standalone event
         data.isLinkedWithGroup = false;
         data.groupId = null;
+        data.isLive=isLive;
+
 
         const event = await EventRepository.create(data);
         return event;

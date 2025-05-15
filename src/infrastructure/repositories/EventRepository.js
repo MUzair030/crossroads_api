@@ -23,7 +23,6 @@ async  findPublicEvents({
   const baseFilter = {
     access: 'public',
     isDeleted: false,
-    isLive: true,
   };
 
   if (category) baseFilter.category = category;
