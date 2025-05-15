@@ -26,7 +26,7 @@ class UserManagementService {
     }
 
     return {
-      results: users.map(user => mapToDto(user)),
+      data: users.map(user => mapToDto(user)),
       total,
       page,
       pages: Math.ceil(total / limit)
