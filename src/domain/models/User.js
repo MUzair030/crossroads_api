@@ -25,6 +25,8 @@ const UserSchema = new mongoose.Schema({
   verificationToken: String,
   resetOtpExpiry: { type: Date, default: null },
   isDeleted: { type: Boolean, default: false },
+  myEventIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
+
 
   friendRequests: [
     {

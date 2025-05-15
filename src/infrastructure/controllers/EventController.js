@@ -34,7 +34,13 @@ router.post(
         creatorId: req.user.id,
       });
 
-      CommonResponse.success(res, event);
+        await User.findByIdAndUpdate(
+      creatorId,
+      { $push: { myEventIds: event._id } },
+      { new: true }
+    );
+
+      CommonResponse.success(res, { id: event._id.toString() });
     } catch (err) {
       CommonResponse.error(res, err.message, 400);
     }
