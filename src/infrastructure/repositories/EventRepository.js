@@ -9,7 +9,7 @@ class EventRepository {
 
 
   
-async findPublicEvents({
+async function findPublicEvents({
   lat,
   long,
   maxDistance = 50000,
@@ -28,7 +28,6 @@ async findPublicEvents({
 
   if (category) baseFilter.category = category;
   if (searchQuery) baseFilter.title = { $regex: searchQuery, $options: 'i' };
-
   if (startDate || endDate) {
     baseFilter.date = {};
     if (startDate) baseFilter.date.$gte = new Date(startDate);
@@ -37,35 +36,25 @@ async findPublicEvents({
 
   const skipCount = (page - 1) * limit;
 
-  let geoFilter = {};
+  let query = Event.find(baseFilter);
+
   if (lat && long) {
-    geoFilter.location = {
-      $near: {
-        $geometry: {
-          type: 'Point',
-          coordinates: [parseFloat(long), parseFloat(lat)],
-        },
-        $maxDistance: parseInt(maxDistance),
+    query = query.where('location').near({
+      center: {
+        type: 'Point',
+        coordinates: [parseFloat(long), parseFloat(lat)],
       },
-    };
-  }
-
-  const finalFilter = {
-    ...baseFilter,
-    ...geoFilter,
-  };
-
-  let query = Event.find(finalFilter)
-    .skip(skipCount)
-    .limit(limit);
-
-  if (!lat || !long) {
+      maxDistance: maxDistance,
+      spherical: true,
+    });
+  } else {
     query = query.sort({ title: 1 });
   }
 
-  return query;
-}
+  query = query.skip(skipCount).limit(limit);
 
+  return query.exec();
+}
 
 /*
   async findById(eventId) {
