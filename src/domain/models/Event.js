@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import stagePostSchema from "./domain/models/StagePostSchema.js"; // adjust the path as needed
+import stagePostSchema from "./StagePostSchema.js"; // adjust the path as needed
 
 
 const ticketSchema = new mongoose.Schema({
