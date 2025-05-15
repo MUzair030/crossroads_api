@@ -9,7 +9,7 @@ class EventRepository {
 
 
   
- async findPublicEvents({
+async findPublicEvents({
   lat,
   long,
   maxDistance = 50000,
@@ -36,24 +36,35 @@ class EventRepository {
   }
 
   const skipCount = (page - 1) * limit;
-  const useGeo = lat && long;
 
-  let queryBuilder = Event.find(baseFilter);
-
-  if (useGeo) {
-    queryBuilder = queryBuilder.where('location').near({s
-      center: {
-        type: 'Point',
-        coordinates: [parseFloat(long), parseFloat(lat)],
+  let geoFilter = {};
+  if (lat && long) {
+    geoFilter.location = {
+      $near: {
+        $geometry: {
+          type: 'Point',
+          coordinates: [parseFloat(long), parseFloat(lat)],
+        },
+        $maxDistance: parseInt(maxDistance),
       },
-      maxDistance: parseInt(maxDistance),
-      spherical: true,
-    });
-  } else {
-    queryBuilder = queryBuilder.sort({ title: 1 }); // fallback to title sort if no geo
+    };
   }
 
-  return queryBuilder.skip(skipCount).limit(limit);
+  const finalFilter = {
+    ...baseFilter,
+    ...geoFilter,
+  };
+
+  let query = Event.find(finalFilter)
+    .skip(skipCount)
+    .limit(limit);
+
+  // If no geo filter applied, sort alphabetically by title
+  if (!lat || !long) {
+    query = query.sort({ title: 1 });
+  }
+
+  return query;
 }
 
 
