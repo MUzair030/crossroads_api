@@ -21,7 +21,7 @@ async  findPublicEvents({
   limit = 10
 } = {}) {
   const baseFilter = {
-    type: 'public',
+    access: 'public',
     isDeleted: false,
     isLive: true,
   };
