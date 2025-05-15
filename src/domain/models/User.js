@@ -19,7 +19,7 @@ const UserSchema = new mongoose.Schema({
   userType: { type: String, required: false },
   identificationNumber: { type: String, required: false },
   identificationRecord: { type: String, required: false },
-  isCompany: { type: Boolean, default: false, required:true },
+  isCompany: { type: Boolean, default: false, required: true },
   companyName: { type: String, required: false },
   companyRegistrationNumber: { type: String, required: false },
   verificationToken: String,
@@ -34,9 +34,43 @@ const UserSchema = new mongoose.Schema({
   ],
   friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 
+  // 📦 Notifications
+  unreadNotificationCount: { type: Number, default: 0 },
 
+  notifications: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Notification'
+    }
+  ],
+
+  notificationSettings: {
+    type: Map,
+    of: Boolean,
+    default: {
+      friend_request: true,
+      friend_accepted: true,
+      mention: true,
+      new_follower: true,
+      ticket_purchased: true,
+      ticket_received: true,
+      event_updated: true,
+      event_reminder: true,
+      event_cancelled: true,
+      service_inquiry: true,
+      service_booked: true,
+      service_review: true,
+      service_updated: true,
+      message: true,
+      group_chat_mention: true,
+      group_invite: true,
+      admin_announcement: true,
+      account_warning: true,
+      app_update: true,
+    },
+  },
 });
 
 const User = mongoose.model('User', UserSchema);
-
 export default User;
+

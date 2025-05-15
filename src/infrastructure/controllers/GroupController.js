@@ -18,29 +18,50 @@ const upload = multer({
     },
 });
 // 1. Create Group
-router.post('/', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    const { name, description, category, coverPicture, groupPicture, type } = req.body;
+router.post(
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const {
+      name,
+      description,
+      categories,
+      tags,
+      bannerImages,
+      type, // public / private
+    } = req.body;
+
     const userId = req.user.id;
+    const creatorName = req.user.name || `${req.user.firstName} ${req.user.lastName}` || ''; // fallback
 
     try {
-        const group = await GroupService.createGroup({
-            name,
-            description,
-            category,
-            coverPicture,
-            groupPicture,
-            members: [{
-                user: new mongoose.Types.ObjectId(userId),
-                role: "admin"
-            }],
-            type,
-            creator: userId,
-        });
-        CommonResponse.success(res, group);
+      const group = await GroupService.createGroup({
+        name,
+        description,
+        categories: categories || [],
+        tags: tags || [],
+        bannerImages: bannerImages || [],
+        type,
+        creator: userId,
+        creatorName,
+        members: [
+          {
+            user: new mongoose.Types.ObjectId(userId),
+            role: 'admin',
+          },
+        ],
+        stagePosts: [],
+        eventIds: [],
+        eventStatuses: new Map(),
+      });
+
+      CommonResponse.success(res, group);
     } catch (err) {
-        CommonResponse.error(res, err.message, 400);
+      CommonResponse.error(res, err.message, 400);
     }
-});
+  }
+);
+
 
 // 2. Get All Public Groups
 router.get('/public', async (req, res) => {
@@ -52,18 +73,39 @@ router.get('/public', async (req, res) => {
     }
 });
 
-// 3. Edit/Modify Group
-router.post('/:groupId', passport.authenticate('jwt', { session: false }), async (req, res) => {
+// Edit/Modify Group
+router.post(
+  '/:groupId',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
     const { groupId } = req.params;
-    const updates = req.body;
+    const {
+      name,
+      description,
+      categories,
+      tags,
+      bannerImages,
+      type,
+    } = req.body;
+
+    const updates = {};
+
+    if (name !== undefined) updates.name = name;
+    if (description !== undefined) updates.description = description;
+    if (categories !== undefined) updates.categories = categories;
+    if (tags !== undefined) updates.tags = tags;
+    if (bannerImages !== undefined) updates.bannerImages = bannerImages;
+    if (type !== undefined) updates.type = type;
 
     try {
-        const group = await GroupService.editGroup(groupId, updates, req.user.id);
-        CommonResponse.success(res, group);
+      const group = await GroupService.editGroup(groupId, updates, req.user.id);
+      CommonResponse.success(res, group);
     } catch (err) {
-        CommonResponse.error(res, err.message, 400);
+      CommonResponse.error(res, err.message, 400);
     }
-});
+  }
+);
+
 
 // 4. Search Public Groups
 router.get('/search', async (req, res) => {
