@@ -52,7 +52,7 @@ router.post(
 
 
 // 2. Get All Public Events
-router.get('/public', async (req, res) => {
+router.post('/public', async (req, res) => {
   try {
     const events = await EventService.getAllEvents();
     CommonResponse.success(res, events);
