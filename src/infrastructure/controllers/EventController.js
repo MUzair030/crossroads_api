@@ -30,9 +30,9 @@ router.post(
         locations,
         dates,
         bannerImages,
-        isLive,
         tags,
         categories,
+        isLive,
         groupId,
         creatorId: req.user.id,
       });
