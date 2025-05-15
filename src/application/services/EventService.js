@@ -21,6 +21,8 @@ class EventService {
         data.isLinkedWithGroup = true;
         data.groupId = groupId;
 
+        data.isLive=isLive;
+
         // Create the event
         const event = await EventRepository.create(data);
 
@@ -43,15 +45,16 @@ class EventService {
         return event;
     }
     }
+    async getAllEvents() {
+        return EventRepository.findPublicEvents();
+    }
 
 /*
     async getGroupEvents(groupId) {
         return EventRepository.findByGroupId(groupId);
     }
 
-    async getAllEvents() {
-        return EventRepository.findPublicEvents();
-    }
+    
 
     async editEvent(eventId, updates, userId) {
         const event = await EventRepository.findById(eventId);

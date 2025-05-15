@@ -50,7 +50,7 @@ router.post(
   }
 );
 
-/*
+
 // 2. Get All Public Events
 router.get('/public', async (req, res) => {
   try {
@@ -60,7 +60,7 @@ router.get('/public', async (req, res) => {
     CommonResponse.error(res, err.message, 400);
   }
 });
-
+/*
 // 3. Get Events by Group
 router.get('/group/:groupId', async (req, res) => {
   const { groupId } = req.params;

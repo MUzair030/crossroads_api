@@ -8,7 +8,7 @@ class EventRepository {
   }
 
 
-  /*
+  
   async findPublicEvents({ 
   lat, 
   long, 
@@ -22,7 +22,8 @@ class EventRepository {
 }) {
   const filter = {
     type: 'public',
-    isDeleted: false
+    isDeleted: false,
+    isLive: true,
   };
 
   if (category) filter.category = category;
@@ -52,7 +53,7 @@ class EventRepository {
     .limit(limit);
 }
 
-
+/*
   async findById(eventId) {
     return Event.findById(eventId)
       .populate('organizer')
