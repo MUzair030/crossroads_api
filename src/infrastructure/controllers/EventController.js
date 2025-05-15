@@ -2,7 +2,7 @@ import express from 'express';
 import passport from '../../application/services/GoogleAuthService.js';
 import CommonResponse from '../../application/common/CommonResponse.js';
 import EventService from '../../application/services/EventService.js';
-import User from '../models/User.js'; 
+import User from '../../domain//models/User.js'; 
 
 const router = express.Router();
 
