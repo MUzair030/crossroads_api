@@ -9,7 +9,7 @@ class EventRepository {
 
 
   
-async function findPublicEvents({
+async  findPublicEvents({
   lat,
   long,
   maxDistance = 50000,
