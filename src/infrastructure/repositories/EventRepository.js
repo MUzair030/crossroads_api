@@ -9,49 +9,53 @@ class EventRepository {
 
 
   
-  async findPublicEvents({ 
-  lat, 
-  long, 
-  maxDistance = 50000, // in meters, e.g., 50km
-  category, 
-  query, 
-  startDate, 
-  endDate, 
-  page = 1, 
-  limit = 10 
-}={}) {
-  const filter = {
+ async findPublicEvents({
+  lat,
+  long,
+  maxDistance = 50000,
+  category,
+  query,
+  startDate,
+  endDate,
+  page = 1,
+  limit = 10
+} = {}) {
+  const baseFilter = {
     type: 'public',
     isDeleted: false,
     isLive: true,
   };
 
-  if (category) filter.category = category;
-  if (query) filter.name = { $regex: query, $options: 'i' };
+  if (category) baseFilter.category = category;
+  if (query) baseFilter.title = { $regex: query, $options: 'i' };
+
   if (startDate || endDate) {
-    filter.date = {};
-    if (startDate) filter.date.$gte = new Date(startDate);
-    if (endDate) filter.date.$lte = new Date(endDate);
+    baseFilter.date = {};
+    if (startDate) baseFilter.date.$gte = new Date(startDate);
+    if (endDate) baseFilter.date.$lte = new Date(endDate);
   }
 
-  const geoFilter = lat && long
-    ? {
-        location: {
-          $near: {
-            $geometry: {
-              type: "Point",
-              coordinates: [parseFloat(long), parseFloat(lat)]
-            },
-            $maxDistance: parseInt(maxDistance)
-          }
-        }
-      }
-    : {};
+  const skipCount = (page - 1) * limit;
+  const useGeo = lat && long;
 
-  return Event.find({ ...filter, ...geoFilter })
-    .skip((page - 1) * limit)
-    .limit(limit);
+  let queryBuilder = Event.find(baseFilter);
+
+  if (useGeo) {
+    queryBuilder = queryBuilder.where('location').near({s
+      center: {
+        type: 'Point',
+        coordinates: [parseFloat(long), parseFloat(lat)],
+      },
+      maxDistance: parseInt(maxDistance),
+      spherical: true,
+    });
+  } else {
+    queryBuilder = queryBuilder.sort({ title: 1 }); // fallback to title sort if no geo
+  }
+
+  return queryBuilder.skip(skipCount).limit(limit);
 }
+
 
 /*
   async findById(eventId) {
