@@ -21,6 +21,7 @@ router.post(
       categories,
       groupId,
       isLive,
+      access,
     } = req.body;
 
     try {
