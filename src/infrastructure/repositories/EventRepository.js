@@ -71,8 +71,10 @@ class EventRepository {
     query = Event.find(baseFilter).sort({ title: 1 });
   }
 
-  query = query.skip(skipCount).limit(limit);
-
+query = query
+  .select('title dates categories bannerImages locations organizerId organizerName')  // include only selected fields
+  .skip(skipCount)
+  .limit(limit);
   return query.exec();
 }
 
