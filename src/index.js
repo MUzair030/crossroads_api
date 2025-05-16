@@ -60,6 +60,8 @@ app.use('/api/posts', postsController);
 app.use('/api/chat', chatController);
 app.use('/api/groups', groupController);
 app.use('/api/events', eventController);
+app.use('/api/services', serviceController);
+
 
 
 // Socket.IO Connection
