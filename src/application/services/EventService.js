@@ -1,6 +1,6 @@
 import EventRepository from "../../infrastructure/repositories/EventRepository.js";
 import GroupRepository from "../../infrastructure/repositories/GroupRepository.js";
-import GroupRepository from "../../domain/model/Event.js";
+import Event from "../../domain/model/Event.js";
 
 import mongoose from "mongoose";
 
