@@ -94,22 +94,23 @@ async searchEvents(query, page, limit ) {
         return EventRepository.searchPublicEvents(query, page, limit);
     }
 
-    async softDeleteEvent(eventId, userId) {
+  async softDeleteEvent(eventId, userId) {
   const event = await Event.findById(eventId);
 
   if (!event) {
-    throw new Error('Event not found');
+    throw new Error("Event not found");
   }
 
-  if (!event.organizerId.equals(userId)) {
-    throw new Error('Unauthorized: Only the organizer can delete this event');
+  if (!event.organizerId || !event.organizerId.equals(userId)) {
+    throw new Error("Unauthorized: You are not the organizer");
   }
 
   event.isDeleted = true;
   await event.save();
 
-  return { message: 'Event soft deleted successfully' };
+  return { message: "Event soft-deleted successfully" };
 }
+
 
 /*
     async getGroupEvents(groupId) {
