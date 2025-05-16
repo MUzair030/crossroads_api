@@ -73,7 +73,7 @@ const ServiceService = {
     .limit(limit);
 
   return services;
-}
+},
 
 
   // 7. Get Services by Vendor (no .lean())
