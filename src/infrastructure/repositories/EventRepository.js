@@ -24,15 +24,17 @@ class EventRepository {
       access: 'public',
       isDeleted: false,
       isLive: true,
+      categories: { $in: ['music'] },
+
     };
 
-   if (category) baseFilter.categories = { $in: [category] };
-if (searchQuery) baseFilter.title = { $regex: searchQuery, $options: 'i' };
-if (startDate || endDate) {
-  baseFilter.date = {};
-  if (startDate) baseFilter.date.$gte = new Date(startDate);
-  if (endDate) baseFilter.date.$lte = new Date(endDate);
-}
+    if (category) baseFilter.categories = { $in: [category] };
+    if (searchQuery) baseFilter.title = { $regex: searchQuery, $options: 'i' };
+    if (startDate || endDate) {
+      baseFilter.date = {};
+      if (startDate) baseFilter.date.$gte = new Date(startDate);
+      if (endDate) baseFilter.date.$lte = new Date(endDate);
+    }
 
     const skipCount = (page - 1) * limit;
 
