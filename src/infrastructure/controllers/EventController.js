@@ -64,7 +64,7 @@ router.get('/public/:id', async (req, res) => {
   }
 });
 
-// 2. Get All Public Events
+// 3. Get All Public Events
 router.post('/public', async (req, res) => {
   try {
     const events = await EventService.getAllEvents(req.body);
@@ -74,7 +74,7 @@ router.post('/public', async (req, res) => {
   }
 });
 
-// 3. Get Events by Group
+// 4. Get Events by Group
 router.get('/group/:groupId', async (req, res) => {
   const { groupId } = req.params;
   try {
@@ -85,7 +85,7 @@ router.get('/group/:groupId', async (req, res) => {
   }
 });
 
-// 4. Edit Event
+// 5. Edit Event
 router.put(
   '/:eventId',
   passport.authenticate('jwt', { session: false }),
@@ -124,7 +124,7 @@ router.delete(
 
 
 
-// 5. Search Events (Public & Live)
+// 7. Search Events (Public & Live)
 router.get('/search', async (req, res) => {
   const { query, page, limit } = req.query;
 
