@@ -20,6 +20,8 @@ class EventService {
         // Mark the event as linked with this group
         data.isLinkedWithGroup = true;
         data.groupId = groupId;
+        data.isLive = data.isLive ?? false;
+        data.access = data.access ?? 'public';
 
 
         // Create the event
@@ -39,6 +41,9 @@ class EventService {
         // No group linked — create standalone event
         data.isLinkedWithGroup = false;
         data.groupId = null;
+        data.isLive = data.isLive ?? false;
+        data.isLive = data.isLive ?? false;
+        data.access = data.access ?? 'public';
 
 
         const event = await EventRepository.create(data);

@@ -19,6 +19,8 @@ const eventSchema = new mongoose.Schema({
   isLinkedWithGroup: { type: Boolean, default: false },
   groupId: { type: mongoose.Schema.Types.ObjectId, ref: "Group", default: null },
 
+  isLive: { type: Boolean, default: false },
+
   // Likes
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 

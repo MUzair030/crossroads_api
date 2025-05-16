@@ -20,6 +20,7 @@ router.post(
       tags,
       categories,
       groupId,
+      isLive,
     } = req.body;
 
     try {
@@ -33,6 +34,8 @@ router.post(
         categories,
         groupId,
         creatorId: req.user.id,
+        isLive,
+        access,
       });
 
         await User.findByIdAndUpdate(
