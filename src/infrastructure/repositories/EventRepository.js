@@ -9,51 +9,57 @@ class EventRepository {
 
 
   
-async  findPublicEvents({
-  lat,
-  long,
-  maxDistance = 50000,
-  category,
-  query: searchQuery,
-  startDate,
-  endDate,
-  page = 1,
-  limit = 10
-} = {}) {
-  const baseFilter = {
-    access: 'public',
-    isDeleted: false,
-  };
+  async findPublicEvents({
+    lat,
+    long,
+    maxDistance = 50000,
+    category,
+    query: searchQuery,
+    startDate,
+    endDate,
+    page = 1,
+    limit = 10,
+  } = {}) {
+    const baseFilter = {
+      access: 'public',
+      isDeleted: false,
+      isLive: true,
+    };
 
-  if (category) baseFilter.category = category;
-  if (searchQuery) baseFilter.title = { $regex: searchQuery, $options: 'i' };
-  if (startDate || endDate) {
-    baseFilter.date = {};
-    if (startDate) baseFilter.date.$gte = new Date(startDate);
-    if (endDate) baseFilter.date.$lte = new Date(endDate);
+    if (category) baseFilter.category = category;
+    if (searchQuery) baseFilter.title = { $regex: searchQuery, $options: 'i' };
+    if (startDate || endDate) {
+      baseFilter.date = {};
+      if (startDate) baseFilter.date.$gte = new Date(startDate);
+      if (endDate) baseFilter.date.$lte = new Date(endDate);
+    }
+
+    const skipCount = (page - 1) * limit;
+
+    let query;
+
+    if (lat && long) {
+      query = Event.find({
+        ...baseFilter,
+        location: {
+          $near: {
+            $geometry: {
+              type: 'Point',
+              coordinates: [parseFloat(long), parseFloat(lat)],
+            },
+            $maxDistance: parseInt(maxDistance),
+          },
+        },
+      });
+    } else {
+      query = Event.find(baseFilter).sort({ title: 1 });
+    }
+
+    query = query.skip(skipCount).limit(limit);
+
+    return query.exec();
   }
 
-  const skipCount = (page - 1) * limit;
-
-  let query = Event.find(baseFilter);
-
-  if (lat && long) {
-    query = query.where('location').near({
-      center: {
-        type: 'Point',
-        coordinates: [parseFloat(long), parseFloat(lat)],
-      },
-      maxDistance: maxDistance,
-      spherical: true,
-    });
-  } else {
-    query = query.sort({ title: 1 });
-  }
-
-  query = query.skip(skipCount).limit(limit);
-
-  return query.exec();
-}
 
 /*
   async findById(eventId) {
