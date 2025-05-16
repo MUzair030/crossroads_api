@@ -48,24 +48,16 @@ const ServiceService = {
   },
 
   // 6. Search Services
-  async searchServices({ query = '', category = null, city = null, page = 1, limit = 10 }) {
+  async searchServices({ query = '', page = 1, limit = 10 }) {
   const searchConditions = { isPublished: true };
 
   if (query) {
     const regex = new RegExp('^' + query, 'i'); // starts with query, case-insensitive
     searchConditions.$or = [
       { title: regex },
-      { description: regex },
-      { customTags: regex }
+      { category: regex },
+      { 'locationAvailable.cities': query }  // exact match in cities array
     ];
-  }
-
-  if (category) {
-    searchConditions.category = category;
-  }
-
-  if (city) {
-    searchConditions['locationAvailable.cities'] = city;
   }
 
   const services = await Service.find(searchConditions)
@@ -73,7 +65,8 @@ const ServiceService = {
     .limit(limit);
 
   return services;
-},
+}
+,
 
 
   // 7. Get Services by Vendor (no .lean())
