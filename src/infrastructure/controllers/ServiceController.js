@@ -102,15 +102,13 @@ router.delete(
 
 // 7. Search Services (Public)
 router.get('/search', async (req, res) => {
-  const { query, category, city, page, limit } = req.query;
+  const { query = '', page = '1', limit = '10' } = req.query;
 
   try {
     const result = await ServiceService.searchServices({
       query,
-      category,
-      city,
-      page: parseInt(page),
-      limit: parseInt(limit),
+      page: parseInt(page, 10) || 1,
+      limit: parseInt(limit, 10) || 10,
     });
 
     CommonResponse.success(res, result);
