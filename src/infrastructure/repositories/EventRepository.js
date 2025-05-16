@@ -13,7 +13,7 @@ class EventRepository {
   long,
   maxDistance = 50000,
   category,
-  query,       // search string for title
+  searchString,       // search string for title
   startDate,
   endDate,
   page = 1,
@@ -31,8 +31,8 @@ class EventRepository {
   }
 
   // Only add search query filter if query is a non-empty string
-  if (typeof query === 'string' && query.trim() !== '') {
-    baseFilter.title = { $regex: query.trim(), $options: 'i' };
+  if (typeof searchString === 'string' && searchString.trim() !== '') {
+    baseFilter.title = { $regex: searchString.trim(), $options: 'i' };
   }
 
   // Only add date filter if either startDate or endDate is defined and valid
