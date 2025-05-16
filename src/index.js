@@ -13,6 +13,7 @@ import friendController from './infrastructure/controllers/FriendController.js';
 import postsController from './infrastructure/controllers/ThreadController.js';
 import groupController from './infrastructure/controllers/GroupController.js';
 import eventController from './infrastructure/controllers/EventController.js';
+import serviceController from './infrastructure/controllers/ServiceController.js';
 import chatController, {
     getReceiverSocketId,
     handleSendMessage,
