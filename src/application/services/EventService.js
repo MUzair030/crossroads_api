@@ -88,7 +88,26 @@ async getEventById(eventId, currentUserId) {
   return event.save();
 }
 
+async searchEvents(query, page, limit ) {
+        return EventRepository.searchPublicEvents(query, page, limit);
+    }
 
+    async softDeleteEvent(eventId, userId) {
+  const event = await Event.findById(eventId);
+
+  if (!event) {
+    throw new Error('Event not found');
+  }
+
+  if (!event.organizerId.equals(userId)) {
+    throw new Error('Unauthorized: Only the organizer can delete this event');
+  }
+
+  event.isDeleted = true;
+  await event.save();
+
+  return { message: 'Event soft deleted successfully' };
+}
 
 /*
     async getGroupEvents(groupId) {

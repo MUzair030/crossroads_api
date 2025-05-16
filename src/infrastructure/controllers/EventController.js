@@ -105,8 +105,8 @@ router.put(
     }
   }
 );
-/*
-// 5. Delete Event (soft delete)
+
+// 6. Soft Delete Event
 router.delete(
   '/:eventId',
   passport.authenticate('jwt', { session: false }),
@@ -114,24 +114,27 @@ router.delete(
     const { eventId } = req.params;
 
     try {
-      const deletedEvent = await EventService.deleteEvent(eventId, req.user.id);
-      CommonResponse.success(res, { message: 'Event deleted', event: deletedEvent });
+      const result = await EventService.softDeleteEvent(eventId, req.user.id);
+      CommonResponse.success(res, result);
     } catch (err) {
       CommonResponse.error(res, err.message, 400);
     }
   }
 );
 
-// 6. Search Events
+
+
+// 5. Search Events (Public & Live)
 router.get('/search', async (req, res) => {
-  const { query, category } = req.query;
+  const { query, page, limit } = req.query;
 
   try {
-    const events = await EventService.searchEvents(query, category);
-    CommonResponse.success(res, events);
+    const result = await EventService.searchEvents(query, parseInt(page), parseInt(limit));
+    CommonResponse.success(res, result);
   } catch (err) {
     CommonResponse.error(res, err.message, 400);
   }
-});*/
+});
+
 
 export default router;

@@ -97,11 +97,43 @@ query = query
   return event;
 }
 
-/*
+
   async updateEvent(eventId, updates) {
     return Event.findByIdAndUpdate(eventId, updates, { new: true });
   }
 
+
+  async searchPublicEvents(query, page , limit ) {
+  if (!query || query.trim() === '') {
+    throw new Error('Search query is required');
+  }
+
+  const regex = new RegExp(query.trim(), 'i'); // contains query, case-insensitive
+  const skip = (page - 1) * limit;
+
+  const baseFilter = {
+    isDeleted: false,
+    isLive: true,
+    access: 'public',
+    title: { $regex: regex },
+  };
+
+  const projection = 'title bannerImages categories organizerId organizerName';
+
+  const [events, total] = await Promise.all([
+    Event.find(baseFilter)
+      .select(projection)
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 }),
+
+    Event.countDocuments(baseFilter),
+  ]);
+
+  return { events, total };
+}
+
+/*
   async searchPublicEvents(query, category) {
     const filter = { type: 'public', isDeleted: false };
     if (query) filter.name = { $regex: query, $options: 'i' };
