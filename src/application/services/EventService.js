@@ -59,6 +59,36 @@ async getEventById(eventId, currentUserId) {
     }
 
 
+    async  editEvent(eventId, updates, userId) {
+  // Find event
+  const event = await Event.findById(eventId);
+  if (!event) {
+    throw new Error('Event not found');
+  }
+
+  // Check if the user is authorized to edit (e.g., must be the organizer)
+  if (!event.organizerId.equals(userId)) {
+    throw new Error('Unauthorized to edit this event');
+  }
+
+  // Update allowed fields only (optional: whitelist fields)
+  const allowedUpdates = [
+    'title', 'description', 'locations', 'dates',
+    'categories', 'bannerImages', 'isLive', 'access',
+    'price', 'maxAttendees', 'tags', 'services',
+  ];
+
+  Object.keys(updates).forEach(key => {
+    if (allowedUpdates.includes(key)) {
+      event[key] = updates[key];
+    }
+  });
+
+  // Save and return updated event
+  return event.save();
+}
+
+
 
 /*
     async getGroupEvents(groupId) {

@@ -73,7 +73,7 @@ router.post('/public', async (req, res) => {
     CommonResponse.error(res, err.message, 400);
   }
 });
-/*
+
 // 3. Get Events by Group
 router.get('/group/:groupId', async (req, res) => {
   const { groupId } = req.params;
@@ -105,7 +105,7 @@ router.put(
     }
   }
 );
-
+/*
 // 5. Delete Event (soft delete)
 router.delete(
   '/:eventId',
