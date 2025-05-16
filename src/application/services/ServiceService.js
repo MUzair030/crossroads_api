@@ -48,22 +48,33 @@ const ServiceService = {
   },
 
   // 6. Search Services
-  async searchServices(query, page = 1, limit = 10) {
-    const regex = new RegExp(query, 'i');
-    const services = await Service.find({
-      isPublished: true,
-      $or: [
-        { title: regex },
-        { description: regex },
-        { customTags: regex }
-      ]
-    })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
+  async searchServices({ query = '', category = null, city = null, page = 1, limit = 10 }) {
+  const searchConditions = { isPublished: true };
 
-    return services;
-  },
+  if (query) {
+    const regex = new RegExp('^' + query, 'i'); // starts with query, case-insensitive
+    searchConditions.$or = [
+      { title: regex },
+      { description: regex },
+      { customTags: regex }
+    ];
+  }
+
+  if (category) {
+    searchConditions.category = category;
+  }
+
+  if (city) {
+    searchConditions['locationAvailable.cities'] = city;
+  }
+
+  const services = await Service.find(searchConditions)
+    .skip((page - 1) * limit)
+    .limit(limit);
+
+  return services;
+}
+
 
   // 7. Get Services by Vendor (no .lean())
 async getVendorServices(vendorId) {
