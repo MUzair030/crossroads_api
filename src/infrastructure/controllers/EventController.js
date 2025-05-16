@@ -56,7 +56,7 @@ router.post(
 // 2. Get All Public Events
 router.post('/public', async (req, res) => {
   try {
-    const events = await EventService.getAllEvents();
+    const events = await EventService.getAllEvents(req.body);
     CommonResponse.success(res, events);
   } catch (err) {
     CommonResponse.error(res, err.message, 400);

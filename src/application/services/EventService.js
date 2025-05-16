@@ -50,8 +50,8 @@ class EventService {
         return event;
     }
     }
-    async getAllEvents() {
-        return EventRepository.findPublicEvents();
+    async getAllEvents(reqBody) {
+        return EventRepository.findPublicEvents(reqBody);
     }
 
 /*
