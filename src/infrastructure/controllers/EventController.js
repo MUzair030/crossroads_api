@@ -51,7 +51,18 @@ router.post(
     }
   }
 );
+// 2. Get Event by ID
+router.get('/public/:id', async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    const currentUserId = req.user?._id; // optional: if you're using auth middleware
 
+    const event = await EventService.getEventById(eventId, currentUserId);
+    CommonResponse.success(res, event);
+  } catch (err) {
+    CommonResponse.error(res, err.message, 400);
+  }
+});
 
 // 2. Get All Public Events
 router.post('/public', async (req, res) => {

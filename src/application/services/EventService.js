@@ -50,16 +50,23 @@ class EventService {
         return event;
     }
     }
+async getEventById(eventId, currentUserId) {
+       return EventRepository.findById(eventId, currentUserId);
+   }
+    
     async getAllEvents(reqBody) {
         return EventRepository.findPublicEvents(reqBody);
     }
+
+
 
 /*
     async getGroupEvents(groupId) {
         return EventRepository.findByGroupId(groupId);
     }
 
-    
+   
+
 
     async editEvent(eventId, updates, userId) {
         const event = await EventRepository.findById(eventId);

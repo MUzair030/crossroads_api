@@ -78,14 +78,26 @@ query = query
   return query.exec();
 }
 
-/*
-  async findById(eventId) {
-    return Event.findById(eventId)
-      .populate('organizer')
-      .populate('attendees.user')
-      .populate('interestedUsers');
+
+  async findById(eventId, currentUserId = null) {
+  const event = await Event.findOne({ _id: eventId, isDeleted: false })
+    .populate('organizerId', 'name email profilePicture') // adjust fields as needed
+    .lean();
+
+  if (!event) throw new Error('Event not found');
+
+  // Add computed fields
+  if (currentUserId) {
+    event.isLiked = event.likes?.some(id => id.toString() === currentUserId.toString());
   }
 
+  event.likesCount = event.likes?.length || 0;
+  delete event.likes;
+
+  return event;
+}
+
+/*
   async updateEvent(eventId, updates) {
     return Event.findByIdAndUpdate(eventId, updates, { new: true });
   }
