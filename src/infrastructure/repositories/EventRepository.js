@@ -8,60 +8,73 @@ class EventRepository {
   }
 
 
-  
   async findPublicEvents({
-    lat,
-    long,
-    maxDistance = 50000,
-    category,
-    query: searchQuery,
-    startDate,
-    endDate,
-    page = 1,
-    limit = 10,
-  } = {}) {
-    const baseFilter = {
-      access: 'public',
-      isDeleted: false,
-      isLive: true,
-      categories: { $in: ['music'] },
+  lat,
+  long,
+  maxDistance = 50000,
+  category,
+  query,       // search string for title
+  startDate,
+  endDate,
+  page = 1,
+  limit = 10,
+} = {}) {
+  const baseFilter = {
+    access: 'public',
+    isDeleted: false,
+    isLive: true,
+  };
 
-    };
-
-    if (category) baseFilter.categories = { $in: [category] };
-    if (searchQuery) baseFilter.title = { $regex: searchQuery, $options: 'i' };
-    if (startDate || endDate) {
-      baseFilter.date = {};
-      if (startDate) baseFilter.date.$gte = new Date(startDate);
-      if (endDate) baseFilter.date.$lte = new Date(endDate);
-    }
-
-    const skipCount = (page - 1) * limit;
-
-    let query;
-
-    if (lat && long) {
-      query = Event.find({
-        ...baseFilter,
-        location: {
-          $near: {
-            $geometry: {
-              type: 'Point',
-              coordinates: [parseFloat(long), parseFloat(lat)],
-            },
-            $maxDistance: parseInt(maxDistance),
-          },
-        },
-      });
-    } else {
-      query = Event.find(baseFilter).sort({ title: 1 });
-    }
-
-    query = query.skip(skipCount).limit(limit);
-
-    return query.exec();
+  // Only add category filter if category is a non-empty string
+  if (typeof category === 'string' && category.trim() !== '') {
+    baseFilter.categories = { $in: [category.trim()] };
   }
 
+  // Only add search query filter if query is a non-empty string
+  if (typeof query === 'string' && query.trim() !== '') {
+    baseFilter.title = { $regex: query.trim(), $options: 'i' };
+  }
+
+  // Only add date filter if either startDate or endDate is defined and valid
+  if (startDate || endDate) {
+    baseFilter.date = {};
+    if (startDate && !isNaN(Date.parse(startDate))) {
+      baseFilter.date.$gte = new Date(startDate);
+    }
+    if (endDate && !isNaN(Date.parse(endDate))) {
+      baseFilter.date.$lte = new Date(endDate);
+    }
+    // If date is empty object (both dates invalid), delete the field
+    if (Object.keys(baseFilter.date).length === 0) {
+      delete baseFilter.date;
+    }
+  }
+
+  const skipCount = (page > 0 ? page - 1 : 0) * limit;
+
+  let query;
+
+  if (lat != null && long != null) {
+    query = Event.find({
+      ...baseFilter,
+      location: {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [parseFloat(long), parseFloat(lat)],
+          },
+          $maxDistance: parseInt(maxDistance),
+        },
+      },
+    });
+  } else {
+    query = Event.find(baseFilter).sort({ title: 1 });
+  }
+
+  query = query.skip(skipCount).limit(limit);
+
+  return query.exec();
+}
 
 /*
   async findById(eventId) {
