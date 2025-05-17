@@ -1,5 +1,5 @@
-import Notification from '../models/Notification.js';
-import User from '../models/User.js';
+import Notification from '../..//domain/models/Notification.js';
+import User from '../../domain/models/User.js';
 // import pushService from '../utils/pushService'; // if you use FCM or OneSignal
 
 /**
