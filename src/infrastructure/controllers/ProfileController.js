@@ -51,12 +51,15 @@ router.get('/me/overview', passport.authenticate('jwt', { session: false }), asy
 
 
 router.post('/me/fcmtoken', passport.authenticate('jwt', { session: false }), async (req, res) => {
-  const  fcmToken  = req.body.fcmToken;
   const userId = req.user.id;
 
-  if (!fcmToken) {
-    return res.status(400).json({ success: false, message: 'FCM token required' });
-  }
+ const fcmToken = req.body?.fcmToken;
+console.log('fcmToken:', fcmToken, 'type:', typeof fcmToken);
+
+if (!fcmToken || typeof fcmToken !== 'string' || fcmToken.trim() === '') {
+  return res.status(400).json({ success: false, message: 'FCM token required' });
+}
+
 
   try {
     const user = await User.findById(userId);
