@@ -12,7 +12,7 @@ import User from '../../domain/models/User.js';
  * @param {ObjectId} params.receiverId - receiver user ID
  * @param {ObjectId} [params.senderId] - optional sender
  * @param {Object} [params.metadata] - optional extra info (e.g., eventId, serviceId)
- */import admin from 'firebase-admin';
+*/const admin = require('firebase-admin');
 
 export const registerNotification = async ({
   type,
