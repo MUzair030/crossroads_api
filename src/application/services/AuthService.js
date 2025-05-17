@@ -89,15 +89,20 @@ class AuthService {
     return { accessToken, refreshToken, userId: user.id, isProfileSetup: user.isProfileSetup, isEmailVerified: user.isVerified};
   }
 
-  async refreshAccessToken(refreshToken) {
-    try {
-      const decoded = jwt.verify(refreshToken, config.refreshTokenSecret);
-      const accessToken = jwt.sign({ userId: decoded.userId }, config.jwtSecret, { expiresIn: '15m' });
-      return { accessToken };
-    } catch (err) {
-      throw new Error('Invalid refresh token');
-    }
+async refreshAccessToken(refreshToken) {
+  try {
+    const decoded = jwt.verify(refreshToken, config.refreshTokenSecret);
+    const accessToken = jwt.sign(
+      { userId: decoded.userId },
+      config.jwtSecret,
+      { expiresIn: '15m' }
+    );
+    return { accessToken };
+  } catch (err) {
+    throw new Error('Invalid refresh token');
   }
+}
+
 
   async changePassword(userId, currentPassword, newPassword) {
     const user = await this.userRepository.findById(userId);
