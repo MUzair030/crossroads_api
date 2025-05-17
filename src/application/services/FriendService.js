@@ -1,4 +1,4 @@
-import { registerNotification } from '../services/NotificationService.js'; // adjust path as needed
+import { registerNotification } from '../application/services/NotificationService.js'; // adjust path as needed
 
 
 class FriendService {
