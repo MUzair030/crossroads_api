@@ -43,7 +43,7 @@ router.post('/signin', async (req, res) => {
 });
 
 router.post('/refresh-token', async (req, res) => {
-  try {    CommonResponse.success(res, { accessToken, refreshToken }, null, 200);
+  try {
     const { refreshToken } = req.body;
     const { accessToken } = await authService.refreshAccessToken(refreshToken);
     CommonResponse.success(res, { accessToken });
@@ -51,6 +51,7 @@ router.post('/refresh-token', async (req, res) => {
     CommonResponse.error(res, err.message, 400);
   }
 });
+
 
 
 // Initiate Google Authentication
