@@ -16,6 +16,40 @@ class UserManagementService {
     }
     return users?.map(user => mapToDto(user));
   }
+async getUserOverview(userId) {
+  const user = await User.findById(userId).select('-password') // exclude only password
+  .populate({
+    path: 'friends',
+    select: '_id name email userName profilePicture',
+    options: { limit: 10 }
+  })
+  .populate({
+    path: 'friendRequests.from',
+    select: '_id name email userName profilePicture',
+    options: { limit: 10 }
+  })
+  .populate({
+    path: 'notifications',
+    options: { sort: { createdAt: -1 }, limit: 10 }
+  });
+
+  if (!user) throw new Error('User not found.');
+
+  return {
+    userInfo: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      userName: user.userName,
+      profilePicture: user.profilePicture,
+      unreadNotificationCount: user.unreadNotificationCount,
+      notificationSettings: user.notificationSettings,
+    },
+    friends: user.friends,
+    friendRequests: user.friendRequests,
+    notifications: user.notifications,
+  };
+}
 
 
   async searchUsers(query, page = 1, limit = 20) {

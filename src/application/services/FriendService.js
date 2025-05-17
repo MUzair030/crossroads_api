@@ -1,29 +1,45 @@
+import { registerNotification } from '../services/NotificationService.js'; // adjust path as needed
+
+
 class FriendService {
     constructor(userRepository) {
         this.userRepository = userRepository;
     }
 
-    async sendFriendRequest(senderId, receiverId) {
-        try {
-            const receiver = await this.userRepository.findById(receiverId);
 
-            if (!receiver) throw new Error('Receiver not found.');
+async sendFriendRequest(senderId, receiverId) {
+  try {
+    const receiver = await this.userRepository.findById(receiverId);
+    if (!receiver) throw new Error('Receiver not found.');
 
-            const alreadyRequested = receiver.friendRequests.some(
-                (request) => request.from.toString() === senderId
-            );
+    const alreadyRequested = receiver.friendRequests.some(
+      (request) => request.from.toString() === senderId
+    );
+    if (alreadyRequested) throw new Error('Friend request already sent.');
 
-            if (alreadyRequested) throw new Error('Friend request already sent.');
+    if (receiver.friends.includes(senderId)) {
+      throw new Error('User is already your friend.');
+    }
 
-            if (receiver.friends.includes(senderId)) {
-                throw new Error('User is already your friend.');
-            }
+    // Add friend request
+    await this.userRepository.pushToField(receiverId, 'friendRequests', { from: senderId });
 
-            await this.userRepository.pushToField(receiverId, 'friendRequests', { from: senderId });
-            return { message: 'Friend request sent successfully.' };
-        } catch (error) {
-            throw new Error(`Failed to send friend request: ${error.message}`);
-        }
+    // Send notification to receiver
+    await registerNotification({
+      type: 'friend_request',
+      title: 'New Friend Request',
+      message: 'You have received a new friend request.',
+      receiverId,
+      senderId,
+      metadata: { senderId }
+    });
+
+    return { message: 'Friend request sent successfully.' };
+  } catch (error) {
+    throw new Error(`Failed to send friend request: ${error.message}`);
+  }
+
+
     }
 
     async respondToFriendRequest(receiverId, senderId, status) {

@@ -39,6 +39,41 @@ router.get('/search', async (req, res) => {
   }
 });
 
+router.get('/me/overview', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const userOverview = await UserService.getUserOverview(req.user.id);
+    CommonResponse.success(res, userOverview);
+  } catch (err) {
+    CommonResponse.error(res, err.message, 400);
+  }
+});
+
+
+
+router.post('/me/fcmtoken', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  const { fcmToken } = req.body;
+  const userId = req.user.id;
+
+  if (!fcmToken) {
+    return res.status(400).json({ success: false, message: 'FCM token required' });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    if (!user.fcmTokens.includes(fcmToken)) {
+      user.fcmTokens.push(fcmToken);
+      await user.save();
+    }
+
+    res.json({ success: true, message: 'FCM token saved' });
+  } catch (err) {
+    console.error('Error saving FCM token:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;

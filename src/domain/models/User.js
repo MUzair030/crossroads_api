@@ -27,7 +27,6 @@ const UserSchema = new mongoose.Schema({
   isDeleted: { type: Boolean, default: false },
   myEventIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
 
-
   friendRequests: [
     {
       from: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -38,14 +37,12 @@ const UserSchema = new mongoose.Schema({
 
   // 📦 Notifications
   unreadNotificationCount: { type: Number, default: 0 },
-
   notifications: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Notification'
     }
   ],
-
   notificationSettings: {
     type: Map,
     of: Boolean,
@@ -71,8 +68,13 @@ const UserSchema = new mongoose.Schema({
       app_update: true,
     },
   },
+
+  // 🔔 FCM push token
+  fcmTokens: {
+    type: [String],   // array of strings
+    default: []       // default empty array
+  }
 });
 
 const User = mongoose.model('User', UserSchema);
 export default User;
-
