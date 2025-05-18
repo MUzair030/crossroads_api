@@ -28,8 +28,9 @@ const NotificationSchema = new mongoose.Schema({
   },
   title: { type: String, required: true },
   message: { type: String, required: true },
-  sender: { type: String,  required: false },
-  receiver: { type: String, required: true },
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
+  receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+
   metadata: { type: Object }, // e.g., related event/service/etc
   isRead: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
