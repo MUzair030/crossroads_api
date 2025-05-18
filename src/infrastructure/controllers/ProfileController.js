@@ -43,7 +43,7 @@ router.get('/search', async (req, res) => {
 
 router.get('/me/overview', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
-    const userOverview = await UserService.getUserOverview(req.user.id);
+    const userOverview = await UserManagementService.getUserOverview(req.user.id);
     CommonResponse.success(res, userOverview);
   } catch (err) {
     CommonResponse.error(res, err.message, 400);
