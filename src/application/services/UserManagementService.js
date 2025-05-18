@@ -103,7 +103,7 @@ class UserManagementService {
     .populate({
       path: 'notifications',
       options: { sort: { createdAt: -1 }, limit: 10 }
-    });
+    }).exec();
     if (!user) {
       throw new Error('User not found');
     }
