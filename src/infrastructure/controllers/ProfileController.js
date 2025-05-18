@@ -5,6 +5,8 @@ import UserRepositoryImpl from '../repositories/UserRepositoryImpl.js';
 import AuthService from '../../application/services/AuthService.js';
 import CommonResponse from '../../application/common/CommonResponse.js';
 import UserManagementService from "../../application/services/UserManagementService.js";
+import User from '../../domain/models/User.js';
+
 
 const router = express.Router();
 const userRepository = new UserRepositoryImpl();
