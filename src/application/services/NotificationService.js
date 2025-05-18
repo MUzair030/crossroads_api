@@ -14,6 +14,7 @@ import User from '../../domain/models/User.js';
  * @param {Object} [params.metadata] - optional extra info (e.g., eventId, serviceId)
  */import admin from 'firebase-admin';
 
+
 export const registerNotification = async ({
   type,
   title,
@@ -27,7 +28,7 @@ export const registerNotification = async ({
     if (!receiver) throw new Error('Receiver not found');
 
     const isEnabled = receiver.notificationSettings?.get(type);
-    if (isEnabled === false) return; // respect user prefs
+    if (isEnabled === false) return;
 
     const notification = new Notification({
       type,
@@ -41,11 +42,19 @@ export const registerNotification = async ({
     await notification.save();
 
     await User.findByIdAndUpdate(receiverId, {
-      $push: { notifications: notification._id },
+      $push: {
+        notifications: {
+          _id: notification._id,
+          type,
+          title,
+          message,
+          sender: senderId,
+          createdAt: new Date(),
+        },
+      },
       $inc: { unreadNotificationCount: 1 },
     });
 
-    // Send push notification to all stored FCM tokens
     if (receiver.fcmTokens && receiver.fcmTokens.length > 0) {
       const messagePayload = {
         notification: {
@@ -54,12 +63,12 @@ export const registerNotification = async ({
         },
         data: {
           type,
+          notificationId: notification._id.toString(),
           ...metadata,
         },
         tokens: receiver.fcmTokens,
       };
 
-      // Send message using Firebase Admin SDK
       const response = await admin.messaging().sendMulticast(messagePayload);
       console.log('Push notification sent:', response.successCount, 'successes');
     }
