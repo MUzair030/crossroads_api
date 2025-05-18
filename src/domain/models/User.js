@@ -38,7 +38,7 @@ const UserSchema = new mongoose.Schema({
   // 📦 Notifications
   notifications: [
     {
-      _id: { type: mongoose.Schema.Types.ObjectId, ref: 'Notification' },
+      _id: String,
       type: String,
       title: String,
       message: String,
