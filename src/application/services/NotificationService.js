@@ -43,14 +43,8 @@ export const registerNotification = async ({
 
     await User.findByIdAndUpdate(receiverId, {
       $push: {
-        notifications: {
-          _id: notification._id.toString(),
-          type,
-          title,
-          message,
-          sender: senderId.toString(),
-          createdAt: new Date(),
-        },
+            notifications: notification._id  // just push the ObjectId
+
       },
       $inc: { unreadNotificationCount: 1 },
     });
