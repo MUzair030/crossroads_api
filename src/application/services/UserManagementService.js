@@ -86,29 +86,33 @@ class UserManagementService {
     return mapToDto(user);
   }
 
-  async getCurrentUser(id) {
-    if (!id) {
-      throw new Error('User ID is required');
-    }
-    const user = await this.userRepository.findById(id).populate({
+ async getCurrentUser(id) {
+  if (!id) throw new Error('User ID is required');
+
+  const user = await this.userRepository.findById(id); // returns resolved document
+
+  if (!user) throw new Error('User not found');
+
+  await user.populate([
+    {
       path: 'friends',
       select: '_id name email userName profilePicture',
       options: { limit: 10 }
-    })
-    .populate({
+    },
+    {
       path: 'friendRequests.from',
       select: '_id name email userName profilePicture',
       options: { limit: 10 }
-    })
-    .populate({
+    },
+    {
       path: 'notifications',
       options: { sort: { createdAt: -1 }, limit: 10 }
-    }).exec();
-    if (!user) {
-      throw new Error('User not found');
     }
-    return mapToFullDto(user);
-  }
+  ]);
+
+  return mapToFullDto(user);
+}
+
 
   async getUserByEmail(email) {
     if (!email) {
