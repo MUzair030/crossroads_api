@@ -42,7 +42,7 @@ const UserSchema = new mongoose.Schema({
       type: String,
       title: String,
       message: String,
-      sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      sender: String ,
       createdAt: { type: Date, default: Date.now },
     }
   ],

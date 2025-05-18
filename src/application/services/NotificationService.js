@@ -20,7 +20,7 @@ export const registerNotification = async ({
   title,
   message,
   receiverId,
-  senderId = null,
+  senderId ,
   metadata = {},
 }) => {
   try {
