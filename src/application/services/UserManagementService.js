@@ -90,7 +90,20 @@ class UserManagementService {
     if (!id) {
       throw new Error('User ID is required');
     }
-    const user = await this.userRepository.findById(id);
+    const user = await this.userRepository.findById(id).populate({
+      path: 'friends',
+      select: '_id name email userName profilePicture',
+      options: { limit: 10 }
+    })
+    .populate({
+      path: 'friendRequests.from',
+      select: '_id name email userName profilePicture',
+      options: { limit: 10 }
+    })
+    .populate({
+      path: 'notifications',
+      options: { sort: { createdAt: -1 }, limit: 10 }
+    });
     if (!user) {
       throw new Error('User not found');
     }
