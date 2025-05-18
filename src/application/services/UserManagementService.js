@@ -1,7 +1,7 @@
 import {v4 as uuidv4} from 'uuid';
 import FileUploadService from "./FileUploadService.js";
 import UserRepositoryImpl from "../../infrastructure/repositories/UserRepositoryImpl.js";
-import {mapToDomainUpdateReq, mapToDto} from "../common/mapper/User.js";
+import {mapToDomainUpdateReq, mapToDto,mapToFullDto} from "../common/mapper/User.js";
 import {UserType} from "../common/UserType.js";
 import User from '../../domain/models/User.js';
 
@@ -38,7 +38,7 @@ class UserManagementService {
     if (!user) throw new Error('User not found.');
 
     return {
-      userInfo: {
+      
         id: user._id,
         name: user.name,
         email: user.email,
@@ -46,7 +46,7 @@ class UserManagementService {
         profilePicture: user.profilePicture,
         unreadNotificationCount: user.unreadNotificationCount,
         notificationSettings: user.notificationSettings,
-      },
+      
       friends: user.friends,
       friendRequests: user.friendRequests,
       notifications: user.notifications,
@@ -84,6 +84,17 @@ class UserManagementService {
       throw new Error('User not found');
     }
     return mapToDto(user);
+  }
+
+  async getCurrentUser(id) {
+    if (!id) {
+      throw new Error('User ID is required');
+    }
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return mapToFullDto(user);
   }
 
   async getUserByEmail(email) {

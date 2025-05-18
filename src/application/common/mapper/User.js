@@ -57,6 +57,67 @@ export function mapToDomainUpdateReq(data) {
     return domain;
 }
 
+export function mapToFullDto(data) {
+  const dto = {};
+
+  dto.id = data?._id?.toString();
+  if (data.googleId) dto.googleId = data.googleId;
+  if (data.name) dto.name = data.name;
+  if (data.firstName) dto.firstName = data.firstName;
+  if (data.lastName) dto.lastName = data.lastName;
+  if (data.userName) dto.userName = data.userName;
+  if (data.email) dto.email = data.email;
+  if (data.phone) dto.phone = data.phone;
+  if (data.dob) dto.dob = new Date(data.dob);
+  if (data.city) dto.city = data.city;
+  if (data.state) dto.state = data.state;
+  if (data.country) dto.country = data.country;
+  if (data.profilePicture) dto.profilePicture = data.profilePicture;
+
+  dto.isVerified = Boolean(data.isVerified);
+  dto.isProfileSetup = Boolean(data.isProfileSetup);
+  if (data.userType) dto.userType = data.userType;
+  if (data.identificationNumber) dto.identificationNumber = data.identificationNumber;
+  if (data.identificationRecord) dto.identificationRecord = data.identificationRecord;
+  dto.isCompany = Boolean(data.isCompany);
+  if (data.companyName) dto.companyName = data.companyName;
+  if (data.companyRegistrationNumber) dto.companyRegistrationNumber = data.companyRegistrationNumber;
+  if (data.verificationToken) dto.otp = data.verificationToken;
+  if (data.resetOtpExpiry) dto.resetOtpExpiry = data.resetOtpExpiry;
+  dto.isDeleted = Boolean(data.isDeleted);
+
+  // Array fields
+  dto.myEventIds = data.myEventIds?.map(id => id.toString()) || [];
+
+  dto.friends = data.friends?.map(friend => {
+    if (typeof friend === 'object' && friend._id) {
+      return mapToDto(friend); // or mapToFullDto(friend) if populated
+    }
+    return friend.toString();
+  }) || [];
+
+  dto.friendRequests = data.friendRequests?.map(req => ({
+    from: typeof req.from === 'object' ? mapToDto(req.from) : req.from?.toString(),
+    status: req.status,
+  })) || [];
+
+  // Notifications
+  dto.unreadNotificationCount = data.unreadNotificationCount || 0;
+  dto.notifications = data.notifications?.map(n => (typeof n === 'object' ? n._id?.toString() : n?.toString())) || [];
+
+  // Notification Settings Map
+  if (data.notificationSettings instanceof Map || typeof data.notificationSettings === 'object') {
+    dto.notificationSettings = {};
+    for (const [key, value] of Object.entries(data.notificationSettings)) {
+      dto.notificationSettings[key] = Boolean(value);
+    }
+  }
+
+
+  return dto;
+}
+
+
 
 export function mapToDto(data) {
     const dto = {};
