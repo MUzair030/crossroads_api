@@ -101,10 +101,12 @@ export function mapToFullDto(data) {
     status: req.status,
   })) || [];
 
-   dto.notifications = data.notifications?.map(req => ({
-    from: typeof req.from === 'object' ? mapNotificationToDto(req.from) : req.from?.toString(),
-    status: req.status,
-  })) || [];
+  dto.notifications = data.notifications?.map(notification =>
+  typeof notification === 'object' && notification._id
+    ? mapNotificationToDto(notification)
+    : notification.toString()
+) || [];
+
 
   dto.unreadNotificationCount = data.unreadNotificationCount || 0;
 
