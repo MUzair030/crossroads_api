@@ -103,17 +103,18 @@ export function mapToFullDto(data) {
 
   // Notifications
   dto.unreadNotificationCount = data.unreadNotificationCount || 0;
-dto.notifications = data.notifications?.map(n => {
-  if (typeof n === 'object' && n._id) {
-    return {
-      ...n,
-      _id: n._id.toString(),
-      sender: typeof n.sender === 'object' ? n.sender.toString() : n.sender,
-      createdAt: n.createdAt,
-    };
-  }
-  return n.toString();
-}) || [];
+dto.notifications = (data.notifications || [])
+  .filter(n => typeof n === 'object' && n !== null && n._id)  // Only full objects with _id
+  .map(n => ({
+    _id: n._id.toString(),
+    type: n.type,
+    title: n.title,
+    message: n.message,
+    sender: typeof n.sender === 'object' && n.sender !== null ? n.sender.toString() : n.sender,
+    createdAt: n.createdAt,
+    // Add any other fields if needed
+  }));
+
   // Notification Settings Map
   if (data.notificationSettings instanceof Map || typeof data.notificationSettings === 'object') {
     dto.notificationSettings = {};
