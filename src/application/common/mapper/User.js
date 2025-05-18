@@ -101,19 +101,13 @@ export function mapToFullDto(data) {
     status: req.status,
   })) || [];
 
-  // Notifications
+   dto.notifications = data.notifications?.map(req => ({
+    from: typeof req.from === 'object' ? mapNotificationToDto(req.from) : req.from?.toString(),
+    status: req.status,
+  })) || [];
+
   dto.unreadNotificationCount = data.unreadNotificationCount || 0;
-dto.notifications = (data.notifications || [])
-  .filter(n => typeof n === 'object' && n !== null && n._id)  // Only full objects with _id
-  .map(n => ({
-    _id: n._id.toString(),
-    type: n.type,
-    title: n.title,
-    message: n.message,
-    sender: typeof n.sender === 'object' && n.sender !== null ? n.sender.toString() : n.sender,
-    createdAt: n.createdAt,
-    // Add any other fields if needed
-  }));
+
 
   // Notification Settings Map
   if (data.notificationSettings instanceof Map || typeof data.notificationSettings === 'object') {
@@ -157,4 +151,16 @@ export function mapToDto(data) {
 
     return dto;
 }
+
+export function mapNotificationToDto(data) {
+    const dto = {};
+    dto.id = data?._id.toString();
+    if (data.message) dto.message = data.message;
+    if (data.type) dto.type = data.type;
+    if (data.createdAt) dto.createdAt = new Date(data.createdAt);
+    if (data.sender) dto.sender = data.sender; // or populate if needed
+    // Add other fields specific to Notification schema
+    return dto;
+}
+
 
