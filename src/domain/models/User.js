@@ -36,16 +36,11 @@ const UserSchema = new mongoose.Schema({
   friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 
   // 📦 Notifications
-notifications: [
-  {
-    _id: String,
-    type: String,
-    title: String,
-    message: String,
-    sender: String,
-    createdAt: { type: Date, default: Date.now },
-  }
-],
+notifications: [{
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'Notification'
+}]
+,
 
 
 
