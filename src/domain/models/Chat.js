@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
+import { unref } from 'process';
 
 const messageSchema = new mongoose.Schema({
     sender: {
         type: mongoose.Schema.Types.ObjectId,
-        refPath: 'User',
+        ref: 'User', // <- FIXED
         required: true
     },
     content: {
@@ -18,10 +19,11 @@ const messageSchema = new mongoose.Schema({
 
 const chatSchema = new mongoose.Schema({
     participants: [{
-        userId: { type: mongoose.Schema.Types.ObjectId, refPath: 'User', required: true },
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // <- FIXED
     }],
     messages: [messageSchema],
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+    unreadMessageCount: { type: Number, default: 0 }
 });
 
 const Chat = mongoose.model('Chat', chatSchema);

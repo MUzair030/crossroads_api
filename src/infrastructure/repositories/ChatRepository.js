@@ -17,11 +17,29 @@ class ChatRepository {
         return chat.save();
     }
 
-    static async findChatsByUser(userId) {
-        return Chat.find({
-            'participants.userId': userId,
-        }).populate('participants.userId', 'firstName lastName email');
-    }
+   static async findChatsByUser(userId) {
+    const chats = await Chat.find({ 'participants.userId': userId })
+        .populate({
+            path: 'participants.userId',
+            select: 'firstName lastName email'
+        })
+        .lean(); // use lean() to make manipulation easier
+
+    // Trim messages to keep only the latest
+    const chatsWithLatestMessage = chats.map(chat => {
+        const latestMessage = chat.messages.length
+            ? chat.messages[chat.messages.length - 1]
+            : null;
+
+        return {
+            ...chat,
+            messages: latestMessage ? [latestMessage] : [],
+        };
+    });
+
+    return chatsWithLatestMessage;
+}
+
 
     static async findChatById(chatId) {
         return Chat.findById(chatId);
