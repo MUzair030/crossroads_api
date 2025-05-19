@@ -79,7 +79,7 @@ class UserManagementService {
     if (!id) {
       throw new Error('User ID is required');
     }
-    const user = await this.userRepository.findById(id).populate('notifications');
+    const user = await User.findById(id).populate('notifications');
     if (!user) {
       throw new Error('User not found');
     }
@@ -89,7 +89,7 @@ class UserManagementService {
  async getCurrentUser(id) {
   if (!id) throw new Error('User ID is required');
 
-  const user = await this.userRepository.findById(id).populate('notifications'); // returns resolved document
+  const user = await User.findById(id).populate('notifications'); // returns resolved document
 
   if (!user) throw new Error('User not found');
 
