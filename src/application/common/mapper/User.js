@@ -61,7 +61,7 @@ export function mapToFullDto(data) {
   const dto = {};
 
   dto.id = data?._id?.toString();
-  if (data.googleId) dto.googleId = data.googleId;
+  //if (data.googleId) dto.googleId = data.googleId;
   if (data.name) dto.name = data.name;
   if (data.firstName) dto.firstName = data.firstName;
   if (data.lastName) dto.lastName = data.lastName;
