@@ -51,21 +51,21 @@ export const registerNotification = async ({
     });
 
     if (receiver.fcmTokens && receiver.fcmTokens.length > 0) {
-      const messagePayload = {
-        notification: {
-          title,
-          body: message,
-        },
-        data: {
-          type,
-          notificationId: notification._id.toString(),
-          ...metadata,
-        },
-        tokens: receiver.fcmTokens,
-      };
-
-      const response = await admin.messaging().sendEachForMulticast(messagePayload);
-      console.log('Push notification sent:', response.successCount, 'successes');
+      for (const token of receiver.fcmTokens) {
+  try {
+    const message = {
+      notification: {
+        title,
+        body: message,
+      },
+      token,
+    };
+    await admin.messaging().send(message);
+    console.log(`Sent to token: ${token}`);
+  } catch (error) {
+    console.error(`Failed to send to token ${token}:`, error.message);
+  }
+}
     }
 
     return notification;
