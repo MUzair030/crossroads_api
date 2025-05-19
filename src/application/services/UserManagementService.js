@@ -108,7 +108,7 @@ class UserManagementService {
       path: 'notifications',
       options: { sort: { createdAt: -1 }, limit: 10 }
     }
-  ]);
+  ]).exec();
 
   return mapToFullDto(user);
 }
