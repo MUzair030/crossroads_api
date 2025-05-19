@@ -53,14 +53,14 @@ export const registerNotification = async ({
     if (receiver.fcmTokens && receiver.fcmTokens.length > 0) {
       for (const token of receiver.fcmTokens) {
   try {
-    const message = {
+    const messagee = {
       notification: {
         title,
         body: message,
       },
       token,
     };
-    await admin.messaging().send(message);
+    await admin.messaging().send(messagee);
     console.log(`Sent to token: ${token}`);
   } catch (error) {
     console.error(`Failed to send to token ${token}:`, error.message);
