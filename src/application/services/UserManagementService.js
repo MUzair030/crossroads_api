@@ -93,23 +93,6 @@ class UserManagementService {
 
   if (!user) throw new Error('User not found');
 
-  await user.populate([
-    {
-      path: 'friends',
-      select: '_id name email userName profilePicture',
-      options: { limit: 10 }
-    },
-    {
-      path: 'friendRequests.from',
-      select: '_id name email userName profilePicture',
-      options: { limit: 10 }
-    },
-    {
-      path: 'notifications',
-      options: { sort: { createdAt: -1 }, limit: 10 }
-    }
-  ]).exec();
-
   return mapToFullDto(user);
 }
 

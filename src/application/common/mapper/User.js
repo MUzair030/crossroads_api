@@ -57,37 +57,35 @@ export function mapToDomainUpdateReq(data) {
     return domain;
 }
 
+
+
 export function mapToFullDto(data) {
-  const dto = {};
+ const dto = {};
+    dto.id = data?._id.toString();
+    if (data.googleId) dto.googleId = data.googleId;
+    if (data.name) dto.name = data.name;
+    if (data.firstName) dto.firstName = data.firstName;
+    if (data.lastName) dto.lastName = data.lastName;
+    if (data.userName) dto.userName = data.userName;
+    if (data.email) dto.email = data.email;
+    if (data.phone) dto.phone = data.phone;
+    if (data.dob) dto.dob = new Date(data.dob);
+    if (data.city) dto.city = data.city;
+    if (data.state) dto.state = data.state;
+    if (data.country) dto.country = data.country;
+    if (data.profilePicture) dto.profilePicture = data.profilePicture;
+    if (data.isVerified !== undefined) dto.isVerified = Boolean(data.isVerified);
+    if (data.isProfileSetup !== undefined) dto.isProfileSetup = Boolean(data.isProfileSetup);
+    if (data.userType) dto.userType = data.userType;
+    if (data.identificationNumber) dto.identificationNumber = data.identificationNumber;
+    if (data.identificationRecord) dto.identificationRecord = data.identificationRecord;
+    if (data.isCompany !== undefined) dto.isCompany = Boolean(data.isCompany);
+    if (data.companyName) dto.companyName = data.companyName;
+    if (data.companyRegistrationNumber) dto.companyRegistrationNumber = data.companyRegistrationNumber;
+    if (data.verificationToken) dto.otp = data.verificationToken;
+    if (data.isDeleted !== undefined) dto.isDeleted = data.isDeleted;
 
-  dto.id = data?._id?.toString();
-  //if (data.googleId) dto.googleId = data.googleId;
-  if (data.name) dto.name = data.name;
-  if (data.firstName) dto.firstName = data.firstName;
-  if (data.lastName) dto.lastName = data.lastName;
-  if (data.userName) dto.userName = data.userName;
-  if (data.email) dto.email = data.email;
-  if (data.phone) dto.phone = data.phone;
-  if (data.dob) dto.dob = new Date(data.dob);
-  if (data.city) dto.city = data.city;
-  if (data.state) dto.state = data.state;
-  if (data.country) dto.country = data.country;
-  if (data.profilePicture) dto.profilePicture = data.profilePicture;
-
-  dto.isVerified = Boolean(data.isVerified);
-  dto.isProfileSetup = Boolean(data.isProfileSetup);
-  if (data.userType) dto.userType = data.userType;
-  if (data.identificationNumber) dto.identificationNumber = data.identificationNumber;
-  if (data.identificationRecord) dto.identificationRecord = data.identificationRecord;
-  dto.isCompany = Boolean(data.isCompany);
-  if (data.companyName) dto.companyName = data.companyName;
-  if (data.companyRegistrationNumber) dto.companyRegistrationNumber = data.companyRegistrationNumber;
-  if (data.verificationToken) dto.otp = data.verificationToken;
-  if (data.resetOtpExpiry) dto.resetOtpExpiry = data.resetOtpExpiry;
-  dto.isDeleted = Boolean(data.isDeleted);
-
-  // Array fields
-  dto.myEventIds = data.myEventIds?.map(id => id.toString()) || [];
+     dto.myEventIds = data.myEventIds?.map(id => id.toString()) || [];
 
   dto.friends = data.friends?.map(friend => {
     if (typeof friend === 'object' && friend._id) {
@@ -119,8 +117,7 @@ export function mapToFullDto(data) {
     }
   }
 
-
-  return dto;
+    return dto;
 }
 
 
