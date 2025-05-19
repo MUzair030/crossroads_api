@@ -82,6 +82,41 @@ router.get('/google/callback', (req, res, next) => {
   })(req, res, next);
 });
 
+
+
+router.post('/google/mobile', async (req, res) => {
+  try {
+    const { idToken } = req.body;
+
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: config.googleClientId,
+    });
+
+    const payload = ticket.getPayload();
+    const googleId = payload.sub;
+    const email = payload.email;
+    const name = payload.name;
+
+    let user = await userRepository.findByGoogleId(googleId);
+    if (!user) {
+      user = await userRepository.save({
+        googleId,
+        email,
+        name,
+        password: 'googlePass',
+      });
+    }
+
+    const jwt = jwtSign({ userId: user._id }, config.jwtSecret, { expiresIn: '7d' });
+
+    return res.json({ token: jwt, user });
+  } catch (err) {
+    console.error('Mobile Google login error:', err);
+    return res.status(401).json({ message: 'Invalid Google token' });
+  }
+});
+
 // Handle Logout
 router.get('/logout', (req, res, next) => {
   req.logout((err) => {

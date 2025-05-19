@@ -64,7 +64,7 @@ export const registerNotification = async ({
         tokens: receiver.fcmTokens,
       };
 
-      const response = await admin.messaging().sendMulticast(messagePayload);
+      const response = await admin.messaging().sendEachForMulticast(messagePayload);
       console.log('Push notification sent:', response.successCount, 'successes');
     }
 
