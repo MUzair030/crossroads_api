@@ -12,7 +12,8 @@ import User from '../../domain/models/User.js';
  * @param {ObjectId} params.receiverId - receiver user ID
  * @param {ObjectId} [params.senderId] - optional sender
  * @param {Object} [params.metadata] - optional extra info (e.g., eventId, serviceId)
- */import admin from 'firebase-admin';
+ */import admin from '../../config/firebase.js'; // adjust path as needed
+
 
 
 export const registerNotification = async ({
