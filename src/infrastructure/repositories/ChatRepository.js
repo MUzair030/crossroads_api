@@ -31,14 +31,15 @@ class ChatRepository {
         const lastMessage = chat.messages.length > 0 ? chat.messages[chat.messages.length - 1] : null;
 
         return {
+                        
+            unreadMessageCount: chat.unreadMessageCount,
             chatId: chat._id,
             senderName: senderName,
             lastMessage: lastMessage ? {
                 content: lastMessage.content,
                 sentAt: lastMessage.sentAt,
                 sender: lastMessage.sender
-            } : null,
-            unreadMessageCount: chat.unreadMessageCount
+            } : null
         };
     });
 
