@@ -2,6 +2,8 @@ import express from 'express';
 import CommonResponse from '../../application/common/CommonResponse.js';
 import ChatService from '../../application/services/ChatService.js';
 import UserManagementService from "../../application/services/UserManagementService.js";
+import Chat from "../../domain/models/Chat.js";
+
 // import {io} from "../../index.js";
 
 const router = express.Router();
@@ -48,6 +50,53 @@ router.post('/:chatId/message', async (req, res) => {
         CommonResponse.error(res, err.message, 400);
     }
 });
+
+router.post('/:chatId/read', async (req, res) => {
+    const { chatId } = req.params;
+    const { userId } = req.body;
+
+    try {
+        const updatedChat = await ChatService.markChatAsRead(chatId, userId);
+        CommonResponse.success(res, updatedChat);
+    } catch (err) {
+        CommonResponse.error(res, err.message, 400);
+    }
+});
+
+export async function markChatAsRead(chatId, userId) {
+    return ChatRepository.markChatAsRead(chatId, userId);
+}
+
+
+export async function findChatsByUser(userId) {
+    const chats = await Chat.find({ 'participants.userId': userId })
+        .populate({
+            path: 'participants.userId',
+            select: 'name'
+        })
+        .lean();
+
+    const chatSummaries = chats.map(chat => {
+        const otherParticipant = chat.participants.find(p => p.userId._id.toString() !== userId.toString());
+        const senderName = otherParticipant ? `${otherParticipant.userId.name}` : 'Unknown';
+        const lastMessage = chat.messages.length > 0 ? chat.messages[chat.messages.length - 1] : null;
+
+        return {
+                        
+            //unreadMessageCount: chat.unreadMessageCount,
+            chatId: chat._id,
+            senderName: senderName,
+            lastMessage: lastMessage ? {
+                content: lastMessage.content,
+                sentAt: lastMessage.sentAt,
+                sender: lastMessage.sender
+            } : null
+        };
+    });
+
+    return chatSummaries;
+}
+
 
 export async function handleSendMessage(socket, data, io) {
     const { chatId, senderId, content } = data;
