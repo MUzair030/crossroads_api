@@ -18,12 +18,16 @@ const messageSchema = new mongoose.Schema({
 
 const chatSchema = new mongoose.Schema({
     participants: [{
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // <- FIXED
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
     }],
     messages: [messageSchema],
-    createdAt: { type: Date, default: Date.now },
-    unreadMessageCount: { type: Number, default: 0 }
+    unreadMessageCounts: [{
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        count: { type: Number, default: 0 }
+    }],
+    createdAt: { type: Date, default: Date.now }
 });
+
 
 const Chat = mongoose.model('Chat', chatSchema);
 export default Chat;

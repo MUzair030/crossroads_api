@@ -87,6 +87,19 @@ io.on('connection', (socket) => {
         }
     });
 
+
+    // Handle the 'getUserChats' event to stream all chats for a user
+socket.on('getUserChats', async (userId) => {
+    try {
+        const chats = await ChatService.getUserChats(userId);
+        socket.emit('userChats', chats);  // Emit chats to the client
+    } catch (err) {
+        console.error('Error streaming user chats:', err);
+        socket.emit('error', 'Error fetching user chats');
+    }
+});
+
+
     // Listen for 'sendMessage' events from users
     socket.on('sendMessage', async (data) => {
         const { senderId, chatId, content } = data;
