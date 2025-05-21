@@ -21,24 +21,30 @@ class ChatRepository {
     const chats = await Chat.find({ 'participants.userId': userId })
         .populate({
             path: 'participants.userId',
-            select: 'firstName lastName email'
+            select: 'name'
         })
-        .lean(); // use lean() to make manipulation easier
+        .lean();
 
-    // Trim messages to keep only the latest
-    const chatsWithLatestMessage = chats.map(chat => {
-        const latestMessage = chat.messages.length
-            ? chat.messages[chat.messages.length - 1]
-            : null;
+    const chatSummaries = chats.map(chat => {
+        const otherParticipant = chat.participants.find(p => p.userId._id.toString() !== userId.toString());
+        const senderName = otherParticipant ? `${otherParticipant.userId.name}` : 'Unknown';
+        const lastMessage = chat.messages.length > 0 ? chat.messages[chat.messages.length - 1] : null;
 
         return {
-            ...chat,
-            messages: latestMessage ? [latestMessage] : [],
+            chatId: chat._id,
+            senderName: senderName,
+            lastMessage: lastMessage ? {
+                content: lastMessage.content,
+                sentAt: lastMessage.sentAt,
+                sender: lastMessage.sender
+            } : null,
+            unreadMessageCount: chat.unreadMessageCount
         };
     });
 
-    return chatsWithLatestMessage;
+    return chatSummaries;
 }
+
 
 
     static async findChatById(chatId) {
@@ -48,6 +54,22 @@ class ChatRepository {
     static async updateChat(chat) {
         return chat.save();
     }
+
+    static async streamMessages(chatId, page = 1) {
+    const chat = await Chat.findById(chatId, { messages: { $slice: [-20 * page, 20] } });
+
+    if (!chat) return null;
+
+    const totalMessages = chat.messages.length;
+    const startIndex = Math.max(0, totalMessages - (page * 20));
+    const paginatedMessages = chat.messages.slice(startIndex, startIndex + 20);
+
+    return paginatedMessages;
 }
+
+}
+
+
+
 
 export default ChatRepository;

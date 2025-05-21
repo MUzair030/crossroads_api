@@ -75,6 +75,18 @@ io.on('connection', (socket) => {
         console.log(`User ${userId} connected with socket ID: ${socket.id}`);
     });
 
+
+     // Handle the 'getMessages' event (to start streaming messages)
+    socket.on('getMessages', async (chatId, page = 1) => {
+        try {
+            const messages = await ChatService.streamMessages(chatId, page);
+            socket.emit('messages', messages);  // Emit the messages to the client
+        } catch (err) {
+            console.error('Error streaming messages:', err);
+            socket.emit('error', 'Error fetching messages');
+        }
+    });
+
     // Listen for 'sendMessage' events from users
     socket.on('sendMessage', async (data) => {
         const { senderId, chatId, content } = data;
