@@ -17,7 +17,7 @@ import serviceController from './infrastructure/controllers/ServiceController.js
 import chatController, {
     getReceiverSocketId,
     handleSendMessage,
-    userSocketMap
+    userSocketMap,findChatsByUser
 } from './infrastructure/controllers/ChatController.js';
 
 const app = express();
@@ -79,7 +79,7 @@ io.on('connection', (socket) => {
      // Handle the 'getMessages' event (to start streaming messages)
     socket.on('getMessages', async (chatId, page = 1) => {
         try {
-            const messages = await ChatService.streamMessages(chatId, page);
+            const messages = await streamMessages(chatId, page);
             socket.emit('messages', messages);  // Emit the messages to the client
         } catch (err) {
             console.error('Error streaming messages:', err);
@@ -91,7 +91,7 @@ io.on('connection', (socket) => {
     // Handle the 'getUserChats' event to stream all chats for a user
 socket.on('getUserChats', async (userId) => {
     try {
-        const chats = await ChatService.getUserChats(userId);
+        const chats = await findChatsByUser(userId);
         socket.emit('userChats', chats);  // Emit chats to the client
     } catch (err) {
         console.error('Error streaming user chats:', err);
