@@ -76,36 +76,35 @@ export async function findChatsByUser(userId, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
 
     const chats = await Chat.aggregate([
-        // Match chats where user is a participant
         { $match: { 'participants.userId': userId } },
 
-        // Add a field for lastMessage
+        // Compute lastMessage safely
         {
             $addFields: {
-                lastMessage: { $arrayElemAt: ["$messages", -1] }
+                lastMessage: { $arrayElemAt: ["$messages", -1] },
+                sortDate: {
+                    $ifNull: [{ $arrayElemAt: ["$messages.sentAt", -1] }, new Date(0)] // fallback to epoch
+                }
             }
         },
 
-        // Sort by lastMessage.sentAt descending
-        {
-            $sort: { "lastMessage.sentAt": -1 }
-        },
+        // Sort using fallback date
+        { $sort: { sortDate: -1 } },
 
         // Pagination
         { $skip: skip },
         { $limit: limit },
 
-        // Lookup to populate participant details
+        // Populate participant info
         {
             $lookup: {
-                from: "users", // adjust if your user collection is named differently
+                from: "users",
                 localField: "participants.userId",
                 foreignField: "_id",
                 as: "participantUsers"
             }
         },
 
-        // Project relevant fields
         {
             $project: {
                 chatId: "$_id",
@@ -123,7 +122,7 @@ export async function findChatsByUser(userId, page = 1, limit = 10) {
         }
     ]);
 
-    // Map each chat to include sender name
+    // Map and format result
     const chatSummaries = chats.map(chat => {
         const otherUser = chat.participantUsers.find(
             u => u._id.toString() !== userId.toString()
