@@ -16,8 +16,8 @@ class ChatService {
 }
 
 
-    static async getUserChats(userId) {
-        return ChatRepository.findChatsByUser(userId);
+    static async getUserChats(userId,page,limit) {
+        return ChatRepository.findChatsByUser(userId,page,limit);
     }
 
     static async getChatById(chatId) {
