@@ -72,66 +72,29 @@ export async function markChatAsRead(chatId, userId) {
 }
 
 
-export async function findChatsByUser(userId, page = 1, limit = 10) {
-    const skip = (page - 1) * limit;
+export async function findChatsByUser(userId) {
+    const chats = await Chat.find({ 'participants.userId': userId })
+        .populate({
+            path: 'participants.userId',
+            select: 'name'
+        })
+        .lean();
 
-    const chats = await Chat.aggregate([
-        { $match: { 'participants.userId': userId } },
-
-        // Compute lastMessage safely
-        {
-            $addFields: {
-                lastMessage: { $arrayElemAt: ["$messages", -1] },
-                sortDate: {
-                    $ifNull: [{ $arrayElemAt: ["$messages.sentAt", -1] }, new Date(0)] // fallback to epoch
-                }
-            }
-        },
-
-        // Sort using fallback date
-        { $sort: { sortDate: -1 } },
-
-        // Pagination
-        { $skip: skip },
-        { $limit: limit },
-
-        // Populate participant info
-        {
-            $lookup: {
-                from: "users",
-                localField: "participants.userId",
-                foreignField: "_id",
-                as: "participantUsers"
-            }
-        },
-
-        {
-            $project: {
-                chatId: "$_id",
-                participants: 1,
-                lastMessage: {
-                    content: "$lastMessage.content",
-                    sentAt: "$lastMessage.sentAt",
-                    sender: "$lastMessage.sender"
-                },
-                participantUsers: {
-                    _id: 1,
-                    name: 1
-                }
-            }
-        }
-    ]);
-
-    // Map and format result
     const chatSummaries = chats.map(chat => {
-        const otherUser = chat.participantUsers.find(
-            u => u._id.toString() !== userId.toString()
-        );
+        const otherParticipant = chat.participants.find(p => p.userId._id.toString() !== userId.toString());
+        const senderName = otherParticipant ? `${otherParticipant.userId.name}` : 'Unknown';
+        const lastMessage = chat.messages.length > 0 ? chat.messages[chat.messages.length - 1] : null;
 
         return {
-            chatId: chat.chatId,
-            senderName: otherUser ? otherUser.name : 'Unknown',
-            lastMessage: chat.lastMessage
+                        
+            //unreadMessageCount: chat.unreadMessageCount,
+            chatId: chat._id,
+            senderName: senderName,
+            lastMessage: lastMessage ? {
+                content: lastMessage.content,
+                sentAt: lastMessage.sentAt,
+                sender: lastMessage.sender
+            } : null
         };
     });
 
