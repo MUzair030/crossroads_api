@@ -94,6 +94,7 @@ socket.on('getUserChats', async ({ userId, page = 1, limit = 10 }) => {
     try {
         const chats = await findChatsByUser(userId, page, limit);
         socket.emit('userChats', chats);
+        console.log('User chats streamed:', chats);
     } catch (err) {
         console.error('Error streaming user chats:', err);
         socket.emit('error', 'Error fetching user chats');
