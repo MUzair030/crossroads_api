@@ -122,7 +122,11 @@ socket.on('getUserChats', async ({ userId, page = 1, limit = 10 }) => {
                         io.to(receiverSocketId).emit('newMessageNotification', {
                             senderId,
                             content,
+                            chatId,
                             notification: 'You have a new message!',
+                              recipientId: participant.userId,
+                               // ✅ ADD THIS
+
                         });
                         console.log(`Notification sent to receiver ${participant.userId} in chat ID: ${chatId}`);
                     } else {
