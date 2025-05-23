@@ -107,8 +107,7 @@ socket.on('getUserChats', async ({ userId, page = 1, limit = 10 }) => {
     socket.on('sendMessage', async (data) => {
         const { senderId, chatId, content } = data;
         handleSendMessage(socket, data, io);
-         const messages = await streamMessages(chatId, 1);
-            socket.emit('messages', messages); 
+      
         
 
         try {
