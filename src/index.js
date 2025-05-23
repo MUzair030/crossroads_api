@@ -105,43 +105,40 @@ socket.on('getUserChats', async ({ userId, page = 1, limit = 10 }) => {
 
     // Listen for 'sendMessage' events from users
     socket.on('sendMessage', async (data) => {
-        const { senderId, chatId, content } = data;
-        handleSendMessage(socket, data, io);
-      
-        
+  const { senderId, chatId, content } = data;
+  handleSendMessage(socket, data, io);
 
-        try {
-            // Fetch the participants for the given chatId
-            const participants = await getReceiverSocketId(chatId);
-            if (participants) {
-                participants.forEach((participant) => {
-                    const receiverSocketId = userSocketMap[participant.userId]; // Use userId to get socket ID
+  try {
+    const participants = await getReceiverSocketId(chatId);
 
-                    if (receiverSocketId) {
-                        // Send notification to the receiver
-                        io.to(receiverSocketId).emit('newMessageNotification', {
-                            senderId,
-                            content,
-                            chatId,
-                            notification: 'You have a new message!',
-                              recipientId: participant.userId,
-                               // ✅ ADD THIS
+    if (participants) {
+      participants.forEach((participant) => {
+        const receiverSocketId = userSocketMap[participant.userId];
 
-                        });
-                        console.log(`Notification sent to receiver ${participant.userId} in chat ID: ${chatId}`);
-                    } else {
-                        console.log(`User ${participant.userId} is not online`);
-                    }
-                });
-            } else {
-                console.log(`No participants found for chat ID: ${chatId}`);
-            }
+        if (receiverSocketId) {
+          // Emit to each participant, including sender
+          io.to(receiverSocketId).emit('newMessageNotification', {
+            senderId,
+            chatId,
+            content,
+            recipientId: participant.userId,
+            notification: 'You have a new message!',
+          });
 
-            
-        } catch (err) {
-            console.error('Error sending message notification:', err);
+          console.log(`Notification sent to ${participant.userId} in chat ${chatId}`);
+        } else {
+          console.log(`User ${participant.userId} is not online`);
         }
-    });
+      });
+    } else {
+      console.log(`No participants found for chat ID: ${chatId}`);
+    }
+
+  } catch (err) {
+    console.error('Error sending message notification:', err);
+  }
+});
+
 
     // Handle user disconnections and clean up userSocketMap
     socket.on('disconnect', () => {
