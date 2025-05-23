@@ -44,6 +44,17 @@ router.get('/:chatId', async (req, res) => {
     }
 });
 
+router.get('/:chatId/messages', async (req, res) => {
+    const { chatId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    try {
+        const messages = await ChatService.streamMessages(chatId, page);
+        CommonResponse.success(res, messages);
+    } catch (err) {
+        CommonResponse.error(res, err.message, 400);
+    }
+});
+
 router.post('/:chatId/message', async (req, res) => {
     const { chatId } = req.params;
     const { senderId, content } = req.body;
@@ -99,6 +110,43 @@ export async function findChatsByUser(userId) {
     });
 
     return chatSummaries;
+}
+
+
+const MESSAGES_PER_PAGE = 20;
+
+export async function streamMessages(chatId, page = 1) {
+    // Ensure page is positive integer
+    page = Math.max(1, parseInt(page));
+
+    // Fetch the chat document with only the messages slice for the requested page
+    // Using Mongoose's $slice to paginate messages array
+    const chat = await Chat.findById(chatId)
+        .select({
+            messages: {
+                $slice: [-(page * MESSAGES_PER_PAGE), MESSAGES_PER_PAGE]
+            }
+        })
+        .lean();
+
+    if (!chat) {
+        throw new Error('Chat not found');
+    }
+
+    // Messages are sliced from the end (most recent)
+    // Reverse to show oldest first in the page
+    const pagedMessages = (chat.messages || []).reverse();
+
+    // Optional: Map or format messages as needed before returning
+    const formattedMessages = pagedMessages.map(msg => ({
+        _id: msg._id,
+        content: msg.content,
+        sender: msg.sender,      // userId or ref
+        sentAt: msg.sentAt,
+        // Add other fields if needed
+    }));
+
+    return formattedMessages;
 }
 
 

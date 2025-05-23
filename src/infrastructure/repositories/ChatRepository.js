@@ -48,6 +48,42 @@ class ChatRepository {
 
 
 
+static async streamMessages(chatId, page = 1) {
+    // Ensure page is positive integer
+    page = Math.max(1, parseInt(page));
+
+    // Fetch the chat document with only the messages slice for the requested page
+    // Using Mongoose's $slice to paginate messages array
+    const chat = await Chat.findById(chatId)
+        .select({
+            messages: {
+                $slice: [-(page * MESSAGES_PER_PAGE), 20]
+            }
+        })
+        .lean();
+
+    if (!chat) {
+        throw new Error('Chat not found');
+    }
+
+    // Messages are sliced from the end (most recent)
+    // Reverse to show oldest first in the page
+    const pagedMessages = (chat.messages || []).reverse();
+
+    // Optional: Map or format messages as needed before returning
+    const formattedMessages = pagedMessages.map(msg => ({
+        _id: msg._id,
+        content: msg.content,
+        sender: msg.sender,      // userId or ref
+        sentAt: msg.sentAt,
+        // Add other fields if needed
+    }));
+
+    return formattedMessages;
+}
+
+
+
 
     static async findChatById(chatId) {
         return Chat.findById(chatId);

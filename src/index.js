@@ -17,7 +17,7 @@ import serviceController from './infrastructure/controllers/ServiceController.js
 import chatController, {
     getReceiverSocketId,
     handleSendMessage,
-    userSocketMap,findChatsByUser
+    userSocketMap,findChatsByUser,streamMessages
 } from './infrastructure/controllers/ChatController.js';
 
 const app = express();
