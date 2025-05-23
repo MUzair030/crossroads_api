@@ -130,6 +130,14 @@ socket.on('getUserChats', async ({ userId, page = 1, limit = 10 }) => {
             } else {
                 console.log(`No participants found for chat ID: ${chatId}`);
             }
+ try {
+            const messages = await streamMessages(chatId, page);
+            socket.emit('messages', messages);  // Emit the messages to the client
+        } catch (err) {
+            console.error('Error streaming messages:', err);
+            socket.emit('error', 'Error fetching messages');
+        }
+
         } catch (err) {
             console.error('Error sending message notification:', err);
         }
