@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import stagePostSchema from "./StagePost.js"; // adjust the path as needed
+import stagePostSchema from "./StagePost.js"; // adjust path as needed
 
 const ticketSchema = new mongoose.Schema({
   title: String,
@@ -10,24 +10,12 @@ const ticketSchema = new mongoose.Schema({
   sold: { type: Number, default: 0 },
 }, { _id: false });
 
-const teamMemberSchema = new mongoose.Schema({
-  role: { type: String, required: false, default: null }
-}, { _id: false });
-
-const rsvpsSchema = new mongoose.Schema({
-  attending: { type: [mongoose.Schema.Types.ObjectId], default: [] },
-  invited: { type: [mongoose.Schema.Types.ObjectId], default: [] },
-  declined: { type: [mongoose.Schema.Types.ObjectId], default: [] }
-}, { _id: false });
-
 const eventSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
 
   isLinkedWithGroup: { type: Boolean, default: false },
   groupId: { type: mongoose.Schema.Types.ObjectId, ref: "Group", default: null },
-
-  isLive: { type: Boolean, default: false },
 
   // Likes
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
@@ -36,17 +24,16 @@ const eventSchema = new mongoose.Schema({
   locations: [
     {
       coordinates: {
-        type: [Number], // [lat, long] from frontend input
+        type: [Number], // [lat, long]
         required: true,
       },
       votes: {
-        type: [String], // array of userIds
+        type: [String], // userIds
         default: [],
       }
     }
   ],
 
-  // Geolocation for search (GeoJSON: [long, lat])
   location: {
     type: { type: String, enum: ['Point'], default: 'Point' },
     coordinates: { type: [Number], default: [0, 0] }, // [long, lat]
@@ -57,80 +44,107 @@ const eventSchema = new mongoose.Schema({
   dates: [
     [
       {
-        votes: { type: [String], default: [] },
+        votes: { type: [String], default: [] }, // userIds
         startDate: { type: Date, required: true },
-        endDate: { type: Date } // optional
+        endDate: { type: Date },
       }
     ]
   ],
   dateTBA: { type: Boolean, default: false },
 
-  // Organizer
   organizerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   organizerName: String,
 
-  // Media & Classification
   bannerImages: [String],
   tags: [String],
   categories: [String],
 
-  // Access control
   access: { type: String, enum: ['public', 'private'], default: 'public' },
 
-  // Tickets
   price: [ticketSchema],
-  maxAttendees: Number,
+  maxAttendees: { type: Number, default: 0 },
 
-  // StagePosts
   stagePosts: [stagePostSchema],
 
-  // State
   isCancelled: { type: Boolean, default: false },
   isDeleted: { type: Boolean, default: false },
+  isLive: { type: Boolean, default: false },
 
-  // Poll toggles
   wherePoll: { type: Boolean, default: false },
   whenPoll: { type: Boolean, default: false },
 
-  // Services
   services: [String],
 
-  // Team & Pool
+  // Team: Map of userId → role (role can be null or string)
   team: {
     type: Map,
-    of: teamMemberSchema,
+    of: {
+      role: { type: String, default: null }
+    },
     default: {}
   },
+
+  // Pool: generic map
   pool: { type: Map, of: mongoose.Schema.Types.Mixed, default: {} },
+
   teamSetup: { type: Boolean, default: false },
   poolSetup: { type: Boolean, default: false },
 
-  // RSVP (attendance)
+  // RSVPs: object keyed by userId
   rsvps: {
-    type: rsvpsSchema,
-    default: () => ({})
+    type: Map,
+    of: {
+      status: { type: String, enum: ['attending', 'maybe', 'declined'], default: 'maybe' },
+      respondedAt: { type: Date, default: Date.now },
+    },
+    default: {}
   },
 
-  // Refund
   lastDateForRefund: Date,
-
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });
 
-// Geospatial index
+// Index for geo queries
 eventSchema.index({ location: "2dsphere" });
 
-// Virtual for likes count
+// Virtual: total number of likes
 eventSchema.virtual("likesCount").get(function () {
   return this.likes?.length || 0;
 });
 
-// Method to dynamically set if current user liked it
-eventSchema.methods.setIsLiked = function (currentUserId) {
-  this.isLiked = this.likes?.some(userId => userId.equals(currentUserId));
+// Check if a user liked this event
+eventSchema.methods.isLikedBy = function (userId) {
+  if (!userId) return false;
+  return this.likes.some(id => id.equals(userId));
 };
+
+// Add like from userId
+eventSchema.methods.like = function (userId) {
+  if (!userId) return;
+  if (!this.likes.some(id => id.equals(userId))) {
+    this.likes.push(userId);
+  }
+  return this.save();
+};
+
+// Remove like from userId
+eventSchema.methods.unlike = function (userId) {
+  if (!userId) return;
+  this.likes = this.likes.filter(id => !id.equals(userId));
+  return this.save();
+};
+
+// Automatically update maxAttendees based on sum of tickets quantity
+eventSchema.pre('save', function (next) {
+  if (Array.isArray(this.price)) {
+    this.maxAttendees = this.price.reduce((total, ticket) => total + (ticket.quantity || 0), 0);
+  } else {
+    this.maxAttendees = 0;
+  }
+  next();
+});
 
 export default mongoose.model("Event", eventSchema);

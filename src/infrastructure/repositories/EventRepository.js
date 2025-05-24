@@ -8,12 +8,12 @@ class EventRepository {
   }
 
 
-  async findPublicEvents({
+ async findPublicEvents({
   lat,
   long,
   maxDistance = 50000,
   category,
-  searchString,       // search string for title
+  searchString,
   startDate,
   endDate,
   page = 1,
@@ -25,28 +25,29 @@ class EventRepository {
     isLive: true,
   };
 
-  // Only add category filter if category is a non-empty string
+  // Category filter
   if (typeof category === 'string' && category.trim() !== '') {
     baseFilter.categories = { $in: [category.trim()] };
   }
 
-  // Only add search query filter if query is a non-empty string
+  // Search title filter
   if (typeof searchString === 'string' && searchString.trim() !== '') {
     baseFilter.title = { $regex: searchString.trim(), $options: 'i' };
   }
 
-  // Only add date filter if either startDate or endDate is defined and valid
+  // Date filter on the dates array: at least one date in range
   if (startDate || endDate) {
-    baseFilter.date = {};
+    baseFilter.dates = {
+      $elemMatch: {
+        $elemMatch: {}
+      }
+    };
     if (startDate && !isNaN(Date.parse(startDate))) {
-      baseFilter.date.$gte = new Date(startDate);
+      baseFilter.dates.$elemMatch.$elemMatch.startDate = { $gte: new Date(startDate) };
     }
     if (endDate && !isNaN(Date.parse(endDate))) {
-      baseFilter.date.$lte = new Date(endDate);
-    }
-    // If date is empty object (both dates invalid), delete the field
-    if (Object.keys(baseFilter.date).length === 0) {
-      delete baseFilter.date;
+      baseFilter.dates.$elemMatch.$elemMatch.startDate = baseFilter.dates.$elemMatch.$elemMatch.startDate || {};
+      baseFilter.dates.$elemMatch.$elemMatch.startDate.$lte = new Date(endDate);
     }
   }
 
@@ -67,14 +68,17 @@ class EventRepository {
         },
       },
     });
+    query = query.sort({ location: 1 }); // Sorting is implicit with $near but just in case
   } else {
-    query = Event.find(baseFilter).sort({ title: 1 });
+    // Sort by creation date descending (newest first)
+    query = Event.find(baseFilter).sort({ createdAt: -1 });
   }
 
-query = query
-  .select('title dates categories bannerImages locations organizerId organizerName')  // include only selected fields
-  .skip(skipCount)
-  .limit(limit);
+  query = query
+    .select('title dates categories bannerImages locations organizerId organizerName likesCount') 
+    .skip(skipCount)
+    .limit(limit);
+
   return query.exec();
 }
 
