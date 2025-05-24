@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import stagePostSchema from "./StagePost.js"; // adjust path if needed
+import stagePostSchema from "./StagePost.js"; // adjust the path as needed
 
 const ticketSchema = new mongoose.Schema({
   title: String,
@@ -10,13 +10,14 @@ const ticketSchema = new mongoose.Schema({
   sold: { type: Number, default: 0 },
 }, { _id: false });
 
-const rsvpEntrySchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+const teamMemberSchema = new mongoose.Schema({
+  role: { type: String, required: false, default: null }
 }, { _id: false });
 
-const teamMemberSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  role: { type: String, required: true },
+const rsvpsSchema = new mongoose.Schema({
+  attending: { type: [mongoose.Schema.Types.ObjectId], default: [] },
+  invited: { type: [mongoose.Schema.Types.ObjectId], default: [] },
+  declined: { type: [mongoose.Schema.Types.ObjectId], default: [] }
 }, { _id: false });
 
 const eventSchema = new mongoose.Schema({
@@ -35,7 +36,7 @@ const eventSchema = new mongoose.Schema({
   locations: [
     {
       coordinates: {
-        type: [Number], // [lat, long]
+        type: [Number], // [lat, long] from frontend input
         required: true,
       },
       votes: {
@@ -45,30 +46,24 @@ const eventSchema = new mongoose.Schema({
     }
   ],
 
-  // Geolocation for search
+  // Geolocation for search (GeoJSON: [long, lat])
   location: {
     type: { type: String, enum: ['Point'], default: 'Point' },
     coordinates: { type: [Number], default: [0, 0] }, // [long, lat]
   },
+  locationTBA: { type: Boolean, default: false },
 
   // Date options (polls)
   dates: [
     [
       {
-        votes: {
-          type: [String],
-          default: []
-        },
-        startDate: {
-          type: Date,
-          required: true
-        },
-        endDate: {
-          type: Date // optional
-        }
+        votes: { type: [String], default: [] },
+        startDate: { type: Date, required: true },
+        endDate: { type: Date } // optional
       }
     ]
   ],
+  dateTBA: { type: Boolean, default: false },
 
   // Organizer
   organizerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -100,20 +95,21 @@ const eventSchema = new mongoose.Schema({
   // Services
   services: [String],
 
-  // RSVP Object
-  rsvps: {
-    attendees: { type: [rsvpEntrySchema], default: [] },
-    invited: { type: [rsvpEntrySchema], default: [] },
-    interested: { type: [rsvpEntrySchema], default: [] },
+  // Team & Pool
+  team: {
+    type: Map,
+    of: teamMemberSchema,
+    default: {}
   },
-
-  // Team Array
-  team: { type: [teamMemberSchema], default: [] },
-
-  // Pool
   pool: { type: Map, of: mongoose.Schema.Types.Mixed, default: {} },
   teamSetup: { type: Boolean, default: false },
   poolSetup: { type: Boolean, default: false },
+
+  // RSVP (attendance)
+  rsvps: {
+    type: rsvpsSchema,
+    default: () => ({})
+  },
 
   // Refund
   lastDateForRefund: Date,
@@ -124,42 +120,17 @@ const eventSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Geo Index
+// Geospatial index
 eventSchema.index({ location: "2dsphere" });
 
-// Virtual for like count
+// Virtual for likes count
 eventSchema.virtual("likesCount").get(function () {
   return this.likes?.length || 0;
 });
 
-// Dynamic field for frontend
+// Method to dynamically set if current user liked it
 eventSchema.methods.setIsLiked = function (currentUserId) {
   this.isLiked = this.likes?.some(userId => userId.equals(currentUserId));
-};
-
-// Safe RSVP adder
-eventSchema.methods.addRsvp = function (type, userId) {
-  if (!["attendees", "invited", "interested"].includes(type)) return;
-
-  const entryExists = this.rsvps[type]?.some(entry => entry.userId.equals(userId));
-  if (!entryExists) {
-    this.rsvps[type].push({ userId });
-  }
-};
-
-// Safe Team add/update
-eventSchema.methods.addOrUpdateTeamMember = function (userId, role) {
-  const existing = this.team.find(member => member.userId.equals(userId));
-  if (existing) {
-    existing.role = role;
-  } else {
-    this.team.push({ userId, role });
-  }
-};
-
-// Optional: remove team member
-eventSchema.methods.removeTeamMember = function (userId) {
-  this.team = this.team.filter(member => !member.userId.equals(userId));
 };
 
 export default mongoose.model("Event", eventSchema);
