@@ -14,17 +14,27 @@ router.post(
     const {
       title,
       description,
-      locations,      // array of { coordinates: [lat, long], votes: [userId] }
-      dates,          // array of arrays of { votes: [userId], startDate, endDate? }
-      bannerImages,
-      tags,
-      categories,
-      groupId,
-      isLive,
-      access,
+      locations = [],
+      dates = [],
+      bannerImages = [],
+      tags = [],
+      categories = [],
+      groupId = null,
+      isLive = false,
+      access = 'public',
+      maxAttendees,
+      services = [],
+      lastDateForRefund,
     } = req.body;
 
     try {
+      // Find user for organizerName
+      const user = await User.findById(req.user.id);
+      if (!user) throw new Error("User not found");
+
+      // Default to first location for geospatial field
+      const primaryLocation = locations[0]?.coordinates || [0, 0];
+
       const event = await EventService.createEvent({
         title,
         description,
@@ -34,16 +44,38 @@ router.post(
         tags,
         categories,
         groupId,
-        creatorId: req.user.id,
+        isLinkedWithGroup: !!groupId,
         isLive,
         access,
+        maxAttendees,
+        services,
+        lastDateForRefund,
+
+        // Organizer
+        organizerId: req.user.id,
+        organizerName: user.name,
+
+        // Initial team and RSVPs
+        team: new Map([[req.user.id.toString(), { role: 'organizer' }]]),
+        rsvps: {
+          attendees: [{ userId: req.user.id }],
+          invited: [],
+          interested: [],
+        },
+
+        // Geo search
+        location: {
+          type: 'Point',
+          coordinates: [primaryLocation[1], primaryLocation[0]] // GeoJSON: [long, lat]
+        },
       });
 
-        await User.findByIdAndUpdate(
-      req.user.id,
-      { $push: { myEventIds: event._id } },
-      { new: true }
-    );
+      // Add event ID to user
+      await User.findByIdAndUpdate(
+        req.user.id,
+        { $push: { myEventIds: event._id } },
+        { new: true }
+      );
 
       CommonResponse.success(res, { id: event._id.toString() });
     } catch (err) {
@@ -51,6 +83,7 @@ router.post(
     }
   }
 );
+
 // 2. Get Event by ID
 router.get('/public/:id', async (req, res) => {
   try {
