@@ -6,7 +6,6 @@ import User from '../../domain//models/User.js';
 
 const router = express.Router();
 
-// 1. Create Event
 router.post(
   '/',
   passport.authenticate('jwt', { session: false }),
@@ -32,8 +31,18 @@ router.post(
       const user = await User.findById(req.user.id);
       if (!user) throw new Error("User not found");
 
-      // Default to first location for geospatial field
+      // Default to first location for geo field
       const primaryLocation = locations[0]?.coordinates || [0, 0];
+
+      // Prepare rsvps object: Map with userId keys
+      const rsvps = new Map([
+        [req.user.id.toString(), { status: 'attending', respondedAt: new Date() }]
+      ]);
+
+      // Prepare team Map
+      const team = new Map([
+        [req.user.id.toString(), { role: 'organizer' }]
+      ]);
 
       const event = await EventService.createEvent({
         title,
@@ -55,15 +64,11 @@ router.post(
         organizerId: req.user.id,
         organizerName: user.name,
 
-        // Initial team and RSVPs
-        team: new Map([[req.user.id.toString(), { role: 'organizer' }]]),
-        rsvps: {
-          attendees: [{ userId: req.user.id }],
-          invited: [],
-          interested: [],
-        },
+        // Initial team and RSVPs as Maps
+        team,
+        rsvps,
 
-        // Geo search
+        // Geo search location
         location: {
           type: 'Point',
           coordinates: [primaryLocation[1], primaryLocation[0]] // GeoJSON: [long, lat]
@@ -83,7 +88,6 @@ router.post(
     }
   }
 );
-
 // 2. Get Event by ID
 router.get('/public/:id', async (req, res) => {
   try {
