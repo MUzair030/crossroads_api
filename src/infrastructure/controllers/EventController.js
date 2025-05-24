@@ -97,15 +97,42 @@ router.get('/public/:id', async (req, res) => {
   }
 });
 
-// 3. Get All Public Events
-router.post('/public', async (req, res) => {
+// 3. Get All Public Events (GET with query params)
+router.get('/public', async (req, res) => {
   try {
-    const events = await EventService.getAllEvents(req.body);
+    // Extract query params from req.query
+    // req.query properties are always strings, so convert as needed
+    const {
+      lat,
+      long,
+      maxDistance,
+      category,
+      searchString,
+      startDate,
+      endDate,
+      page,
+      limit,
+    } = req.query;
+
+    const filters = {
+      lat: lat ? parseFloat(lat) : undefined,
+      long: long ? parseFloat(long) : undefined,
+      maxDistance: maxDistance ? parseInt(maxDistance) : undefined,
+      category,
+      searchString,
+      startDate,
+      endDate,
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 10,
+    };
+
+    const events = await EventService.getAllEvents(filters);
     CommonResponse.success(res, events);
   } catch (err) {
     CommonResponse.error(res, err.message, 400);
   }
 });
+
 
 // 4. Get Events by Group
 router.get('/group/:groupId', async (req, res) => {
