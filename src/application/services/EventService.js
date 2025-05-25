@@ -159,7 +159,7 @@ async searchEvents(query, page, limit ) {
 
   // In EventService.js
 
-static async inviteUsersToEvent(eventId, inviterId, userIds) {
+ async inviteUsersToEvent(eventId, inviterId, userIds) {
   const event = await Event.findById(eventId);
   if (!event) throw new Error('Event not found');
 
@@ -174,7 +174,7 @@ static async inviteUsersToEvent(eventId, inviterId, userIds) {
   return event;
 }
 
-static async respondToEventInvite(eventId, userId, status) {
+ async respondToEventInvite(eventId, userId, status) {
   const event = await Event.findById(eventId);
   if (!event) throw new Error('Event not found');
 
