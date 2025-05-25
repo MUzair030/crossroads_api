@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import stagePostSchema from "./StagePost.js"; // adjust path as needed
+import { registerNotification } from '../../application/services/NotificationService.js'; // adjust path as needed
+
 
 const ticketSchema = new mongoose.Schema({
   title: String,
@@ -203,19 +205,35 @@ eventSchema.methods.unvote = function(type, index, userId) {
 
 
 // Invite users to event
-eventSchema.methods.inviteUsers = function(userIds) {
-  if (!Array.isArray(userIds)) {
-    throw new Error('userIds must be an array');
+
+EventSchema.methods.inviteUsers = async function (userIds, inviterId = null) {
+  const invited = [];
+
+  for (const userId of userIds) {
+    if (!this.rsvps.has(userId)) {
+      // Add RSVP entry
+      this.rsvps.set(userId, {
+        status: 'maybe',
+        respondedAt: new Date()
+      });
+      invited.push(userId);
+
+      // ✅ Send notification
+      await registerNotification({
+        type: 'event_invite',
+        title: 'You’ve been invited!',
+        message: `You’ve been invited to the event "${this.title}"`,
+        receiverId: userId,
+        senderId: inviterId,
+        metadata: { eventId: this._id }
+      });
+    }
   }
 
-  userIds.forEach(userId => {
-    if (!this.pool.has(userId.toString())) {
-      this.pool.set(userId.toString(), { invited: true });
-    }
-  });
-
-  return this.save();
+  await this.save();
+  return invited;
 };
+
 
 // Respond to invite
 // status must be: 'attending', 'maybe', or 'declined'

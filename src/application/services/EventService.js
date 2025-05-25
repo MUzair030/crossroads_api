@@ -2,7 +2,6 @@ import EventRepository from "../../infrastructure/repositories/EventRepository.j
 import GroupRepository from "../../infrastructure/repositories/GroupRepository.js";
 import Event from "../../domain/models/Event.js";
 import User from "../../domain/models/User.js";
-import { registerNotification } from '../../application/services/NotificationService.js'; // adjust path
 import mongoose from "mongoose";
 
 class EventService {
@@ -163,37 +162,19 @@ async searchEvents(query, page, limit ) {
 
 
 // in services/EventService.js
-
-async  inviteUsersToEvent(eventId, senderId, userIds) {
+static async inviteUsersToEvent(eventId, inviterId, userIds) {
   const event = await Event.findById(eventId);
   if (!event) throw new Error('Event not found');
 
-  const invited = [];
-
-  for (const userId of userIds) {
-    const user = await User.findById(userId);
-    if (!user) continue;
-
-   if (!event.rsvps.has(userId)) {
-  event.rsvps.set(userId, { status: 'maybe', respondedAt: new Date() });
-  invited.push(userId);
-
-  await registerNotification({
-    type: 'event_invite',
-    title: 'You’ve been invited!',
-    message: `You’ve been invited to the event "${event.title}"`,
-    receiverId: userId,
-    senderId,
-    metadata: { eventId: event._id }
-  });
-}
-
+  const isOrganizer = event.organizerId?.toString() === inviterId.toString();
+  const isTeamMember = event.team?.has(inviterId.toString());
+  if (!isOrganizer && !isTeamMember) {
+    throw new Error('Unauthorized to invite users');
   }
 
-  await event.save();
-  return { invitedUserIds: invited, event };
+  await event.inviteUsers(userIds, inviterId); // ✅ pass inviterId for notifications
+  return event;
 }
-
 
 
 
