@@ -139,6 +139,24 @@ async searchEvents(query, page, limit ) {
   }
 
 
+    async voteOnOption(eventId, type, index, userId) {
+    const event = await Event.findById(eventId);
+    if (!event) throw new Error('Event not found');
+
+    // Call schema method
+    return event.vote(type, index, userId);
+  }
+
+  // Unvote for a location or date option
+  async unvoteOnOption(eventId, type, index, userId) {
+    const event = await Event.findById(eventId);
+    if (!event) throw new Error('Event not found');
+
+    // Call schema method
+    return event.unvote(type, index, userId);
+  }
+
+
 
 }
 
