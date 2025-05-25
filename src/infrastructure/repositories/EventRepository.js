@@ -91,9 +91,10 @@ async findById (eventId, currentUserId = null)  {
   if (!event) throw new Error('Event not found');
 
   // Convert Map fields to plain JS objects
-  event.team = event.team ? Object.fromEntries(event.team) : {};
-  event.rsvps = event.rsvps ? Object.fromEntries(event.rsvps) : {};
-  event.pool = event.pool ? Object.fromEntries(event.pool) : {};
+event.team = event.team instanceof Map ? Object.fromEntries(event.team) : event.team || {};
+event.rsvps = event.rsvps instanceof Map ? Object.fromEntries(event.rsvps) : event.rsvps || {};
+event.pool = event.pool instanceof Map ? Object.fromEntries(event.pool) : event.pool || {};
+
 
   // Likes info
   const likesCount = event.likes?.length || 0;
