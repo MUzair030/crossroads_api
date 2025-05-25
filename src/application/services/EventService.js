@@ -2,7 +2,7 @@ import EventRepository from "../../infrastructure/repositories/EventRepository.j
 import GroupRepository from "../../infrastructure/repositories/GroupRepository.js";
 import Event from "../../domain/models/Event.js";
 import User from "../../domain/models/User.js";
-
+import { registerNotification } from '../services/notificationService.js'; // adjust path
 import mongoose from "mongoose";
 
 class EventService {
@@ -159,20 +159,53 @@ async searchEvents(query, page, limit ) {
 
   // In EventService.js
 
- async inviteUsersToEvent(eventId, inviterId, userIds) {
-  const event = await Event.findById(eventId);
-  if (!event) throw new Error('Event not found');
 
-  // Only organizer or team member can invite
-  const isOrganizer = event.organizerId?.toString() === inviterId.toString();
-  const isTeamMember = event.team?.has(inviterId.toString());
-  if (!isOrganizer && !isTeamMember) {
-    throw new Error('Unauthorized to invite users');
+
+
+async inviteUsersToEvent  (req, res)  {
+  const { eventId } = req.params;
+  const { userIds } = req.body;
+  const senderId = req.user._id;
+
+  try {
+    const event = await Event.findById(eventId);
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+
+    const invited = [];
+
+    for (const userId of userIds) {
+      const user = await User.findById(userId);
+      if (!user) continue;
+
+      if (!event.invitedUsers.includes(userId)) {
+        event.invitedUsers.push(userId);
+        invited.push(userId);
+
+        // ✅ Register notification
+        await registerNotification({
+          type: 'event_invite',
+          title: 'You’ve been invited!',
+          message: `You’ve been invited to the event "${event.title}"`,
+          receiverId: userId,
+          senderId,
+          metadata: { eventId: event._id }
+        });
+      }
+    }
+
+    await event.save();
+
+    res.status(200).json({
+      message: `Invited ${invited.length} users`,
+      invitedUserIds: invited
+    });
+  } catch (err) {
+    console.error('Error inviting users:', err.message);
+    res.status(500).json({ message: 'Internal server error' });
   }
+};
 
-  await event.inviteUsers(userIds); // assumes this is a method on your schema
-  return event;
-}
+
 
  async respondToEventInvite(eventId, userId, status) {
   const event = await Event.findById(eventId);
