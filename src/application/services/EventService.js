@@ -174,20 +174,20 @@ async  inviteUsersToEvent(eventId, senderId, userIds) {
     const user = await User.findById(userId);
     if (!user) continue;
 
-    if (!event.invitedUsers.includes(userId)) {
-      event.invitedUsers.push(userId);
-      invited.push(userId);
+   if (!event.rsvps.has(userId)) {
+  event.rsvps.set(userId, { status: 'maybe', respondedAt: new Date() });
+  invited.push(userId);
 
-      // ✅ Register notification
-      await registerNotification({
-        type: 'event_invite',
-        title: 'You’ve been invited!',
-        message: `You’ve been invited to the event "${event.title}"`,
-        receiverId: userId,
-        senderId,
-        metadata: { eventId: event._id }
-      });
-    }
+  await registerNotification({
+    type: 'event_invite',
+    title: 'You’ve been invited!',
+    message: `You’ve been invited to the event "${event.title}"`,
+    receiverId: userId,
+    senderId,
+    metadata: { eventId: event._id }
+  });
+}
+
   }
 
   await event.save();
