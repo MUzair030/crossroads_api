@@ -206,7 +206,7 @@ eventSchema.methods.unvote = function(type, index, userId) {
 
 // Invite users to event
 
-EventSchema.methods.inviteUsers = async function (userIds, inviterId = null) {
+eventSchema.methods.inviteUsers = async function (userIds, inviterId = null) {
   const invited = [];
 
   for (const userId of userIds) {
