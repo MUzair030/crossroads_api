@@ -165,8 +165,9 @@ async findById (eventId, currentUserId = null)  {
     };
   }
 
-  // Private + not invited or attending
-  return base;
+if (!isPublic && !isAttending && !isInvited && !isOrganizer) {
+  throw new Error('Unauthorized access to private event');
+}  return base;
 };
 
 
