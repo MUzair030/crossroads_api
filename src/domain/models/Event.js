@@ -202,6 +202,45 @@ eventSchema.methods.unvote = function(type, index, userId) {
 
 
 
+// Invite users to event
+eventSchema.methods.inviteUsers = function(userIds) {
+  if (!Array.isArray(userIds)) {
+    throw new Error('userIds must be an array');
+  }
+
+  userIds.forEach(userId => {
+    if (!this.pool.has(userId.toString())) {
+      this.pool.set(userId.toString(), { invited: true });
+    }
+  });
+
+  return this.save();
+};
+
+// Respond to invite
+// status must be: 'attending', 'maybe', or 'declined'
+eventSchema.methods.respondToInvite = function(userId, status) {
+  const validStatuses = ['attending', 'maybe', 'declined'];
+  if (!validStatuses.includes(status)) {
+    throw new Error('Invalid RSVP status');
+  }
+
+  // If not invited, don't allow response
+  if (!this.pool.has(userId.toString()) || !this.pool.get(userId.toString()).invited) {
+    throw new Error('User not invited to this event');
+  }
+
+  this.rsvps.set(userId.toString(), {
+    status,
+    respondedAt: new Date(),
+  });
+
+  return this.save();
+};
+
+
+
+
 // Automatically update maxAttendees based on sum of tickets quantity
 eventSchema.pre('save', function (next) {
   if (Array.isArray(this.price)) {

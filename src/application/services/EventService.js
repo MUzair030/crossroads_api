@@ -157,6 +157,33 @@ async searchEvents(query, page, limit ) {
   }
 
 
+  // In EventService.js
+
+static async inviteUsersToEvent(eventId, inviterId, userIds) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new Error('Event not found');
+
+  // Only organizer or team member can invite
+  const isOrganizer = event.organizerId?.toString() === inviterId.toString();
+  const isTeamMember = event.team?.has(inviterId.toString());
+  if (!isOrganizer && !isTeamMember) {
+    throw new Error('Unauthorized to invite users');
+  }
+
+  await event.inviteUsers(userIds); // assumes this is a method on your schema
+  return event;
+}
+
+static async respondToEventInvite(eventId, userId, status) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new Error('Event not found');
+
+  await event.respondToInvite(userId, status); // schema method
+  return event;
+}
+
+
+
 
 }
 

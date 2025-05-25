@@ -272,4 +272,51 @@ router.post(
 
 
 
+//12. Invite users to event (organizer/team only)
+router.post(
+  '/:eventId/invite',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { eventId } = req.params;
+    const inviterId = req.user.id;
+    const { userIds } = req.body;
+
+    try {
+      if (!Array.isArray(userIds) || userIds.length === 0) {
+        return CommonResponse.error(res, 'userIds must be a non-empty array', 400);
+      }
+
+      const event = await EventService.inviteUsersToEvent(eventId, inviterId, userIds);
+      CommonResponse.success(res, { message: 'Users invited', event });
+    } catch (err) {
+      CommonResponse.error(res, err.message, 403);
+    }
+  }
+);
+
+//13. RSVP to event invite
+router.post(
+  '/:eventId/rsvp',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { eventId } = req.params;
+    const userId = req.user.id;
+    const { status } = req.body;
+
+    if (!['attending', 'maybe', 'declined'].includes(status)) {
+      return CommonResponse.error(res, 'Invalid RSVP status', 400);
+    }
+
+    try {
+      const event = await EventService.respondToEventInvite(eventId, userId, status);
+      CommonResponse.success(res, { message: 'RSVP updated', event });
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+
+
+
 export default router;
