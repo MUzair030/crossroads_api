@@ -83,23 +83,92 @@ class EventRepository {
 }
 
 
-  async findById(eventId, currentUserId = null) {
+async findById (eventId, currentUserId = null)  {
   const event = await Event.findOne({ _id: eventId, isDeleted: false })
-    .populate('organizerId', 'name email profilePicture') // adjust fields as needed
-    .lean();
+    .populate('organizerId', 'name email profilePicture')
+    .lean({ virtuals: true });
 
   if (!event) throw new Error('Event not found');
 
-  // Add computed fields
-  if (currentUserId) {
-    event.isLiked = event.likes?.some(id => id.toString() === currentUserId.toString());
+  // Convert Map fields to plain JS objects
+  event.team = event.team ? Object.fromEntries(event.team) : {};
+  event.rsvps = event.rsvps ? Object.fromEntries(event.rsvps) : {};
+  event.pool = event.pool ? Object.fromEntries(event.pool) : {};
+
+  // Likes info
+  const likesCount = event.likes?.length || 0;
+  const isLiked = currentUserId
+    ? event.likes?.some(id => id.toString() === currentUserId.toString())
+    : false;
+
+  // RSVP Status
+  const rsvp = currentUserId && event.rsvps?.[currentUserId];
+  const isOrganizer = currentUserId && currentUserId.toString() === event.organizerId._id.toString();
+  const isInvited = !!rsvp && !rsvp.status;
+  const isAttending = !!rsvp && rsvp.status === 'attending';
+  const isPublic = event.access === 'public';
+
+  // Handle TBA conditions
+  const includeLocations = !event.locationTBA;
+  const includeDates = !event.dateTBA;
+
+  const base = {
+    _id: event._id,
+    title: event.title,
+    organizerId: event.organizerId,
+    organizerName: event.organizerName,
+    access: event.access,
+    bannerImages: event.bannerImages,
+    tags: event.tags,
+    categories: event.categories,
+    isLive: event.isLive,
+    lastDateForRefund: event.lastDateForRefund,
+    createdAt: event.createdAt,
+    updatedAt: event.updatedAt,
+    locationTBA: event.locationTBA,
+    dateTBA: event.dateTBA,
+    likesCount,
+    isLiked,
+    ...(includeLocations && { locations: event.locations }),
+    ...(includeDates && { dates: event.dates }),
+  };
+
+  if (isOrganizer) {
+    return {
+      ...event,
+      isLiked,
+      likesCount,
+    };
   }
 
-  event.likesCount = event.likes?.length || 0;
-  delete event.likes;
+  if (isInvited || isAttending) {
+    return {
+      ...base,
+      description: event.description,
+      isLinkedWithGroup: event.isLinkedWithGroup,
+      groupId: event.groupId,
+      stagePosts: event.stagePosts,
+      services: event.services,
+      maxAttendees: event.maxAttendees,
+      isCancelled: event.isCancelled,
+      wherePoll: event.wherePoll,
+      whenPoll: event.whenPoll,
+      teamSetup: event.teamSetup,
+      poolSetup: event.poolSetup,
+    };
+  }
 
-  return event;
-}
+  if (isPublic) {
+    return {
+      ...base,
+      stagePosts: event.stagePosts,
+    };
+  }
+
+  // Private + not invited or attending
+  return base;
+};
+
 
 
   async updateEvent(eventId, updates) {

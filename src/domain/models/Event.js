@@ -137,6 +137,71 @@ eventSchema.methods.unlike = function (userId) {
   return this.save();
 };
 
+// Add these methods inside your eventSchema.methods
+
+// Vote for a location or date option
+// type: 'location' | 'date'
+// index: which location or date option index (for dates, it's [outerIndex, innerIndex])
+// userId: voter user id
+eventSchema.methods.vote = function(type, index, userId) {
+  if (!userId) throw new Error('UserId is required');
+
+  if (type === 'location') {
+    // index is location index
+    if (!this.locations || !this.locations[index]) {
+      throw new Error('Invalid location index');
+    }
+    const votes = this.locations[index].votes;
+    if (!votes.includes(userId.toString())) {
+      votes.push(userId.toString());
+    }
+  } else if (type === 'date') {
+    // index is expected to be an array [outerIndex, innerIndex]
+    if (!Array.isArray(index) || index.length !== 2) {
+      throw new Error('Date vote requires [outerIndex, innerIndex]');
+    }
+    const [outerIndex, innerIndex] = index;
+    if (!this.dates || !this.dates[outerIndex] || !this.dates[outerIndex][innerIndex]) {
+      throw new Error('Invalid date index');
+    }
+    const votes = this.dates[outerIndex][innerIndex].votes;
+    if (!votes.includes(userId.toString())) {
+      votes.push(userId.toString());
+    }
+  } else {
+    throw new Error('Invalid vote type');
+  }
+
+  return this.save();
+};
+
+// Remove vote for a location or date option
+eventSchema.methods.unvote = function(type, index, userId) {
+  if (!userId) throw new Error('UserId is required');
+
+  if (type === 'location') {
+    if (!this.locations || !this.locations[index]) {
+      throw new Error('Invalid location index');
+    }
+    this.locations[index].votes = this.locations[index].votes.filter(id => id.toString() !== userId.toString());
+  } else if (type === 'date') {
+    if (!Array.isArray(index) || index.length !== 2) {
+      throw new Error('Date unvote requires [outerIndex, innerIndex]');
+    }
+    const [outerIndex, innerIndex] = index;
+    if (!this.dates || !this.dates[outerIndex] || !this.dates[outerIndex][innerIndex]) {
+      throw new Error('Invalid date index');
+    }
+    this.dates[outerIndex][innerIndex].votes = this.dates[outerIndex][innerIndex].votes.filter(id => id.toString() !== userId.toString());
+  } else {
+    throw new Error('Invalid vote type');
+  }
+
+  return this.save();
+};
+
+
+
 // Automatically update maxAttendees based on sum of tickets quantity
 eventSchema.pre('save', function (next) {
   if (Array.isArray(this.price)) {

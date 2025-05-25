@@ -124,37 +124,22 @@ async searchEvents(query, page, limit ) {
   return { message: "Event soft-deleted successfully" };
 }
 
+ async likeEvent(eventId, userId) {
+    const event = await Event.findById(eventId);
+    if (!event) throw new Error('Event not found');
+    await event.like(userId);
+    return { success: true, message: 'Event liked' };
+  }
 
-/*
-    async getGroupEvents(groupId) {
-        return EventRepository.findByGroupId(groupId);
-    }
+  async dislikeEvent(eventId, userId) {
+    const event = await Event.findById(eventId);
+    if (!event) throw new Error('Event not found');
+    await event.unlike(userId);
+    return { success: true, message: 'Event unliked' };
+  }
 
-   
 
 
-    async editEvent(eventId, updates, userId) {
-        const event = await EventRepository.findById(eventId);
-        if (!event) throw new Error('Event not found.');
-        if (event.creator.toString() !== userId) throw new Error('Unauthorized.');
-
-        return EventRepository.update(eventId, updates);
-    }
-
-    async deleteEvent(eventId, userId) {
-        const event = await EventRepository.findById(eventId);
-        if (!event) throw new Error('Event not found.');
-        if (event.creator.toString() !== userId) throw new Error('Unauthorized.');
-
-        const group = await GroupRepository.findById(event.groupId);
-        if (group) {
-            group.eventIds = group.eventIds.filter(id => id.toString() !== eventId.toString());
-            group.eventStatuses.delete(eventId.toString());
-            await GroupRepository.save(group);
-        }
-
-        return EventRepository.delete(eventId);
-    }*/
 }
 
 export default new EventService();
