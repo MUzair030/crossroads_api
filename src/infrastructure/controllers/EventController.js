@@ -200,5 +200,76 @@ router.get('/search', async (req, res) => {
   }
 });
 
+// 8. Like an event
+router.post(
+  '/:eventId/like',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { eventId } = req.params;
+    const userId = req.user.id;
+
+    try {
+      const updatedEvent = await EventService.likeEvent(eventId, userId);
+      CommonResponse.success(res, { likesCount: updatedEvent.likesCount, likedByUser: true });
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+// 9. Dislike (unlike) an event
+router.post(
+  '/:eventId/dislike',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { eventId } = req.params;
+    const userId = req.user.id;
+
+    try {
+      const updatedEvent = await EventService.dislikeEvent(eventId, userId);
+      CommonResponse.success(res, { likesCount: updatedEvent.likesCount, likedByUser: false });
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+// 10. Vote on an option (location or date)
+router.post(
+  '/:eventId/vote',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { eventId } = req.params;
+    const { type, index } = req.body; // type: 'location' or 'date', index: number or array
+    const userId = req.user.id;
+
+    try {
+      const updatedEvent = await EventService.voteOnOption(eventId, type, index, userId);
+      CommonResponse.success(res, { message: 'Vote recorded', event: updatedEvent });
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+// 11. Unvote on an option (location or date)
+router.post(
+  '/:eventId/unvote',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { eventId } = req.params;
+    const { type, index } = req.body;
+    const userId = req.user.id;
+
+    try {
+      const updatedEvent = await EventService.unvoteOnOption(eventId, type, index, userId);
+      CommonResponse.success(res, { message: 'Vote removed', event: updatedEvent });
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+
 
 export default router;
