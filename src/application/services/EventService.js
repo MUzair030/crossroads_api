@@ -162,48 +162,38 @@ async searchEvents(query, page, limit ) {
 
 
 
-async inviteUsersToEvent  (req, res)  {
-  const { eventId } = req.params;
-  const { userIds } = req.body;
-  const senderId = req.user._id;
+// in services/EventService.js
 
-  try {
-    const event = await Event.findById(eventId);
-    if (!event) return res.status(404).json({ message: 'Event not found' });
+async  inviteUsersToEvent(eventId, senderId, userIds) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new Error('Event not found');
 
-    const invited = [];
+  const invited = [];
 
-    for (const userId of userIds) {
-      const user = await User.findById(userId);
-      if (!user) continue;
+  for (const userId of userIds) {
+    const user = await User.findById(userId);
+    if (!user) continue;
 
-      if (!event.invitedUsers.includes(userId)) {
-        event.invitedUsers.push(userId);
-        invited.push(userId);
+    if (!event.invitedUsers.includes(userId)) {
+      event.invitedUsers.push(userId);
+      invited.push(userId);
 
-        // ✅ Register notification
-        await registerNotification({
-          type: 'event_invite',
-          title: 'You’ve been invited!',
-          message: `You’ve been invited to the event "${event.title}"`,
-          receiverId: userId,
-          senderId,
-          metadata: { eventId: event._id }
-        });
-      }
+      // ✅ Register notification
+      await registerNotification({
+        type: 'event_invite',
+        title: 'You’ve been invited!',
+        message: `You’ve been invited to the event "${event.title}"`,
+        receiverId: userId,
+        senderId,
+        metadata: { eventId: event._id }
+      });
     }
-
-    await event.save();
-
-    res.status(200).json({
-      message: `Invited ${invited.length} users`,
-      invitedUserIds: invited
-    });
-  } catch (err) {
-    console.error('Error inviting users:', err.message);
-    res.status(500).json({ message: 'Internal server error' });
   }
-};
+
+  await event.save();
+  return { invitedUserIds: invited, event };
+}
+
 
 
 
