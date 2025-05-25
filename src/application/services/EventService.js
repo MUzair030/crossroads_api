@@ -2,7 +2,7 @@ import EventRepository from "../../infrastructure/repositories/EventRepository.j
 import GroupRepository from "../../infrastructure/repositories/GroupRepository.js";
 import Event from "../../domain/models/Event.js";
 import User from "../../domain/models/User.js";
-import { registerNotification } from '../../services/NotificationService.js'; // adjust path
+import { registerNotification } from '../../application/services/NotificationService.js'; // adjust path
 import mongoose from "mongoose";
 
 class EventService {
