@@ -237,7 +237,7 @@ eventSchema.methods.inviteUsers = async function (userIds, inviterId = null) {
 
 // Respond to invite
 // status must be: 'attending', 'maybe', or 'declined'
-eventSchema.methods.respondToInvite = function(userId, status) {
+eventSchema.methods.respondToInvite = async function(userId, status) {
   const validStatuses = ['attending', 'maybe', 'declined'];
   if (!validStatuses.includes(status)) {
     throw new Error('Invalid RSVP status');
