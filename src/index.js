@@ -14,6 +14,7 @@ import postsController from './infrastructure/controllers/ThreadController.js';
 import groupController from './infrastructure/controllers/GroupController.js';
 import eventController from './infrastructure/controllers/EventController.js';
 import serviceController from './infrastructure/controllers/ServiceController.js';
+import stagepostController from './infrastructure/controllers/StagePostController.js';
 import chatController, {
     getReceiverSocketId,
     handleSendMessage,
@@ -62,6 +63,8 @@ app.use('/api/chat', chatController);
 app.use('/api/groups', groupController);
 app.use('/api/events', eventController);
 app.use('/api/services', serviceController);
+app.use('/api/services', stagepostController);
+
 
 
 
