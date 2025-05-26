@@ -94,7 +94,6 @@ const event = await Event.findOne({ _id: eventId, isDeleted: false })
     }
   }).populate({
   path: 'tickets',
-  select: 'title price currency quantity sold lastDateForRefund',
 }).lean({ virtuals: true });
 
 
