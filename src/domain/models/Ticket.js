@@ -14,4 +14,5 @@ const ticketSchema = new mongoose.Schema({
 
 }, { _id: true }); // still embedded schema, not a model
 
-export default ticketSchema;
+const Ticket = mongoose.model('Ticket', ticketSchema);
+export default Ticket;
