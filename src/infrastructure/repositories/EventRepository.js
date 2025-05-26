@@ -171,6 +171,7 @@ event.pool = event.pool instanceof Map ? Object.fromEntries(event.pool) : event.
     return {
       ...base,
       stagePosts: event.stagePosts,
+      tickets:event.tickets,
     };
   }
 
