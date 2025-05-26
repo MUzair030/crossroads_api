@@ -5,7 +5,10 @@ import User from "../../domain/models/User.js";
 import mongoose from "mongoose";
 
 class EventService {
-     async createEvent(data) {
+
+
+  // Create a new event
+  async createEvent(data) {
     const { groupId, creatorId } = data;
 
     if (groupId) {
@@ -64,66 +67,81 @@ class EventService {
       return event;
     }
   }
-async getEventById(eventId, currentUserId) {
-       return EventRepository.findById(eventId, currentUserId);
-   }
+
+  //Upload Images
+  async uploadEventBannerImage(file, event) {
+      const uniqueFileName = `images/events/${event.id}/${uuidv4()}_${file.originalname}`;
+      const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
+      console.log("uploadResult:::::::: ", uploadResult);
+      await this.editEvent(event.id, {bannerImages: uploadResult?.Location});
+      return uploadResult;
+    }
+
+
+  //Get Event by ID
+  async getEventById(eventId, currentUserId) {
+        return EventRepository.findById(eventId, currentUserId);
+  }
     
-    async getAllEvents(reqBody) {
+  async getAllEvents(reqBody) {
         return EventRepository.findPublicEvents(reqBody);
-    }
-
-
-    async  editEvent(eventId, updates, userId) {
-  // Find event
-  const event = await Event.findById(eventId);
-  if (!event) {
-    throw new Error('Event not found');
   }
 
-  // Check if the user is authorized to edit (e.g., must be the organizer)
-  if (!event.organizerId.equals(userId)) {
-    throw new Error('Unauthorized to edit this event');
+  // Edit an existing event
+  async  editEvent(eventId, updates, userId) {
+    // Find event
+    const event = await Event.findById(eventId);
+    if (!event) {
+      throw new Error('Event not found');
+    }
+
+    // Check if the user is authorized to edit (e.g., must be the organizer)
+    if (!event.organizerId.equals(userId)) {
+      throw new Error('Unauthorized to edit this event');
+    }
+
+    // Update allowed fields only (optional: whitelist fields)
+    const allowedUpdates = [
+      'title', 'description', 'locations', 'dates',
+      'categories', 'bannerImages', 'isLive', 'access',
+      'price', 'maxAttendees', 'tags', 'services',
+    ];
+
+    Object.keys(updates).forEach(key => {
+      if (allowedUpdates.includes(key)) {
+        event[key] = updates[key];
+      }
+    });
+
+    // Save and return updated event
+    return event.save();
   }
 
-  // Update allowed fields only (optional: whitelist fields)
-  const allowedUpdates = [
-    'title', 'description', 'locations', 'dates',
-    'categories', 'bannerImages', 'isLive', 'access',
-    'price', 'maxAttendees', 'tags', 'services',
-  ];
-
-  Object.keys(updates).forEach(key => {
-    if (allowedUpdates.includes(key)) {
-      event[key] = updates[key];
-    }
-  });
-
-  // Save and return updated event
-  return event.save();
-}
-
-async searchEvents(query, page, limit ) {
+  async searchEvents(query, page, limit ) {
         return EventRepository.searchPublicEvents(query, page, limit);
+  }
+
+  // Soft delete an event  
+  async softDeleteEvent(eventId, userId) {
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      throw new Error("Event not found");
     }
 
-  async softDeleteEvent(eventId, userId) {
-  const event = await Event.findById(eventId);
+    if (!event.organizerId || !event.organizerId.equals(userId)) {
+      throw new Error("Unauthorized: You are not the organizer");
+    }
 
-  if (!event) {
-    throw new Error("Event not found");
+    event.isDeleted = true;
+    await event.save();
+
+    return { message: "Event soft-deleted successfully" };
   }
 
-  if (!event.organizerId || !event.organizerId.equals(userId)) {
-    throw new Error("Unauthorized: You are not the organizer");
-  }
+// Like and dislike events
 
-  event.isDeleted = true;
-  await event.save();
-
-  return { message: "Event soft-deleted successfully" };
-}
-
- async likeEvent(eventId, userId) {
+  async likeEvent(eventId, userId) {
     const event = await Event.findById(eventId);
     if (!event) throw new Error('Event not found');
     await event.like(userId);
@@ -137,8 +155,8 @@ async searchEvents(query, page, limit ) {
     return { success: true, message: 'Event unliked' };
   }
 
-
-    async voteOnOption(eventId, type, index, userId) {
+  // Vote for a location or date option
+  async voteOnOption(eventId, type, index, userId) {
     const event = await Event.findById(eventId);
     if (!event) throw new Error('Event not found');
 
@@ -155,14 +173,8 @@ async searchEvents(query, page, limit ) {
     return event.unvote(type, index, userId);
   }
 
-
-  // In EventService.js
-
-
-
-
-// in services/EventService.js
- async inviteUsersToEvent(eventId, inviterId, userIds) {
+// Invite users to an event
+  async inviteUsersToEvent(eventId, inviterId, userIds) {
   const event = await Event.findById(eventId);
   if (!event) throw new Error('Event not found');
 
@@ -174,17 +186,80 @@ async searchEvents(query, page, limit ) {
 
   await event.inviteUsers(userIds, inviterId); // ✅ pass inviterId for notifications
   return event;
-}
+  }
 
-
-
- async respondToEventInvite(eventId, userId, status) {
+  async respondToEventInvite(eventId, userId, status) {
   const event = await Event.findById(eventId);
   if (!event) throw new Error('Event not found');
 
   await event.respondToInvite(userId, status); // schema method
   return event;
-}
+  }
+
+  // Add a new stage post to an event
+  async addStagePost(eventId, postData, userId) {
+    const event = await Event.findById(eventId);
+    if (!event) throw new Error("Event not found");
+
+    // Optional: Check user authorization (organizer or team member)
+    const isOrganizer = event.organizerId?.equals(userId);
+    const isTeamMember = event.team?.has(userId.toString());
+    if (!isOrganizer && !isTeamMember) {
+      throw new Error("Unauthorized to add stage posts");
+    }
+
+    // Add post — postData should be an object matching the stagePost schema
+    event.stagePosts.push(postData);
+    await event.save();
+
+    return event;
+  }
+
+  // Update an existing stage post in an event
+  async updateStagePost(eventId, postId, updatedFields, userId) {
+    const event = await Event.findById(eventId);
+    if (!event) throw new Error("Event not found");
+
+    const isOrganizer = event.organizerId?.equals(userId);
+    const isTeamMember = event.team?.has(userId.toString());
+    if (!isOrganizer && !isTeamMember) {
+      throw new Error("Unauthorized to update stage posts");
+    }
+
+    // Use schema method to update stage post
+    await event.updateStagePost(postId, updatedFields);
+    return event;
+  }
+
+  // Delete a stage post by ID
+  async deleteStagePost(eventId, postId, userId) {
+    const event = await Event.findById(eventId);
+    if (!event) throw new Error("Event not found");
+
+    const isOrganizer = event.organizerId?.equals(userId);
+    const isTeamMember = event.team?.has(userId.toString());
+    if (!isOrganizer && !isTeamMember) {
+      throw new Error("Unauthorized to delete stage posts");
+    }
+
+    await event.deleteStagePost(postId);
+    return event;
+  }
+
+  // Reorder stage posts by providing new order of stagePost IDs
+  async reorderStagePosts(eventId, newOrderIds, userId) {
+    const event = await Event.findById(eventId);
+    if (!event) throw new Error("Event not found");
+
+    const isOrganizer = event.organizerId?.equals(userId);
+    const isTeamMember = event.team?.has(userId.toString());
+    if (!isOrganizer && !isTeamMember) {
+      throw new Error("Unauthorized to reorder stage posts");
+    }
+
+    await event.reorderStagePosts(newOrderIds);
+    return event;
+  }
 
 
 

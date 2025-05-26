@@ -258,6 +258,53 @@ eventSchema.methods.respondToInvite = async function(userId, status) {
 
 
 
+// Add a new stage post
+eventSchema.methods.addStagePost = function (post) {
+  this.stagePosts.push(post);
+  return this.save();
+};
+
+// Update an existing stage post by ID
+eventSchema.methods.updateStagePost = function (postId, updatedFields) {
+  const postIndex = this.stagePosts.findIndex(p => p._id.equals(postId));
+  if (postIndex === -1) throw new Error("Stage post not found");
+
+  this.stagePosts[postIndex] = {
+    ...this.stagePosts[postIndex].toObject(), // convert to plain object
+    ...updatedFields,
+  };
+  return this.save();
+};
+
+// Delete a stage post by ID
+eventSchema.methods.deleteStagePost = function (postId) {
+  const originalLength = this.stagePosts.length;
+  this.stagePosts = this.stagePosts.filter(p => !p._id.equals(postId));
+  if (this.stagePosts.length === originalLength) throw new Error("Stage post not found");
+  return this.save();
+};
+
+// Reorder stage posts: pass an array of stagePost IDs in new order
+eventSchema.methods.reorderStagePosts = function (newOrder) {
+  if (!Array.isArray(newOrder)) throw new Error("New order must be an array");
+
+  const orderedPosts = [];
+  for (const id of newOrder) {
+    const found = this.stagePosts.find(p => p._id.equals(id));
+    if (found) orderedPosts.push(found);
+  }
+
+  if (orderedPosts.length !== this.stagePosts.length) {
+    throw new Error("New order does not match existing stagePosts");
+  }
+
+  this.stagePosts = orderedPosts;
+  return this.save();
+};
+
+
+
+
 
 // Automatically update maxAttendees based on sum of tickets quantity
 eventSchema.pre('save', function (next) {

@@ -316,6 +316,101 @@ router.post(
   }
 );
 
+// 14. Add a new stage post to an event
+router.post(
+  '/:eventId/stage-posts',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { eventId } = req.params;
+    const postData = req.body;
+    const userId = req.user.id;
+
+    try {
+      const event = await EventService.addStagePost(eventId, postData, userId);
+      CommonResponse.success(res, { message: 'Stage post added', event });
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+// 15. Update a stage post by postId
+router.put(
+  '/:eventId/stage-posts/:postId',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { eventId, postId } = req.params;
+    const updatedFields = req.body;
+    const userId = req.user.id;
+
+    try {
+      const event = await EventService.updateStagePost(eventId, postId, updatedFields, userId);
+      CommonResponse.success(res, { message: 'Stage post updated', event });
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+// 16. Delete a stage post by postId
+router.delete(
+  '/:eventId/stage-posts/:postId',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { eventId, postId } = req.params;
+    const userId = req.user.id;
+
+    try {
+      const event = await EventService.deleteStagePost(eventId, postId, userId);
+      CommonResponse.success(res, { message: 'Stage post deleted', event });
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+// 17. Reorder stage posts with an array of post IDs in new order
+router.post(
+  '/:eventId/stage-posts/reorder',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { eventId } = req.params;
+    const { newOrder } = req.body;
+    const userId = req.user.id;
+
+    try {
+      if (!Array.isArray(newOrder)) {
+        return CommonResponse.error(res, 'newOrder must be an array', 400);
+      }
+      const event = await EventService.reorderStagePosts(eventId, newOrder, userId);
+      CommonResponse.success(res, { message: 'Stage posts reordered', event });
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+
+//18. Upload banner image for an event
+router.post('/:id/banner-image', upload.single('file'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const file = req.file;
+
+    if (!file) {
+      return CommonResponse.error(res, 'No file uploaded', 400);
+    }
+    const event = await EventService.getEventById(id);
+    if(event){
+      const uploadResult = await EventService.uploadEventBannerImage(file, event);
+      CommonResponse.success(res, uploadResult);
+    }
+  } catch (error) {
+    CommonResponse.error(res, error.message, 500);
+  }
+});
+
+
 
 
 
