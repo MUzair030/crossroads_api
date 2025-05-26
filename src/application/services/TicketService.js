@@ -6,7 +6,7 @@ import Ticket from '../../domain/models/Ticket.js';
 
 class TicketService{
 
-async  addTicket(eventId, userId, ticketData) {
+async addTicket(eventId, userId, ticketData) {
   const event = await Event.findById(eventId);
   if (!event) throw new Error("Event not found");
 
@@ -14,19 +14,19 @@ async  addTicket(eventId, userId, ticketData) {
     throw new Error("Unauthorized");
   }
 
-  // Create and save new Ticket
-  const newTicket = new Ticket({
-    ...ticketData,
-    eventId, // optional, in case you want to track the event on the ticket too
-  });
+  if (!Array.isArray(event.tickets)) {
+    event.tickets = [];
+  }
 
+  // Create and save ticket first
+  const newTicket = new Ticket({ ...ticketData, eventId });
   await newTicket.save();
 
-  // Push ticket ID to event
+  // Push the ticket ObjectId to event.tickets array
   event.tickets.push(newTicket._id);
   await event.save();
 
-  return newTicket; // or return event if needed
+  return event.tickets;
 }
 
 // --- Update Ticket ---
