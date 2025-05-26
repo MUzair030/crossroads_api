@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import stagePostSchema from "./StagePost.js"; // adjust path as needed
+import { stagePostSchema } from "./StagePost.js"; // ✅ gets the schema, not the model
 import { registerNotification } from '../../application/services/NotificationService.js'; // adjust path as needed
 
 

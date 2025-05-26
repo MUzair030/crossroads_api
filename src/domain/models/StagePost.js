@@ -75,4 +75,5 @@ stagePostSchema.methods.editPost = async function (userId, newText, newMediaUrls
 
 // Export the model
 const StagePost = model("StagePost", stagePostSchema);
+export { stagePostSchema };
 export default StagePost;
