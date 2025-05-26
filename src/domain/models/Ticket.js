@@ -1,0 +1,15 @@
+// models/Ticket.js
+import mongoose from 'mongoose';
+
+const ticketSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: String,
+  price: { type: Number, required: true },
+  currency: { type: String, default: 'USD' },
+  quantity: { type: Number, required: true },
+  sold: { type: Number, default: 0 },
+  termsAndConditions: { type: String, default: '' },
+  lastDateForRefund: { type: Date }
+}, { _id: false }); // still embedded schema, not a model
+
+export default ticketSchema;

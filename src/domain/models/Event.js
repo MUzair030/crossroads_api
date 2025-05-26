@@ -1,15 +1,9 @@
 import mongoose from "mongoose";
 import { registerNotification } from '../../application/services/NotificationService.js'; // adjust path as needed
+import ticketSchema from "./Ticket.js"; // adjust path as needed
 
 
-const ticketSchema = new mongoose.Schema({
-  title: String,
-  description: String,
-  price: Number,
-  currency: String,
-  quantity: Number,
-  sold: { type: Number, default: 0 },
-}, { _id: false });
+
 
 const eventSchema = new mongoose.Schema({
   title: { type: String, required: true },
@@ -62,7 +56,7 @@ const eventSchema = new mongoose.Schema({
 
   access: { type: String, enum: ['public', 'private'], default: 'public' },
 
-  price: [ticketSchema],
+  tickets: [ticketSchema],
   maxAttendees: { type: Number, default: 0 },
 
   stagePosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "StagePost" }],

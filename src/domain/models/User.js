@@ -27,25 +27,8 @@ const UserSchema = new mongoose.Schema({
   isDeleted: { type: Boolean, default: false },
   myEventIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
 
-  tickets: [
-  {
-    eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true },
-    ticketType: { type: String, required: true },       // e.g., 'VIP', 'General Admission'
-    quantity: { type: Number, default: 1 },
-    purchaseDate: { type: Date, default: Date.now },
-    status: { 
-      type: String, 
-      enum: ['active', 'used', 'refunded', 'cancelled'], 
-      default: 'active' 
-    },
-    ticketCode: { 
-      type: String, 
-      required: true, // Must be unique per ticket 
-      unique: true,   // Make sure to add unique index if needed
-    }, 
-    pricePaid: { type: Number, required: false },
-  }
-],
+  myPasses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'TicketPurchase' }],
+
 
 
   friendRequests: [
