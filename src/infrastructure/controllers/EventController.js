@@ -395,6 +395,25 @@ router.post(
 );
 
 
+// 17. Toggle like/dislike on a stage post
+router.post(
+  '/:eventId/stage-posts/:postId/like',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { eventId, postId } = req.params;
+    const userId = req.user.id;
+
+    try {
+      const likeCount = await EventService.toggleLikeOnStagePost(eventId, postId, userId);
+      CommonResponse.success(res, { message: 'Toggled like on stage post', likeCount });
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+
+
 //18. Upload banner image for an event
 router.post('/:id/banner-image', upload.single('file'), async (req, res) => {
   try {

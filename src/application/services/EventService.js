@@ -267,6 +267,21 @@ class EventService {
   }
 
 
+  async toggleLikeOnStagePost(eventId, postId, userId) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new Error("Event not found");
+
+  const post = event.stagePosts.id(postId);
+  if (!post) throw new Error("Stage post not found");
+
+  await post.toggleLike(userId);
+  await event.save(); // must save parent after modifying embedded post
+
+  return post.likes.length;
+}
+
+
+
 
 
 }
