@@ -280,6 +280,45 @@ class EventService {
   return post.likes.length;
 }
 
+async addCommentToStagePost(eventId, postId, userId, text) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new Error("Event not found");
+
+  const post = event.stagePosts.id(postId);
+  if (!post) throw new Error("Stage post not found");
+
+  const newComment = await post.addComment(userId, text);
+  await event.save(); // save parent doc
+
+  return newComment;
+}
+
+async editCommentOnStagePost(eventId, postId, commentId, userId, newText) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new Error("Event not found");
+
+  const post = event.stagePosts.id(postId);
+  if (!post) throw new Error("Stage post not found");
+
+  const updatedComment = await post.editComment(commentId, userId, newText);
+  await event.save();
+
+  return updatedComment;
+}
+
+async deleteCommentFromStagePost(eventId, postId, commentId, userId) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new Error("Event not found");
+
+  const post = event.stagePosts.id(postId);
+  if (!post) throw new Error("Stage post not found");
+
+  await post.deleteComment(commentId, userId);
+  await event.save();
+
+  return true;
+}
+
 
 
 

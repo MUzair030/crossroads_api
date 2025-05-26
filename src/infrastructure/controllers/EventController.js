@@ -412,6 +412,61 @@ router.post(
   }
 );
 
+// 18. Add a comment to a stage post
+router.post(
+  '/:eventId/stage-posts/:postId/comments',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { eventId, postId } = req.params;
+    const { text } = req.body;
+    const userId = req.user.id;
+
+    try {
+      const comment = await EventService.addCommentToStagePost(eventId, postId, userId, text);
+      CommonResponse.success(res, { message: 'Comment added', comment });
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+// 19. Edit a comment on a stage post
+router.put(
+  '/:eventId/stage-posts/:postId/comments/:commentId',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { eventId, postId, commentId } = req.params;
+    const { text } = req.body;
+    const userId = req.user.id;
+
+    try {
+      const updatedComment = await EventService.editCommentOnStagePost(eventId, postId, commentId, userId, text);
+      CommonResponse.success(res, { message: 'Comment updated', updatedComment });
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+// 20. Delete a comment from a stage post
+router.delete(
+  '/:eventId/stage-posts/:postId/comments/:commentId',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { eventId, postId, commentId } = req.params;
+    const userId = req.user.id;
+
+    try {
+      await EventService.deleteCommentFromStagePost(eventId, postId, commentId, userId);
+      CommonResponse.success(res, { message: 'Comment deleted' });
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+
+
 
 
 //18. Upload banner image for an event
