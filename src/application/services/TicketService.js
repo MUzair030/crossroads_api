@@ -1,7 +1,7 @@
 // services/ticketService.js
-import Event from '../models/Event.js';
-import TicketPurchase from '../models/TicketPurchase.js';
-import User from '../models/User.js';
+import Event from '../../domain/models/Event.js';
+import TicketPurchase from '../../domain/models/TicketPurchase.js';
+import User from '../../domain/models/User.js';
 
 class TicketService{
  async  addTicket(eventId, userId, ticketData) {
