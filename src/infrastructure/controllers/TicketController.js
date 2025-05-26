@@ -11,7 +11,7 @@ router.post(
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
     try {
-      const result = await TicketService.addTicket(req.params.id, req.body, req.user.id);
+      const result = await TicketService.addTicket(req.params.id, req.body, req.user?._id);
       CommonResponse.success(res, result);
     } catch (err) {
       CommonResponse.error(res, err.message, 400);
