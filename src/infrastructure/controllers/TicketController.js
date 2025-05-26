@@ -27,7 +27,7 @@ router.put(
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
     try {
-      const result = await Ticket.updateTicket(req.params.id, req.params.tid, req.body, req.user.id);
+      const result = await TicketService.updateTicket(req.params.id, req.params.tid, req.body, req.user.id);
       CommonResponse.success(res, result);
     } catch (err) {
       CommonResponse.error(res, err.message, 400);
@@ -41,7 +41,7 @@ router.delete(
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
     try {
-      const result = await Ticket.deleteTicket(req.params.id, req.params.tid, req.user.id);
+      const result = await TicketService.deleteTicket(req.params.id, req.params.tid, req.user.id);
       CommonResponse.success(res, result);
     } catch (err) {
       CommonResponse.error(res, err.message, 400);
