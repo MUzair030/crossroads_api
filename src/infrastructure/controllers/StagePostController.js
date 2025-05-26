@@ -20,16 +20,7 @@ router.post(
   }
 );
 
-// 2. Get a stage post by ID (assuming you want this, add service method if needed)
-router.get('/:postId', async (req, res) => {
-  try {
-    const post = await StagePostService.findById(req.params.postId); // This method doesn't exist in service, implement if needed
-    if (!post) throw new Error('Post not found');
-    CommonResponse.success(res, post);
-  } catch (err) {
-    CommonResponse.error(res, err.message, 400);
-  }
-});
+
 
 // 3. Update a stage post
 router.put(
