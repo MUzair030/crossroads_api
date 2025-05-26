@@ -5,20 +5,7 @@ import StagePostService from '../../application/services/StagePostService.js';
 
 const router = express.Router();
 
-// 1. Create a stage post
-router.post(
-  '/:refType/:refId',
-  passport.authenticate('jwt', { session: false }),
-  async (req, res) => {
-    try {
-      const { refType, refId } = req.params;
-      const post = await StagePostService.create(refType, refId, req.body, req.user.id);
-      CommonResponse.success(res, post);
-    } catch (err) {
-      CommonResponse.error(res, err.message, 400);
-    }
-  }
-);
+
 
 
 
@@ -100,6 +87,21 @@ router.delete(
     try {
       const result = await StagePostService.deleteComment(req.params.postId, req.params.commentId, req.user.id);
       CommonResponse.success(res, result);
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+// 1. Create a stage post
+router.post(
+  '/:refType/:refId',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    try {
+      const { refType, refId } = req.params;
+      const post = await StagePostService.create(refType, refId, req.body, req.user.id);
+      CommonResponse.success(res, post);
     } catch (err) {
       CommonResponse.error(res, err.message, 400);
     }
