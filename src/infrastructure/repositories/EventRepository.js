@@ -86,7 +86,13 @@ class EventRepository {
 async findById (eventId, currentUserId = null)  {
 const event = await Event.findOne({ _id: eventId, isDeleted: false })
   .populate('organizerId', 'name email profilePicture')
-  .populate('stagePosts.creatorId', 'name email profilePicture') // 👈 ADD THIS
+  .populate({
+    path: 'stagePosts',
+    populate: {
+      path: 'creatorId',
+      select: 'name email profilePicture',
+    }
+  })
   .lean({ virtuals: true });
 
 

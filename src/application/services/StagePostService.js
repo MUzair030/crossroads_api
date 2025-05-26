@@ -55,19 +55,29 @@ async create(refType, refId, postData, userId) {
     return await post.editPost(userId, updatedFields.text, updatedFields.mediaUrls);
   }
 
-  // Delete post
-  async delete(postId, userId) {
-    const post = await StagePost.findById(postId);
-    if (!post) throw new Error("Stage post not found");
+ // Delete post
+async delete(postId, userId) {
+  const post = await StagePost.findById(postId);
+  if (!post) throw new Error("Stage post not found");
 
-    const parent = await this.getParentAndCheckAuth(post.refType, post.refId, userId);
-    if (post.creatorId.toString() !== userId.toString()) {
-      throw new Error("Unauthorized to delete post");
-    }
+  const parent = await this.getParentAndCheckAuth(post.refType, post.refId, userId);
 
-    await StagePost.findByIdAndDelete(postId);
-    return true;
+  if (post.creatorId.toString() !== userId.toString()) {
+    throw new Error("Unauthorized to delete post");
   }
+
+  // Remove post ID from parent stagePosts array
+  parent.stagePosts = parent.stagePosts.filter(
+    (id) => id.toString() !== post._id.toString()
+  );
+  await parent.save();
+
+  // Delete the post
+  await StagePost.findByIdAndDelete(postId);
+
+  return true;
+}
+
 
   // Toggle like
   async toggleLike(postId, userId) {
