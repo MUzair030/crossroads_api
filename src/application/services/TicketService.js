@@ -30,7 +30,7 @@ async addTicket(eventId, userId, ticketData) {
 }
 
 // --- Update Ticket ---
- async  updateTicket(eventId, userId, ticketId, updatedData) {
+async  updateTicket(eventId, userId, ticketId, updatedData) {
   const event = await Event.findById(eventId);
   if (!event) throw new Error("Event not found");
 
@@ -38,10 +38,9 @@ async addTicket(eventId, userId, ticketData) {
     throw new Error("Unauthorized");
   }
 
-  const ticket = event.tickets.id(ticketId);
+  const ticket = await Ticket.findOne({ _id: ticketId, eventId });
   if (!ticket) throw new Error("Ticket not found");
 
-  // Prevent changing sold quantity directly
   const protectedFields = ['sold'];
   for (const key in updatedData) {
     if (!protectedFields.includes(key)) {
@@ -49,7 +48,7 @@ async addTicket(eventId, userId, ticketData) {
     }
   }
 
-  await event.save();
+  await ticket.save();
   return ticket;
 }
 
