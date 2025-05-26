@@ -16,8 +16,13 @@ const stagePostSchema = new Schema({
   timestamp: { type: Date, default: Date.now },
   creatorId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
-  comments: [commentSchema]
+  comments: [commentSchema],
+
+  // Add these two fields
+  refType: { type: String, enum: ["Group", "Event"], required: true },
+  refId: { type: Schema.Types.ObjectId, required: true, refPath: "refType" }
 });
+
 
 // === Instance Methods ===
 

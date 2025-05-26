@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { stagePostSchema } from "./StagePost.js"; // ✅ gets the schema, not the model
 import { registerNotification } from '../../application/services/NotificationService.js'; // adjust path as needed
 
 
@@ -66,7 +65,7 @@ const eventSchema = new mongoose.Schema({
   price: [ticketSchema],
   maxAttendees: { type: Number, default: 0 },
 
-  stagePosts: [stagePostSchema],
+  stagePosts: [{ type: Schema.Types.ObjectId, ref: "StagePost" }],
 
   isCancelled: { type: Boolean, default: false },
   isDeleted: { type: Boolean, default: false },

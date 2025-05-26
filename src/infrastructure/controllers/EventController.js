@@ -465,10 +465,6 @@ router.delete(
   }
 );
 
-
-
-
-
 //18. Upload banner image for an event
 router.post('/:id/banner-image', upload.single('file'), async (req, res) => {
   try {

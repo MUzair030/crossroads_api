@@ -1,14 +1,6 @@
 import mongoose from 'mongoose';
 
-const StagePostSchema = new mongoose.Schema(
-  {
-    text: { type: String },
-    mediaUrls: [{ type: String }],
-    timestamp: { type: Date, default: Date.now },
-    creatorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  },
-  { _id: true }
-);
+
 
 const GroupSchema = new mongoose.Schema(
   {
@@ -39,7 +31,7 @@ const GroupSchema = new mongoose.Schema(
       },
     ],
 
-    stagePosts: [StagePostSchema],
+  stagePosts: [{ type: Schema.Types.ObjectId, ref: "StagePost" }],
 
     eventIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
     eventStatuses: {
