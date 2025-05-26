@@ -195,25 +195,30 @@ class EventService {
   await event.respondToInvite(userId, status); // schema method
   return event;
   }
+  //add a stage post to an event
+ async addStagePost(eventId, postData, userId) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new Error("Event not found");
 
-  // Add a new stage post to an event
-  async addStagePost(eventId, postData, userId) {
-    const event = await Event.findById(eventId);
-    if (!event) throw new Error("Event not found");
-
-    // Optional: Check user authorization (organizer or team member)
-    const isOrganizer = event.organizerId?.equals(userId);
-    const isTeamMember = event.team?.has(userId.toString());
-    if (!isOrganizer && !isTeamMember) {
-      throw new Error("Unauthorized to add stage posts");
-    }
-
-    // Add post — postData should be an object matching the stagePost schema
-    event.stagePosts.push(postData);
-    await event.save();
-
-    return event;
+  const isOrganizer = event.organizerId?.equals(userId);
+  const isTeamMember = event.team?.has(userId.toString());
+  if (!isOrganizer && !isTeamMember) {
+    throw new Error("Unauthorized to add stage posts");
   }
+
+  // Inject creatorId into the post data
+  const newPost = {
+    ...postData,
+    creatorId: userId,
+    timestamp: new Date(), // optional, in case you want to explicitly set it
+  };
+
+  event.stagePosts.push(newPost);
+  await event.save();
+
+  return event;
+}
+
 
   // Update an existing stage post in an event
   async updateStagePost(eventId, postId, updatedFields, userId) {
