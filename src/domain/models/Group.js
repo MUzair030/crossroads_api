@@ -31,7 +31,7 @@ const GroupSchema = new mongoose.Schema(
       },
     ],
 
-  stagePosts: [{ type: Schema.Types.ObjectId, ref: "StagePost" }],
+    stagePosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "StagePost" }],
 
     eventIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
     eventStatuses: {
