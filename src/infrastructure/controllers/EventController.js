@@ -3,6 +3,8 @@ import passport from '../../application/services/GoogleAuthService.js';
 import CommonResponse from '../../application/common/CommonResponse.js';
 import EventService from '../../application/services/EventService.js';
 import User from '../../domain//models/User.js'; 
+import multer from 'multer';
+
 
 const router = express.Router();
 
