@@ -63,7 +63,7 @@ app.use('/api/chat', chatController);
 app.use('/api/groups', groupController);
 app.use('/api/events', eventController);
 app.use('/api/services', serviceController);
-app.use('/api/services', stagepostController);
+app.use('/api/stageposts', stagepostController);
 
 
 
