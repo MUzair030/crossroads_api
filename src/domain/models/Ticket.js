@@ -9,7 +9,9 @@ const ticketSchema = new mongoose.Schema({
   quantity: { type: Number, required: true },
   sold: { type: Number, default: 0 },
   termsAndConditions: { type: String, default: '' },
-  lastDateForRefund: { type: Date }
+  lastDateForRefund: { type: Date },
+  eventId: { type: mongoose.Schema.Types.ObjectId, ref: "Event" }
+
 }, { _id: true }); // still embedded schema, not a model
 
 export default ticketSchema;

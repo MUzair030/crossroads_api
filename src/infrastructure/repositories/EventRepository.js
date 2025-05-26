@@ -92,8 +92,10 @@ const event = await Event.findOne({ _id: eventId, isDeleted: false })
       path: 'creatorId',
       select: 'name email profilePicture',
     }
-  })
-  .lean({ virtuals: true });
+  }).populate({
+  path: 'tickets',
+  select: 'title price currency quantity sold lastDateForRefund',
+}).lean({ virtuals: true });
 
 
   if (!event) throw new Error('Event not found');
