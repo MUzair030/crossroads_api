@@ -2,9 +2,11 @@
 import Event from '../../domain/models/Event.js';
 import TicketPurchase from '../../domain/models/TicketPurchase.js';
 import User from '../../domain/models/User.js';
+import Ticket from '../../domain/models/Ticket.js';
 
 class TicketService{
- async  addTicket(eventId, userId, ticketData) {
+
+async  addTicket(eventId, userId, ticketData) {
   const event = await Event.findById(eventId);
   if (!event) throw new Error("Event not found");
 
@@ -12,10 +14,19 @@ class TicketService{
     throw new Error("Unauthorized");
   }
 
-  event.tickets.push(ticketData);
+  // Create and save new Ticket
+  const newTicket = new Ticket({
+    ...ticketData,
+    eventId, // optional, in case you want to track the event on the ticket too
+  });
+
+  await newTicket.save();
+
+  // Push ticket ID to event
+  event.tickets.push(newTicket._id);
   await event.save();
 
-  return event.tickets;
+  return newTicket; // or return event if needed
 }
 
 // --- Update Ticket ---

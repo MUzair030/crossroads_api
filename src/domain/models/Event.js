@@ -56,7 +56,7 @@ const eventSchema = new mongoose.Schema({
 
   access: { type: String, enum: ['public', 'private'], default: 'public' },
 
-  tickets: [ticketSchema],
+  tickets: [{ type: mongoose.Schema.Types.ObjectId, ref: "Ticket" }],
   maxAttendees: { type: Number, default: 0 },
 
   stagePosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "StagePost" }],

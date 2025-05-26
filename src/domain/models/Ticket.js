@@ -10,6 +10,6 @@ const ticketSchema = new mongoose.Schema({
   sold: { type: Number, default: 0 },
   termsAndConditions: { type: String, default: '' },
   lastDateForRefund: { type: Date }
-}, { _id: false }); // still embedded schema, not a model
+}, { _id: true }); // still embedded schema, not a model
 
 export default ticketSchema;
