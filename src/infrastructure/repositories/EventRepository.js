@@ -84,9 +84,11 @@ class EventRepository {
 
 
 async findById (eventId, currentUserId = null)  {
-  const event = await Event.findOne({ _id: eventId, isDeleted: false })
-    .populate('organizerId', 'name email profilePicture')
-    .lean({ virtuals: true });
+const event = await Event.findOne({ _id: eventId, isDeleted: false })
+  .populate('organizerId', 'name email profilePicture')
+  .populate('stagePosts.creatorId', 'name email profilePicture') // 👈 ADD THIS
+  .lean({ virtuals: true });
+
 
   if (!event) throw new Error('Event not found');
 
