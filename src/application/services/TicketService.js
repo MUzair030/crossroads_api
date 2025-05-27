@@ -3,6 +3,8 @@ import Event from '../../domain/models/Event.js';
 import TicketPurchase from '../../domain/models/TicketPurchase.js';
 import User from '../../domain/models/User.js';
 import Ticket from '../../domain/models/Ticket.js';
+import QRCode from 'qrcode'; // npm install qrcode
+
 
 class TicketService{
 
@@ -98,6 +100,24 @@ async  purchaseTicket(eventId, ticketId, quantity, userId) {
   });
   await purchase.save();
 
+  // Generate QR code payload for this purchase
+  const qrPayload = JSON.stringify({
+    purchaseId: purchase._id.toString(),
+    eventId: eventId.toString(),
+    ticketId: ticketId.toString(),
+    quantity,
+    issuedAt: purchase.purchaseDate.toISOString(),
+    // optionally add other info like userId or a signature here
+  });
+
+  // Generate QR code data URI
+  const qrCodeDataUri = await QRCode.toDataURL(qrPayload);
+
+  // Optionally, save this QR data URI to purchase for quick access
+  purchase.qrCode = qrCodeDataUri;
+  await purchase.save();
+
+  // Update user's passes
   await User.findByIdAndUpdate(userId, {
     $push: { myPasses: purchase._id }
   });
@@ -106,7 +126,8 @@ async  purchaseTicket(eventId, ticketId, quantity, userId) {
     message: "Purchase successful",
     ticketType: ticket.title,
     quantity,
-    purchaseId: purchase._id
+    purchaseId: purchase._id,
+    qrCode: qrCodeDataUri, // Send QR code back so frontend can show it immediately
   };
 }
 
