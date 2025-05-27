@@ -55,11 +55,16 @@ router.delete(
 
 // 4. Purchase Ticket
 router.post(
-  '/:id/purchase',
+  '/:id/:tid/purchase',
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
     try {
-      const result = await TicketService.purchaseTicket(req.params.id, req.body.ticketId, req.user.id);
+      const eventId = req.params.id;
+      const ticketId = req.params.tid;
+      const quantity = req.body.quantity;
+      const currentUserId = req.user?._id;
+
+      const result = await TicketService.purchaseTicket(eventId, ticketId, quantity, currentUserId);
       CommonResponse.success(res, result);
     } catch (err) {
       CommonResponse.error(res, err.message, 400);
