@@ -12,7 +12,7 @@ async  createEvent(data) {
   const { groupId, creatorId} = data;
 
   const eventData = { ...data };
-  const tickets = eventData.tickets || [];
+  const tickets = data.tickets || [];
   delete eventData.tickets;
 
   eventData.isLive = eventData.isLive ?? false;
@@ -37,15 +37,21 @@ async  createEvent(data) {
   // Step 2: Create tickets one by one and push IDs to event.tickets
   event.tickets = [];
 
-  for (const ticketData of tickets) {
-     ticket = new Ticket({
-      ...ticketData,
-      eventId: event._id,
-      sold: 0,
-    });
-    await ticket.save();
-    event.tickets.push(ticket._id);
-  }
+  const freshEvent = await Event.findById(event._id);
+if (!Array.isArray(freshEvent.tickets)) {
+  freshEvent.tickets = [];
+}
+
+// Step 3: Create tickets and add to freshEvent
+for (const ticketData of tickets) {
+  const ticket = new Ticket({
+    ...ticketData,
+    eventId: event._id,
+    sold: 0,
+  });
+  await ticket.save();
+  freshEvent.tickets.push(ticket._id);
+}
 
   // Save event after adding tickets
   await event.save();
