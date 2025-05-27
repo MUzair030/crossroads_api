@@ -9,7 +9,7 @@ class EventService {
 
   /// Create a new event
 async  createEvent(data) {
-  const { groupId, creatorId, tickets = [] } = data;
+  const { groupId, creatorId} = data;
 
   const eventData = { ...data };
   const tickets = eventData.tickets || [];
