@@ -8,10 +8,9 @@ class EventService {
 
 
   /// Create a new event
-async  createEvent(data) {
+async function createEvent(data) {
   const { groupId, creatorId, tickets = [] } = data;
 
-  // Clean event data: remove tickets from event data before creating event
   const eventData = { ...data };
   delete eventData.tickets;
 
@@ -20,7 +19,6 @@ async  createEvent(data) {
   eventData.isLinkedWithGroup = !!groupId;
   eventData.groupId = groupId || null;
 
-  // If linked with group, check group existence and admin rights
   if (groupId) {
     const group = await GroupRepository.findById(groupId);
     if (!group) throw new Error('Group not found.');
@@ -31,26 +29,27 @@ async  createEvent(data) {
     if (!isAdmin) throw new Error('Only group admins can create events.');
   }
 
-  // Step 1: Create event document
+  // Step 1: Create and save event without tickets
   const event = new Event(eventData);
   await event.save();
 
-  // Step 2: Create tickets and associate with event
-  if (tickets.length > 0) {
-    const createdTickets = await Ticket.insertMany(
-      tickets.map(ticket => ({
-        ...ticket,
-        eventId: event._id,
-        sold: 0,
-      }))
-    );
+  // Step 2: Create tickets one by one and push IDs to event.tickets
+  event.tickets = [];
 
-    // Update event's tickets array with ObjectIds
-    event.tickets = createdTickets.map(t => t._id);
-    await event.save();
+  for (const ticketData of tickets) {
+    const ticket = new Ticket({
+      ...ticketData,
+      eventId: event._id,
+      sold: 0,
+    });
+    await ticket.save();
+    event.tickets.push(ticket._id);
   }
 
-  // Step 3: Update group event lists and statuses if applicable
+  // Save event after adding tickets
+  await event.save();
+
+  // Step 3: Update group if applicable
   if (groupId) {
     const group = await GroupRepository.findById(groupId);
     group.eventIds.push(event._id);
@@ -58,17 +57,16 @@ async  createEvent(data) {
     await GroupRepository.save(group);
   }
 
-  // Step 4: Add event ID to creator's myEventIds
+  // Step 4: Update user's myEventIds
   await User.findByIdAndUpdate(
     creatorId,
     { $push: { myEventIds: event._id } },
     { new: true }
   );
 
-  // Step 5: Return event with populated tickets
+  // Step 5: Return event populated with tickets
   return await Event.findById(event._id).populate('tickets');
 }
-
 
   //Upload Images
   async uploadEventBannerImage(file, event) {
