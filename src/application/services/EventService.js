@@ -9,19 +9,18 @@ class EventService {
 
 
   /// Create a new event
-// Create a new event
 async  createEvent(data) {
-  const { groupId, creatorId, tickets = [] } = data;
+  const { groupId, creatorId} = data;
 
-  // Remove tickets from the event data to avoid schema mismatch
-  delete data.tickets;
+  const eventData = { ...data };
+  const tickets = data.tickets || [];
+  delete eventData.tickets;
 
-  data.isLive = data.isLive ?? false;
-  data.access = data.access ?? 'public';
-  data.isLinkedWithGroup = !!groupId;
-  data.groupId = groupId || null;
+  eventData.isLive = eventData.isLive ?? false;
+  eventData.access = eventData.access ?? 'public';
+  eventData.isLinkedWithGroup = !!groupId;
+  eventData.groupId = groupId || null;
 
-  // Validate group admin if group is provided
   if (groupId) {
     const group = await GroupRepository.findById(groupId);
     if (!group) throw new Error('Group not found.');
@@ -32,47 +31,51 @@ async  createEvent(data) {
     if (!isAdmin) throw new Error('Only group admins can create events.');
   }
 
-  // 1. Create and save the event
+  // Step 1: Create and save event without tickets
+  const event = new Event(eventData);
   await event.save();
 
-  // 2. Re-fetch event to ensure Mongoose tracks changes
+  // Step 2: Create tickets one by one and push IDs to event.tickets
+  event.tickets = [];
+
   const freshEvent = await Event.findById(event._id);
-  if (!Array.isArray(freshEvent.tickets)) {
-    freshEvent.tickets = [];
-  }
+if (!Array.isArray(freshEvent.tickets)) {
+  freshEvent.tickets = [];
+}
 
-  // 3. Create tickets and push to event
-  for (const ticketData of tickets) {
-    const eventId=freshEvent._id; // Ensure ticket references the correct event
-    const ticket = new Ticket({
-      ...ticketData,
-     eventId
-    });
-    await ticket.save();
-    freshEvent.tickets.push(ticket._id);
-  }
+// Step 3: Create tickets and add to freshEvent
+for (const ticketData of tickets) {
+  const eventId=event._id; // Ensure eventId is set for each ticket
+  const ticket = new Ticket({
+    ...ticketData,
+    eventId,
+   
+  });
+  await ticket.save();
+  freshEvent.tickets.push(ticket._id);
+}
 
-  await freshEvent.save();
+  // Save event after adding tickets
+  await event.save();
 
-  // 4. Associate event with group if applicable
+  // Step 3: Update group if applicable
   if (groupId) {
-    const group = await GroupRepository.findById(groupId); // re-fetch in case of changes
-    group.eventIds.push(freshEvent._id);
-    group.eventStatuses.set(freshEvent._id.toString(), 'upcoming');
+    const group = await GroupRepository.findById(groupId);
+    group.eventIds.push(event._id);
+    group.eventStatuses.set(event._id.toString(), 'upcoming');
     await GroupRepository.save(group);
   }
 
-  // 5. Add event ID to user's events
+  // Step 4: Update user's myEventIds
   await User.findByIdAndUpdate(
     creatorId,
-    { $push: { myEventIds: freshEvent._id } },
+    { $push: { myEventIds: event._id } },
     { new: true }
   );
 
-  // 6. Return fully populated event
-  return await Event.findById(freshEvent._id).populate('tickets');
+  // Step 5: Return event populated with tickets
+  return await Event.findById(event._id).populate('tickets');
 }
-
 
   //Upload Images
   async uploadEventBannerImage(file, event) {
