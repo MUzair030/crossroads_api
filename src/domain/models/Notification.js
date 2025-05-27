@@ -13,6 +13,7 @@ const NotificationSchema = new mongoose.Schema({
       'ticket_received',
       'event_updated',
       'event_reminder',
+      'event_invite',
       'event_cancelled',
       'service_inquiry',
       'service_booked',
