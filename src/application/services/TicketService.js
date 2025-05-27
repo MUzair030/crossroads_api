@@ -113,7 +113,7 @@ async  purchaseTicket(eventId, ticketId, quantity, userId) {
 // --- Get User's Purchased Tickets ---
  async  getUserPasses(userId) {
   return await TicketPurchase.find({ userId })
-    .populate('eventId')
+    .populate('eventId','title dates locations organizerId organizerName description bannerImages')
     .populate('ticketId');
 }
 
