@@ -7,7 +7,8 @@ const ticketPurchaseSchema = new mongoose.Schema({
   ticketId: { type: mongoose.Schema.Types.ObjectId, required: true },
   quantity: { type: Number, required: true },
   purchaseDate: { type: Date, default: Date.now },
-  status: { type: String, enum: ['confirmed', 'cancelled'], default: 'confirmed' }
+  status: { type: String, enum: ['confirmed', 'cancelled'], default: 'confirmed' },
+  qrCode: { type: String },  // Store QR code data URI here
 });
 
 export default mongoose.model('TicketPurchase', ticketPurchaseSchema);
