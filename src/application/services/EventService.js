@@ -8,66 +8,62 @@ class EventService {
 
 
   // Create a new event
-  async createEvent(data) {
-    const { groupId, creatorId } = data;
+ async  createEvent(data) {
+  const { groupId, creatorId, tickets = [] } = data;
 
-    if (groupId) {
-      // Find the group by ID
-      const group = await GroupRepository.findById(groupId);
-      if (!group) throw new Error('Group not found.');
+  // Remove tickets from the event data to avoid schema mismatch
+  delete data.tickets;
 
-      // Check if creator is admin in the group
-      const isAdmin = group.members.some(
-        (m) => m.user.toString() === creatorId && m.role === 'admin'
-      );
-      if (!isAdmin) throw new Error('Only group admins can create events.');
+  data.isLive = data.isLive ?? false;
+  data.access = data.access ?? 'public';
+  data.isLinkedWithGroup = !!groupId;
+  data.groupId = groupId || null;
 
-      // Mark the event as linked with this group
-      data.isLinkedWithGroup = true;
-      data.groupId = groupId;
-      data.isLive = data.isLive ?? false;
-      data.access = data.access ?? 'public';
+  if (groupId) {
+    const group = await GroupRepository.findById(groupId);
+    if (!group) throw new Error('Group not found.');
 
-      // Create the event
-      const event = await EventRepository.create(data);
-
-      // Add event ID to group's eventIds array
-      group.eventIds.push(event._id);
-
-      // Optionally update event status map
-      group.eventStatuses.set(event._id.toString(), 'upcoming');
-
-      // Save updated group
-      await GroupRepository.save(group);
-
-      // Add event ID to creator's myEventIds array
-      await User.findByIdAndUpdate(
-        creatorId,
-        { $push: { myEventIds: event._id } },
-        { new: true }
-      );
-
-      return event;
-    } else {
-      // No group linked — create standalone event
-      data.isLinkedWithGroup = false;
-      data.groupId = null;
-      data.isLive = data.isLive ?? false;
-      data.access = data.access ?? 'public';
-
-      const event = await EventRepository.create(data);
-
-      // Add event ID to creator's myEventIds array
-      await User.findByIdAndUpdate(
-        creatorId,
-        { $push: { myEventIds: event._id } },
-        { new: true }
-      );
-
-      return event;
-    }
+    const isAdmin = group.members.some(
+      (m) => m.user.toString() === creatorId && m.role === 'admin'
+    );
+    if (!isAdmin) throw new Error('Only group admins can create events.');
   }
 
+  // 1. Create the event without tickets
+  const event = await EventRepository.create(data);
+
+  // 2. Create and associate tickets if provided
+  if (tickets.length > 0) {
+    const createdTickets = await Ticket.insertMany(
+      tickets.map(ticket => ({
+        ...ticket,
+        eventId: event._id,
+        sold: 0 // default
+      }))
+    );
+
+    // Save ticket references in the event
+    event.tickets = createdTickets.map(t => t._id);
+    await event.save();
+  }
+
+  // 3. Group association (if applicable)
+  if (groupId) {
+    const group = await GroupRepository.findById(groupId); // refetch in case stale
+    group.eventIds.push(event._id);
+    group.eventStatuses.set(event._id.toString(), 'upcoming');
+    await GroupRepository.save(group);
+  }
+
+  // 4. Add event ID to user's events
+  await User.findByIdAndUpdate(
+    creatorId,
+    { $push: { myEventIds: event._id } },
+    { new: true }
+  );
+
+  return event;
+}
   //Upload Images
   async uploadEventBannerImage(file, event) {
       const uniqueFileName = `images/events/${event.id}/${uuidv4()}_${file.originalname}`;
