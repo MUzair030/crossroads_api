@@ -3,7 +3,7 @@ import Event from '../../domain/models/Event.js';
 import TicketPurchase from '../../domain/models/TicketPurchase.js';
 import User from '../../domain/models/User.js';
 import Ticket from '../../domain/models/Ticket.js';
-import QRCode from 'qrcode'; // npm install qrcode
+import QRCode from 'qrcode';
 
 
 class TicketService{
