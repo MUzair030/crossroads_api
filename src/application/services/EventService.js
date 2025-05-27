@@ -7,18 +7,20 @@ import mongoose from "mongoose";
 class EventService {
 
 
-  // Create a new event
- async  createEvent(data) {
+  /// Create a new event
+async function createEvent(data) {
   const { groupId, creatorId, tickets = [] } = data;
 
-  // Remove tickets from the event data to avoid schema mismatch
+  // Remove tickets from data to prevent schema mismatch
   delete data.tickets;
 
+  // Set defaults
   data.isLive = data.isLive ?? false;
   data.access = data.access ?? 'public';
   data.isLinkedWithGroup = !!groupId;
   data.groupId = groupId || null;
 
+  // --- Step 1: Validate group (if provided) ---
   if (groupId) {
     const group = await GroupRepository.findById(groupId);
     if (!group) throw new Error('Group not found.');
@@ -29,41 +31,42 @@ class EventService {
     if (!isAdmin) throw new Error('Only group admins can create events.');
   }
 
-  // 1. Create the event without tickets
+  // --- Step 2: Create the event without tickets ---
   const event = await EventRepository.create(data);
 
-  // 2. Create and associate tickets if provided
+  // --- Step 3: Create and associate tickets ---
   if (tickets.length > 0) {
     const createdTickets = await Ticket.insertMany(
       tickets.map(ticket => ({
         ...ticket,
         eventId: event._id,
-        sold: 0 // default
+        sold: 0, // ensure sold starts at 0
       }))
     );
 
-    // Save ticket references in the event
     event.tickets = createdTickets.map(t => t._id);
     await event.save();
   }
 
-  // 3. Group association (if applicable)
+  // --- Step 4: Associate event with group ---
   if (groupId) {
-    const group = await GroupRepository.findById(groupId); // refetch in case stale
+    const group = await GroupRepository.findById(groupId); // re-fetch
     group.eventIds.push(event._id);
     group.eventStatuses.set(event._id.toString(), 'upcoming');
     await GroupRepository.save(group);
   }
 
-  // 4. Add event ID to user's events
+  // --- Step 5: Add event to user's myEventIds ---
   await User.findByIdAndUpdate(
     creatorId,
-    { $push: { myEventIds: event._id } },
+    { $addToSet: { myEventIds: event._id } },
     { new: true }
   );
 
-  return event;
+  // --- Optional: Return event with populated tickets ---
+  return await Event.findById(event._id).populate('tickets');
 }
+
   //Upload Images
   async uploadEventBannerImage(file, event) {
       const uniqueFileName = `images/events/${event.id}/${uuidv4()}_${file.originalname}`;
