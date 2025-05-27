@@ -10,7 +10,8 @@ class EventService {
   /// Create a new event
 // Create a new event
 async  createEvent(data) {
-  const { groupId, creatorId, tickets = [] } = data;
+  const { groupId, creatorId } = data;
+  tickets=data.tickets || [];
 
   // Remove tickets from the event data to avoid schema mismatch
   delete data.tickets;
