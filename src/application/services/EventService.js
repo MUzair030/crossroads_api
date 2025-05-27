@@ -8,7 +8,7 @@ class EventService {
 
 
   /// Create a new event
-async function createEvent(data) {
+async  createEvent(data) {
   const { groupId, creatorId, tickets = [] } = data;
 
   const eventData = { ...data };
