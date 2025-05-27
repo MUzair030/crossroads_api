@@ -11,9 +11,8 @@ class EventService {
 async createEvent(data) {
   const { groupId, creatorId, tickets = [] } = data;
 
-  // Clone data without modifying original (in case needed later)
   const eventData = { ...data };
-  delete eventData.tickets; // prevent schema mismatch
+  delete eventData.tickets;
 
   eventData.isLive = eventData.isLive ?? false;
   eventData.access = eventData.access ?? 'public';
@@ -22,49 +21,55 @@ async createEvent(data) {
 
   if (groupId) {
     const group = await GroupRepository.findById(groupId);
-    if (!group) throw new Error('Group not found.');
+    if (!group) throw new Error("Group not found.");
 
     const isAdmin = group.members.some(
-      (m) => m.user.toString() === creatorId && m.role === 'admin'
+      (m) => m.user.toString() === creatorId && m.role === "admin"
     );
-    if (!isAdmin) throw new Error('Only group admins can create events.');
+    if (!isAdmin) throw new Error("Only group admins can create events.");
   }
 
-  // Create the event
+  // Create the event first
   const event = new Event(eventData);
   await event.save();
 
-  // Create and attach tickets
+  // Create tickets separately and push their IDs to the event
   if (tickets.length > 0) {
-    const ticketIds = [];
+    const createdTickets = await Ticket.insertMany(
+      tickets.map((ticket) => ({
+        ...ticket,
+        eventId: event._id,
+        sold: 0,
+      }))
+    );
 
-    for (const ticket of tickets) {
-      const newTicket = new Ticket({ ...ticket, eventId: event._id, sold: 0 });
-      await newTicket.save();
-      ticketIds.push(newTicket._id);
-    }
-
-    event.tickets = ticketIds;
+    // Assign ticket IDs
+    event.tickets = createdTickets.map((t) => t._id);
     await event.save();
   }
 
-  // Group linkage
+  // Add event to group if needed
   if (groupId) {
     const group = await GroupRepository.findById(groupId);
     group.eventIds.push(event._id);
-    group.eventStatuses.set(event._id.toString(), 'upcoming');
+    group.eventStatuses.set(event._id.toString(), "upcoming");
     await GroupRepository.save(group);
   }
 
-  // Update user's events
+  // Add event to user's myEventIds
   await User.findByIdAndUpdate(
     creatorId,
     { $push: { myEventIds: event._id } },
     { new: true }
   );
 
-  return event;
+  // Final check — populate tickets to confirm
+  const finalEvent = await Event.findById(event._id).populate("tickets");
+  console.log("✅ Final event with populated tickets:", finalEvent);
+
+  return finalEvent;
 }
+
 
   //Upload Images
   async uploadEventBannerImage(file, event) {
