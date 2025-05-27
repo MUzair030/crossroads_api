@@ -11,13 +11,14 @@ class EventService {
 async createEvent(data) {
   const { groupId, creatorId, tickets = [] } = data;
 
-  // Remove tickets from event payload to avoid schema conflict
-  delete data.tickets;
+  // Clone data without modifying original (in case needed later)
+  const eventData = { ...data };
+  delete eventData.tickets; // prevent schema mismatch
 
-  data.isLive = data.isLive ?? false;
-  data.access = data.access ?? 'public';
-  data.isLinkedWithGroup = !!groupId;
-  data.groupId = groupId || null;
+  eventData.isLive = eventData.isLive ?? false;
+  eventData.access = eventData.access ?? 'public';
+  eventData.isLinkedWithGroup = !!groupId;
+  eventData.groupId = groupId || null;
 
   if (groupId) {
     const group = await GroupRepository.findById(groupId);
@@ -29,11 +30,11 @@ async createEvent(data) {
     if (!isAdmin) throw new Error('Only group admins can create events.');
   }
 
-  // Create the event (Mongoose document, not lean object)
-  const event = new Event(data);
+  // Create the event
+  const event = new Event(eventData);
   await event.save();
 
-  // Manually create and save tickets, and push their ObjectIds
+  // Create and attach tickets
   if (tickets.length > 0) {
     const ticketIds = [];
 
@@ -47,15 +48,15 @@ async createEvent(data) {
     await event.save();
   }
 
-  // If it's a group event, update the group
+  // Group linkage
   if (groupId) {
-    const group = await GroupRepository.findById(groupId); // Re-fetch
+    const group = await GroupRepository.findById(groupId);
     group.eventIds.push(event._id);
     group.eventStatuses.set(event._id.toString(), 'upcoming');
     await GroupRepository.save(group);
   }
 
-  // Update user's myEventIds
+  // Update user's events
   await User.findByIdAndUpdate(
     creatorId,
     { $push: { myEventIds: event._id } },
