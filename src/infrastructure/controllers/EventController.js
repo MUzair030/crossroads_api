@@ -25,6 +25,8 @@ router.post(
       groupId = null,
       isLive = false,
       access = 'public',
+        tickets = [], // 👈 YOU MISSED THIS
+
       maxAttendees,
       services = [],
       lastDateForRefund,
@@ -61,6 +63,7 @@ router.post(
         isLive,
         access,
         maxAttendees,
+        tickets,
         services,
         lastDateForRefund,
 
