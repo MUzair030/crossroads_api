@@ -2,6 +2,7 @@ import EventRepository from "../../infrastructure/repositories/EventRepository.j
 import GroupRepository from "../../infrastructure/repositories/GroupRepository.js";
 import Event from "../../domain/models/Event.js";
 import User from "../../domain/models/User.js";
+import Ticket from "../../domain/models/Ticket.js";
 import mongoose from "mongoose";
 
 class EventService {
@@ -32,7 +33,6 @@ async  createEvent(data) {
   }
 
   // 1. Create and save the event
-  const event = new Event(data);
   await event.save();
 
   // 2. Re-fetch event to ensure Mongoose tracks changes
@@ -43,7 +43,7 @@ async  createEvent(data) {
 
   // 3. Create tickets and push to event
   for (const ticketData of tickets) {
-    eventId=freshEvent._id; // Ensure ticket references the correct event
+    const eventId=freshEvent._id; // Ensure ticket references the correct event
     const ticket = new Ticket({
       ...ticketData,
      eventId
