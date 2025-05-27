@@ -3,7 +3,6 @@ import Event from '../../domain/models/Event.js';
 import TicketPurchase from '../../domain/models/TicketPurchase.js';
 import User from '../../domain/models/User.js';
 import Ticket from '../../domain/models/Ticket.js';
-import QRCode from 'qrcode';
 
 
 class TicketService{
@@ -81,6 +80,8 @@ async  deleteTicket(eventId, userId, ticketId) {
 
 // --- Purchase Ticket ---
 async  purchaseTicket(eventId, ticketId, quantity, userId) {
+      const QRCode = await import('qrcode');
+
   const ticket = await Ticket.findOne({ _id: ticketId, eventId });
   if (!ticket) throw new Error("Ticket not found");
 
