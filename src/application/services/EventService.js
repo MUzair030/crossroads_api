@@ -12,8 +12,8 @@ class EventService {
   /// Create a new event
 // Create a new event
 async createEvent(data) {
-  const { groupId, creatorId, tickets = [] } = data;
-
+  const { groupId, creatorId} = data;
+  const tickets=data.tickets || [];
   // Remove tickets from the main data to avoid schema mismatch
   delete data.tickets;
 
@@ -36,10 +36,11 @@ async createEvent(data) {
   // 1. Create the event first
   const event = new Event(data);
   await event.save();
+  const eventId=event._id;
 
   // 2. Add each ticket using your working addTicket function
   for (const ticketData of tickets) {
-    await TicketService.addTicket(event._id, creatorId, ticketData);  // Reusing the working logic
+    await TicketService.addTicket(eventId, creatorId, ticketData);  // Reusing the working logic
   }
 
   // 3. Link to group if needed
