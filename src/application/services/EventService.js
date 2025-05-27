@@ -12,7 +12,7 @@ async  createEvent(data) {
   const { groupId, creatorId, tickets = [] } = data;
 
   const eventData = { ...data };
-  tickets = eventData.tickets || [];
+  const tickets = eventData.tickets || [];
   delete eventData.tickets;
 
   eventData.isLive = eventData.isLive ?? false;
@@ -38,7 +38,7 @@ async  createEvent(data) {
   event.tickets = [];
 
   for (const ticketData of tickets) {
-    const ticket = new Ticket({
+     ticket = new Ticket({
       ...ticketData,
       eventId: event._id,
       sold: 0,
