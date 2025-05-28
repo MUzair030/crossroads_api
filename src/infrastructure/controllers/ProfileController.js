@@ -54,8 +54,8 @@ router.get('/me/overview', passport.authenticate('jwt', { session: false }), asy
 
 router.post('/me/fcmtoken', passport.authenticate('jwt', { session: false }), async (req, res) => {
   const userId = req.user.id;
+  const { fcmToken } = req.body;
 
- const fcmToken = req.body?.fcmToken;
 console.log('fcmToken:', fcmToken, 'type:', typeof fcmToken);
 
 if (!fcmToken || typeof fcmToken !== 'string' || fcmToken.trim() === '') {
