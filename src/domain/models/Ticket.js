@@ -10,7 +10,8 @@ const ticketSchema = new mongoose.Schema({
   sold: { type: Number, default: 0 },
   termsAndConditions: { type: String, default: '' },
   lastDateForRefund: { type: Date },
-  eventId: { type: mongoose.Schema.Types.ObjectId, ref: "Event" }
+  eventId: { type: mongoose.Schema.Types.ObjectId, ref: "Event" },
+  published:{ type: Boolean, default: true },
 
 }, { _id: true }); // still embedded schema, not a model
 

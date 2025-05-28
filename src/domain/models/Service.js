@@ -21,6 +21,9 @@ const AvailabilitySchema = new mongoose.Schema({
   },
 }, { _id: false });
 
+
+
+
 const LocationAvailableSchema = new mongoose.Schema({
   cities: [String],
   outOfCityCharges: { type: Number, default: 0 },

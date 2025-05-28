@@ -117,4 +117,65 @@ router.get('/search', async (req, res) => {
   }
 });
 
+// 8. Book a Service (User Inquiry)
+router.post(
+  '/book',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    await ServiceService.bookService(req, res);
+  }
+);
+
+// 9. Admin Accepts Booking
+router.post(
+  '/booking/accept',
+  passport.authenticate('jwt', { session: false }), // ensure only admin or vendor
+  async (req, res) => {
+    await ServiceService.acceptBooking(req, res);
+  }
+);
+
+// 10. Admin Rejects Booking
+router.post(
+  '/booking/reject',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    await ServiceService.rejectBooking(req, res);
+  }
+);
+
+// 11. User Counter Offer
+router.post(
+  '/booking/counter',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    await ServiceService.counterOfferBooking(req, res);
+  }
+);
+
+// 12. User Accepts Final Price (Confirm Booking)
+router.post(
+  '/booking/confirm',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    await ServiceService.confirmBooking(req, res);
+  }
+);
+
+// Bookings made by logged-in user
+router.get(
+  '/booking/client',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => ServiceService.getMyBookingsAsClient(req, res)
+);
+
+// Bookings received by vendor (logged-in user)
+router.get(
+  '/booking/vendor',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => ServiceService.getMyBookingsAsVendor(req, res)
+);
+
+
+
 export default router;
