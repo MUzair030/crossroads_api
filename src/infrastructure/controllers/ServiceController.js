@@ -119,7 +119,7 @@ router.get('/search', async (req, res) => {
 
 // 8. Book a Service (User Inquiry)
 router.post('/book', passport.authenticate('jwt', { session: false }), async (req, res) => {
-  const result = await BookingService.bookService(req, res);
+  const result = await ServiceService.bookService(req, res);
   if (result.error) {
     return res.status(500).json({ success: false, message: result.error });
   } else if (result.message) {
