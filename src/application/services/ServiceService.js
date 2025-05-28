@@ -249,9 +249,9 @@ async  getMyBookingsAsVendor(req, res) {
       .populate('userId', 'name email')
       .populate('serviceId', 'title');
 
-    return CommonResponse.success(res, bookings);
+    return  bookings;
   } catch (err) {
-    return CommonResponse.error(res, err.message, 500);
+    return  {error: err.message};
   }
 }
 
