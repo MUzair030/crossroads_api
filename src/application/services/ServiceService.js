@@ -1,7 +1,6 @@
 import Service from '../../domain/models/Service.js';
 import Booking from '../../domain/models/Booking.js';
 import User from '../../domain/models/User.js';
-import { errorMonitor } from 'nodemailer/lib/xoauth2/index.js';
 
 const ServiceService = {
   // 1. Create Service
