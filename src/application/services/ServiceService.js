@@ -1,6 +1,7 @@
 import Service from '../../domain/models/Service.js';
 import Booking from '../../domain/models/Booking.js';
 import User from '../../domain/models/User.js';
+import { errorMonitor } from 'nodemailer/lib/xoauth2/index.js';
 
 const ServiceService = {
   // 1. Create Service
@@ -125,12 +126,12 @@ async acceptBooking(req, res) {
       { new: true }
     );
 
-    if (!booking) return CommonResponse.error(res, 'Booking not found', 404);
+    if (!booking) return { error: 'Booking not found' };
 
     // Notify user (email, notification)
-    return CommonResponse.success(res, { message: 'Booking accepted', booking });
+    return  booking ;
   } catch (err) {
-    return CommonResponse.error(res, err.message, 500);
+    return { error: err.message };
   }
 },
 
@@ -147,12 +148,12 @@ async  rejectBooking(req, res) {
       { new: true }
     );
 
-    if (!booking) return CommonResponse.error(res, 'Booking not found', 404);
+    if (!booking) return { error: 'Booking not found' };
 
     // Notify user
-    return CommonResponse.success(res, { message: 'Booking rejected', booking });
+    return (booking);
   } catch (err) {
-    return CommonResponse.error(res, err.message, 500);
+    return { error: err.message };
   }
 },
 async  counterOfferBooking(req, res) {
@@ -161,9 +162,9 @@ async  counterOfferBooking(req, res) {
 
   try {
     const booking = await Booking.findById(bookingId);
-    if (!booking) return CommonResponse.error(res, 'Booking not found', 404);
+    if (!booking) return {error: 'Booking not found'};
     if (booking.userId.toString() !== userId) {
-      return CommonResponse.error(res, 'Unauthorized', 403);
+      return { error: 'Unauthorized', status: 403 };
     }
 
     booking.status = 'countered';
@@ -175,9 +176,9 @@ async  counterOfferBooking(req, res) {
     await booking.save();
 
     // Notify admin
-    return CommonResponse.success(res, { message: 'Counter offer sent', booking });
+    return booking;
   } catch (err) {
-    return CommonResponse.error(res, err.message, 500);
+    return { error: err.message };
   }
 },
 
@@ -187,9 +188,9 @@ async confirmBooking(req, res) {
 
   try {
     const booking = await Booking.findById(bookingId);
-    if (!booking) return CommonResponse.error(res, 'Booking not found', 404);
+    if (!booking) return { error: 'Booking not found' };
     if (booking.userId.toString() !== userId) {
-      return CommonResponse.error(res, 'Unauthorized', 403);
+      return { error: 'Unauthorized', status: 403 };
     }
 
     booking.status = 'confirmed';
@@ -197,9 +198,9 @@ async confirmBooking(req, res) {
     await booking.save();
 
     // Redirect to payment flow (or mark as paid if prepaid)
-    return CommonResponse.success(res, { message: 'Booking confirmed', booking });
+    return booking;
   } catch (err) {
-    return CommonResponse.error(res, err.message, 500);
+    return { error: err.message };
   }
 },
 

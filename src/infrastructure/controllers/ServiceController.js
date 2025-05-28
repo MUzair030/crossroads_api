@@ -134,7 +134,16 @@ router.post(
   '/booking/accept',
   passport.authenticate('jwt', { session: false }), // ensure only admin or vendor
   async (req, res) => {
-    await ServiceService.acceptBooking(req, res);
+
+
+    const result = await ServiceService.acceptBooking(req, res);;
+  if (result.error) {
+    return res.status(500).json({ success: false, message: result.error });
+  } else if (result.message) {
+    return res.status(404).json({ success: false, message: result.message });
+  }
+  return res.status(200).json({ success: true, data: result });
+    
   }
 );
 
@@ -143,7 +152,14 @@ router.post(
   '/booking/reject',
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
-    await ServiceService.rejectBooking(req, res);
+     const result = await ServiceService.rejectBooking(req, res);
+  if (result.error) {
+    return res.status(500).json({ success: false, message: result.error });
+  } else if (result.message) {
+    return res.status(404).json({ success: false, message: result.message });
+  }
+  return res.status(200).json({ success: true, data: result });
+
   }
 );
 
@@ -152,7 +168,16 @@ router.post(
   '/booking/counter',
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
-    await ServiceService.counterOfferBooking(req, res);
+
+       const result = await ServiceService.counterOfferBooking(req, res);
+  if (result.error) {
+    return res.status(500).json({ success: false, message: result.error });
+  } else if (result.message) {
+    return res.status(404).json({ success: false, message: result.message });
+  }
+  return res.status(200).json({ success: true, data: result });
+
+    
   }
 );
 
@@ -161,7 +186,16 @@ router.post(
   '/booking/confirm',
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
-    await ServiceService.confirmBooking(req, res);
+
+    
+       const result =     await ServiceService.confirmBooking(req, res);
+  if (result.error) {
+    return res.status(500).json({ success: false, message: result.error });
+  } else if (result.message) {
+    return res.status(404).json({ success: false, message: result.message });
+  }
+  return res.status(200).json({ success: true, data: result });
+    
   }
 );
 
