@@ -86,7 +86,7 @@ async  bookService(req, res) {
     const service = await Service.findById(serviceId);
     if (!service) return {message:'Service not found' };
 
-    const booking = await Booking.create({
+    const booking = new Booking({
       serviceId,
       userId,
       selectedDates,
@@ -94,6 +94,7 @@ async  bookService(req, res) {
       inquiryMessage,
       isNegotiable: service.pricingMode === 'negotiable'
     });
+    booking.save();
 
     // Add to user's own bookings
     await User.findByIdAndUpdate(userId, {
