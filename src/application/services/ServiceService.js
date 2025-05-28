@@ -94,7 +94,7 @@ async  bookService(req, res) {
       inquiryMessage,
       isNegotiable: service.pricingMode === 'negotiable'
     });
-    booking.save();
+    await booking.save();
 
     // Add to user's own bookings
     await User.findByIdAndUpdate(userId, {
