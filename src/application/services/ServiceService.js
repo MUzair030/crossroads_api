@@ -84,7 +84,7 @@ async  bookService(req, res) {
 
   try {
     const service = await Service.findById(serviceId);
-    if (!service) return CommonResponse.error(res, 'Service not found', 404);
+    if (!service) return {message:'Service not found' };
 
     const booking = await Booking.create({
       serviceId,
@@ -105,9 +105,9 @@ async  bookService(req, res) {
       $push: { receivedBookings: booking._id }
     });
 
-    return CommonResponse.success(res, { bookingId: booking._id });
+    return  { bookingId: booking._id };
   } catch (err) {
-    return CommonResponse.error(res, err.message, 500);
+    return  { error: err.message };
   }
 },
 async acceptBooking(req, res) {
