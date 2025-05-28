@@ -232,9 +232,9 @@ async  getMyBookingsAsClient(req, res) {
         populate: { path: 'vendorId', select: 'name email' },
       });
 
-    return CommonResponse.success(res, bookings);
+    return bookings;
   } catch (err) {
-    return CommonResponse.error(res, err.message, 500);
+    return { error: err.message };
   }
 },
 
