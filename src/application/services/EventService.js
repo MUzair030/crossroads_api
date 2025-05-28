@@ -195,6 +195,30 @@ async createEvent(data) {
 
 
 
+  async getMyEvents(userId, page = 1, limit = 10) {
+  const user = await User.findById(userId)
+    .populate({
+      path: 'myEventIds',
+      options: {
+        sort: { createdAt: -1 },
+        skip: (page - 1) * limit,
+        limit: limit
+      }
+    });
+
+  if (!user) throw new Error('User not found');
+
+  return {
+    events: user.myEventIds,
+    pagination: {
+      page,
+      limit,
+      total: user.myEventIds.length // optional if you want to show total
+    }
+  };
+}
+
+
 
 
 

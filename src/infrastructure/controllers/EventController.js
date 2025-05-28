@@ -96,7 +96,10 @@ router.post(
   }
 );
 // 2. Get Event by ID
-router.get('/public/:id', async (req, res) => {
+router.get('/public/:id',
+    passport.authenticate('jwt', { session: false }),
+
+  async (req, res) => {
   try {
     const eventId = req.params.id;
     const currentUserId = req.user?._id; // optional: if you're using auth middleware
@@ -322,6 +325,24 @@ router.post(
     }
   }
 );
+
+// 13. Get paginated events created by user
+router.get(
+  '/:userId/my-events',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { userId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    try {
+      const result = await UserService.getMyEvents(userId, parseInt(page), parseInt(limit));
+      CommonResponse.success(res, result);
+    } catch (err) {
+      CommonResponse.error(res, err.message, 403);
+    }
+  }
+);
+
 
 
 

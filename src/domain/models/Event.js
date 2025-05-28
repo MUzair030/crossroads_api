@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import { registerNotification } from '../../application/services/NotificationService.js'; // adjust path as needed
-import ticketSchema from "./Ticket.js"; // adjust path as needed
 
 
 
