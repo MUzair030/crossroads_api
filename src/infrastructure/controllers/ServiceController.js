@@ -118,13 +118,16 @@ router.get('/search', async (req, res) => {
 });
 
 // 8. Book a Service (User Inquiry)
-router.post(
-  '/book',
-  passport.authenticate('jwt', { session: false }),
-  async (req, res) => {
-    await ServiceService.bookService(req, res);
+router.post('/book', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  const result = await BookingService.bookService(req, res);
+  if (result.error) {
+    return res.status(500).json({ success: false, message: result.error });
+  } else if (result.message) {
+    return res.status(404).json({ success: false, message: result.message });
   }
-);
+  return res.status(200).json({ success: true, data: result });
+});
+
 
 // 9. Admin Accepts Booking
 router.post(
