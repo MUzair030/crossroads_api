@@ -88,19 +88,12 @@ async getAllPublicGroups({ searchString = '', category = '', page = 1, limit = 1
     // Add to members
     group.members.push({ user: userId, role: 'member' });
 
-    // Remove from inviteRequests
+    // Remove from inviteRequestss
     if (inviteRequestIndex > -1) {
       group.inviteRequests.splice(inviteRequestIndex, 1);
     }
 
-    await registerNotification({
-      type: 'group_joined',
-      title: 'New Member Joined',
-      message: `User joined your group "${group.name}"`,
-      receiverId: group.creator._id,
-      senderId: userId,
-      metadata: { groupId: group._id }
-    });
+    
 
   } else if (action === 'reject') {
     // Only reject if user was invited
