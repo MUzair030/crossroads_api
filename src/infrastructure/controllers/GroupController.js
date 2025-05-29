@@ -58,6 +58,26 @@ router.post(
     }
   }
 );
+router.post('/respond', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const { groupId, action } = req.body;
+
+    // Validate inputs
+    if (!groupId || !['accept', 'reject'].includes(action)) {
+      return CommonResponse.error(res, 'Missing or invalid groupId/action.', 400);
+    }
+
+    const result = await GroupService.respondToInviteOrJoin(groupId, req.user.id, action);
+    CommonResponse.success(res, {
+      message: `You have ${action === 'accept' ? 'joined' : 'responded to'} the group.`,
+      group: result
+    });
+  } catch (err) {
+    console.error('Group respond error:', err);
+    CommonResponse.error(res, err.message || 'Failed to respond to group invite.', 400);
+  }
+});
+
 
 
 
@@ -194,25 +214,6 @@ router.post('/:groupId/invite', passport.authenticate('jwt', { session: false })
   }
 });
 
-router.post('/respond', passport.authenticate('jwt', { session: false }), async (req, res) => {
-  try {
-    const { groupId, action } = req.body;
-
-    // Validate inputs
-    if (!groupId || !['accept', 'reject'].includes(action)) {
-      return CommonResponse.error(res, 'Missing or invalid groupId/action.', 400);
-    }
-
-    const result = await GroupService.respondToInviteOrJoin(groupId, req.user.id, action);
-    CommonResponse.success(res, {
-      message: `You have ${action === 'accept' ? 'joined' : 'responded to'} the group.`,
-      group: result
-    });
-  } catch (err) {
-    console.error('Group respond error:', err);
-    CommonResponse.error(res, err.message || 'Failed to respond to group invite.', 400);
-  }
-});
 
 
 // 7. Update Member Roles
