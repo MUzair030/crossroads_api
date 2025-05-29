@@ -81,9 +81,10 @@ router.get('/public',
       searchString,
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 10,
+      userId: userId
     };
 
-    const groups = await GroupService.getAllPublicGroups({...filters,userId});
+    const groups = await GroupService.getAllPublicGroups(filters);
     CommonResponse.success(res, groups);
   } catch (err) {
     CommonResponse.error(res, err.message || 'Something went wrong', 400);

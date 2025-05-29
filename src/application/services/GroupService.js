@@ -8,15 +8,17 @@ class GroupService {
         return GroupRepository.create(data);
     }
 
-    async getAllPublicGroups(searchString = '', category = '', page = 1, limit = 10, userId) {
-        return GroupRepository.findPublicGroups({
-            userId: userId,
-  searchString: searchString,
-  category: category,
-  page: page,
-  limit: limit,
-    });
-    }
+    // In GroupService
+async getAllPublicGroups({ searchString = '', category = '', page = 1, limit = 10, userId }) {
+  return GroupRepository.findPublicGroups({
+    userId,
+    searchString,
+    category,
+    page,
+    limit,
+  });
+}
+
     async editGroup(groupId, updates, userId) {
         const group = await GroupRepository.findById(groupId);
         if (!group) throw new Error('Group not found.');
