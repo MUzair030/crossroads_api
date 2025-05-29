@@ -143,7 +143,7 @@ async getMyJoinedGroups(userId, page = 1, limit = 10) {
   const groups = await Group.find({
     isDeleted: false,
     'members.user': objectUserId,
-    creator: { $ne: objectUserId }, // Exclude created groups
+    creator:  objectUserId , // Exclude created groups
   })
     .sort({ createdAt: -1 })
     .skip(skip)
@@ -152,8 +152,8 @@ async getMyJoinedGroups(userId, page = 1, limit = 10) {
 
   const total = await Group.countDocuments({
     isDeleted: false,
-    'members.user': userId,
-    creator: { $ne: userId },
+    'members.user': objectUserId,
+    creator:   objectUserId, // Exclude created groups,
   });
 
   return {
