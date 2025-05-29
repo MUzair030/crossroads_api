@@ -130,7 +130,7 @@ router.get(
 
 // Get paginated groups joined by user
 router.get(
-  '/joined-groups',
+  '/joined',
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
     const  userId  = req.user.id;
