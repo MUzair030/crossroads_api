@@ -113,8 +113,9 @@ async getAllPublicGroups({ searchString = '', category = '', page = 1, limit = 1
   } else {
     throw new Error('Invalid action. Use "accept" or "reject".');
   }
+  GroupRepository.save(group);
 
-  return GroupRepository.save(group);
+  return { groupId: group._id };
 }
 
 
