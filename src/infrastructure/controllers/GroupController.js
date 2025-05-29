@@ -62,7 +62,12 @@ router.post(
 
 
 
-router.get('/public', async (req, res) => {
+router.get('/public', 
+      passport.authenticate('jwt', { session: false }),
+
+    async (req, res) => {
+        const { userId } = req.params;
+
   try {
     const {
       category,
@@ -78,7 +83,7 @@ router.get('/public', async (req, res) => {
       limit: limit ? parseInt(limit) : 10,
     };
 
-    const groups = await GroupService.getAllPublicGroups(filters);
+    const groups = await GroupService.getAllPublicGroups(filters, userId);
     CommonResponse.success(res, groups);
   } catch (err) {
     CommonResponse.error(res, err.message || 'Something went wrong', 400);
