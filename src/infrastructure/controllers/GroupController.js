@@ -133,7 +133,7 @@ router.get(
   '/joined-groups',
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
-    const { userId } = req.user.id;
+    const  userId  = req.user.id;
     const { page = 1, limit = 10 } = req.query;
 
     try {
@@ -141,6 +141,19 @@ router.get(
       CommonResponse.success(res, result);
     } catch (err) {
       CommonResponse.error(res, err.message, 403);
+    }
+  }
+);
+
+router.get(
+  '/group/:id',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    try {
+      const group = await GroupService.findGroupById(req.params.id, req.user.id);
+      CommonResponse.success(res, group);
+    } catch (err) {
+      CommonResponse.error(res, err.message || 'Failed to fetch group', 403);
     }
   }
 );
