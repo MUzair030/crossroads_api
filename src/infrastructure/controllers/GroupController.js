@@ -115,7 +115,7 @@ router.get(
   '/my-groups',
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
-    const { userId } = req.user.id;
+    const  userId  = req.user.id;
     const { page = 1, limit = 10 } = req.query;
 
     try {
