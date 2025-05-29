@@ -11,8 +11,6 @@ const GroupSchema = new mongoose.Schema(
     bannerImages: [{ type: String }], // Equivalent of coverPicture/groupPicture
     type: { type: String, enum: ['public', 'private'], required: true }, // corresponds to "access"
     creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    creatorName: { type: String }, // Optional: if you want to store it separately
-
     members: [
       {
         user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -43,6 +41,21 @@ const GroupSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+GroupSchema.methods.getUserGroupStatus = function (userId) {
+  if (!userId) return { isMember: false, isAdmin: false, isInvited: false };
+
+  const memberEntry = this.members.find(m => m.user.equals(userId));
+  const isMember = !!memberEntry;
+  const isAdmin = isMember && memberEntry.role === 'admin';
+
+  const isInvited = this.inviteRequests.some(req =>
+    req.user.equals(userId) && req.status === 'pending'
+  );
+
+  return { isMember, isAdmin, isInvited };
+};
+
 
 const Group = mongoose.model('Group', GroupSchema);
 export default Group;

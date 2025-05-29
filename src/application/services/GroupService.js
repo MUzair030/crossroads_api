@@ -1,16 +1,21 @@
 import FileUploadService from '../services/FileUploadService.js';
 import GroupRepository from "../../infrastructure/repositories/GroupRepository.js";
 import mongoose from "mongoose";
+import Group from "../../domain/models/Group.js";
 
 class GroupService {
     async createGroup(data) {
         return GroupRepository.create(data);
     }
 
-    async getAllPublicGroups() {
-        return GroupRepository.findPublicGroups();
+    async getAllPublicGroups(searchString = '', category = '', page = 1, limit = 10) {
+        return GroupRepository.findPublicGroups({
+  searchString: searchString,
+  category: category,
+  page: page,
+  limit: limit,
+    });
     }
-
     async editGroup(groupId, updates, userId) {
         const group = await GroupRepository.findById(groupId);
         if (!group) throw new Error('Group not found.');
@@ -48,6 +53,58 @@ class GroupService {
         }
         return GroupRepository.save(group);
     }
+
+    async getMyCreatedGroups(userId, page = 1, limit = 10) {
+  const skip = (page - 1) * limit;
+
+  const groups = await Group.find({ creator: userId, isDeleted: false })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .select('name description bannerImages categories tags createdAt');
+
+  const total = await Group.countDocuments({ creator: userId, isDeleted: false });
+
+  return {
+    groups,
+    pagination: {
+      page,
+      limit,
+      total,
+    },
+  };
+}
+
+async getMyJoinedGroups(userId, page = 1, limit = 10) {
+  const skip = (page - 1) * limit;
+
+  const groups = await Group.find({
+    isDeleted: false,
+    'members.user': userId,
+    creator: { $ne: userId }, // Exclude created groups
+  })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .select('name description bannerImages categories tags createdAt');
+
+  const total = await Group.countDocuments({
+    isDeleted: false,
+    'members.user': userId,
+    creator: { $ne: userId },
+  });
+
+  return {
+    groups,
+    pagination: {
+      page,
+      limit,
+      total,
+    },
+  };
+}
+
+
 
     async updateMemberRole(groupId, userId, role, adminId) {
         const group = await GroupRepository.findById(groupId);

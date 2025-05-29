@@ -75,7 +75,7 @@ class EventRepository {
   }
 
   query = query
-    .select('title dates categories bannerImages locations organizerId organizerName likesCount') 
+    .select('title dates categories bannerImages locations organizerId organizerName likesCount description dateTBA locationTBA') 
     .skip(skipCount)
     .limit(limit);
 

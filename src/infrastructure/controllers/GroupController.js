@@ -2,7 +2,6 @@ import express from 'express';
 import multer from 'multer';
 import CommonResponse from '../../application/common/CommonResponse.js';
 import GroupService from "../../application/services/GroupService.js";
-import GroupPostService from "../../application/services/GroupPostService.js";
 import passport from "../../application/services/GoogleAuthService.js";
 import mongoose from "mongoose";
 
@@ -32,7 +31,6 @@ router.post(
     } = req.body;
 
     const userId = req.user.id;
-    const creatorName = req.user.name || `${req.user.firstName} ${req.user.lastName}` || ''; // fallback
 
     try {
       const group = await GroupService.createGroup({
@@ -43,7 +41,6 @@ router.post(
         bannerImages: bannerImages || [],
         type,
         creator: userId,
-        creatorName,
         members: [
           {
             user: new mongoose.Types.ObjectId(userId),
@@ -63,15 +60,68 @@ router.post(
 );
 
 
-// 2. Get All Public Groups
+
+
 router.get('/public', async (req, res) => {
-    try {
-        const groups = await GroupService.getAllPublicGroups();
-        CommonResponse.success(res, groups);
-    } catch (err) {
-        CommonResponse.error(res, err.message, 400);
-    }
+  try {
+    const {
+      category,
+      searchString,
+      page,
+      limit,
+    } = req.query;
+
+    const filters = {
+      category,
+      searchString,
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 10,
+    };
+
+    const groups = await GroupService.getAllPublicGroups(filters);
+    CommonResponse.success(res, groups);
+  } catch (err) {
+    CommonResponse.error(res, err.message || 'Something went wrong', 400);
+  }
 });
+
+// Get paginated groups created by user
+router.get(
+  '/:userId/my-groups',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { userId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    try {
+      const result = await GroupService.getMyCreatedGroups(userId, parseInt(page), parseInt(limit));
+      CommonResponse.success(res, result);
+    } catch (err) {
+      CommonResponse.error(res, err.message, 403);
+    }
+  }
+);
+
+
+// Get paginated groups joined by user
+router.get(
+  '/:userId/joined-groups',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { userId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    try {
+      const result = await GroupService.getMyJoinedGroups(userId, parseInt(page), parseInt(limit));
+      CommonResponse.success(res, result);
+    } catch (err) {
+      CommonResponse.error(res, err.message, 403);
+    }
+  }
+);
+
+
+
 
 // Edit/Modify Group
 router.post(
@@ -148,91 +198,6 @@ router.patch('/role', async (req, res) => {
 
 
 
-// POSTS ================
-
-// 1. Create Group Post
-router.get('/:groupId/posts', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    const { groupId } = req.params;
-
-    try {
-        const post = await GroupPostService.getAllGroupPosts({
-            groupId,
-            userId: req.user.id,
-        });
-        CommonResponse.success(res, post);
-    } catch (err) {
-        CommonResponse.error(res, err.message, 400);
-    }
-});
-
-router.post('/:groupId/posts', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    const { content, images } = req.body;
-    const { groupId } = req.params;
-
-    try {
-        const post = await GroupPostService.createGroupPost({
-            groupId,
-            content,
-            images,
-            userId: req.user.id,
-        });
-        CommonResponse.success(res, post);
-    } catch (err) {
-        CommonResponse.error(res, err.message, 400);
-    }
-});
-
-// 2. Edit Group Post
-router.put('/posts/:postId', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    const { postId } = req.params;
-    const { content, images } = req.body;
-
-    try {
-        const updatedPost = await GroupPostService.editGroupPost({
-            postId,
-            content,
-            images,
-            userId: req.user.id,
-        });
-        CommonResponse.success(res, updatedPost);
-    } catch (err) {
-        CommonResponse.error(res, err.message, 400);
-    }
-});
-
-// 3. Add Comment to Group Post
-router.post('/posts/:postId/comment', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    const { postId } = req.params;
-    const { content } = req.body;
-
-    try {
-        const comment = await GroupPostService.addCommentToPost({
-            postId,
-            content,
-            userId: req.user.id,
-        });
-        CommonResponse.success(res, comment);
-    } catch (err) {
-        CommonResponse.error(res, err.message, 400);
-    }
-});
-
-// 4. Edit Existing Comment
-router.put('/posts/comment/:commentId', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    const { commentId } = req.params;
-    const { content } = req.body;
-
-    try {
-        const updatedComment = await GroupPostService.editComment({
-            commentId,
-            content,
-            userId: req.user.id,
-        });
-        CommonResponse.success(res, updatedComment);
-    } catch (err) {
-        CommonResponse.error(res, err.message, 400);
-    }
-});
 
 
 export default router;

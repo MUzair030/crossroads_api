@@ -55,6 +55,31 @@ async create(refType, refId, postData, userId) {
     return await post.editPost(userId, updatedFields.text, updatedFields.mediaUrls);
   }
 
+  // Get posts for a specific refType + refId with pagination
+
+  async getStagePosts(refType, refId, page = 1, limit = 10, userId) {
+  // Reuse the auth check for validation and permission
+  await this.getParentAndCheckAuth(refType, refId, userId);
+
+  const skip = (page - 1) * limit;
+
+  const posts = await StagePost.find({ refType, refId })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  const total = await StagePost.countDocuments({ refType, refId });
+
+  return {
+    posts,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit)
+  };
+}
+
+
  // Delete post
 async delete(postId, userId) {
   const post = await StagePost.findById(postId);
