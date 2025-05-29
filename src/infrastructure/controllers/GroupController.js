@@ -230,17 +230,7 @@ router.post('/:groupId/invite', passport.authenticate('jwt', { session: false })
 
 
 
-// 7. Update Member Roles
-router.patch('/role', async (req, res) => {
-    const { groupId, userId, role } = req.body;
 
-    try {
-        await GroupService.updateMemberRole(groupId, userId, role, req.user.id);
-        CommonResponse.success(res, { message: 'Member role updated successfully.' });
-    } catch (err) {
-        CommonResponse.error(res, err.message, 400);
-    }
-});
 
 
 

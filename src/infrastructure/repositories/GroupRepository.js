@@ -63,9 +63,7 @@ return {
 }
 
 
-    async findById(groupId) {
-        return Group.findById(groupId).populate('members.user').populate('inviteRequests.user');
-    }
+  
 
     async updateGroup(groupId, updates) {
         return Group.findByIdAndUpdate(groupId, updates, { new: true });
