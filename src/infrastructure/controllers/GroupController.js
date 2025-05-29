@@ -146,7 +146,7 @@ router.get(
 );
 
 router.get(
-  '/group/:id',
+  '/group/by-id/:id',
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
     try {
@@ -157,6 +157,7 @@ router.get(
     }
   }
 );
+
 
 
 
