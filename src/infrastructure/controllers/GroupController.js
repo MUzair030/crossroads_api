@@ -66,7 +66,6 @@ router.get('/public',
       passport.authenticate('jwt', { session: false }),
 
     async (req, res) => {
-        const { userId } = req.params;
 
   try {
     const {
@@ -81,7 +80,7 @@ router.get('/public',
       searchString,
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 10,
-      userId: userId
+      userId: req.user.id, // Use authenticated user's ID
     };
 
     const groups = await GroupService.getAllPublicGroups(filters);
