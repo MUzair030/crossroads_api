@@ -167,18 +167,7 @@ async getMyJoinedGroups(userId, page = 1, limit = 10) {
 
 
 
-    async updateMemberRole(groupId, userId, role, adminId) {
-        const group = await GroupRepository.findById(groupId);
-        if (!group) throw new Error('Group not found.');
-        const isAdmin = group?.members.some(m => m.user.toString() === adminId && m.role === 'admin');
-        if (!isAdmin) throw new Error('Unauthorized.');
-
-        const member = group?.members.find(m => m.user.toString() === userId);
-        if (!member) throw new Error('User is not a member.');
-        member.role = role;
-
-        return GroupRepository.save(group);
-    }
+ 
 
 
       async  findGroupById(groupId, currentUserId = null) {

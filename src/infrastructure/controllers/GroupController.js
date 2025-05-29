@@ -48,7 +48,7 @@ router.post(
           },
         ],
         stagePosts: [],
-        eventIds: [],
+        eventIds: [] ,
         eventStatuses: new Map(),
       });
 
