@@ -114,8 +114,10 @@ async getAllPublicGroups({ searchString = '', category = '', page = 1, limit = 1
 
     async getMyCreatedGroups(userId, page = 1, limit = 10) {
   const skip = (page - 1) * limit;
+  const objectUserId = new mongoose.Types.ObjectId(userId);
 
-  const groups = await Group.find({ creator: userId, isDeleted: false })
+
+  const groups = await Group.find({ creator: objectUserId, isDeleted: false })
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
