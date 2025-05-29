@@ -8,8 +8,9 @@ class GroupService {
         return GroupRepository.create(data);
     }
 
-    async getAllPublicGroups(searchString = '', category = '', page = 1, limit = 10) {
+    async getAllPublicGroups(searchString = '', category = '', page = 1, limit = 10, userId) {
         return GroupRepository.findPublicGroups({
+            userId: userId,
   searchString: searchString,
   category: category,
   page: page,

@@ -11,6 +11,7 @@ class GroupRepository {
   category,
   page = 1,
   limit = 10,
+  userId,
 } = {}) {
   const baseFilter = {
     type: 'public',
