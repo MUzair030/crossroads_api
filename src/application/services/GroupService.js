@@ -2,6 +2,8 @@ import FileUploadService from '../services/FileUploadService.js';
 import GroupRepository from "../../infrastructure/repositories/GroupRepository.js";
 import mongoose from "mongoose";
 import Group from "../../domain/models/Group.js";
+import { registerNotification } from '../../application/services/NotificationService.js'; // adjust path as needed
+
 
 class GroupService {
     async createGroup(data) {
@@ -52,10 +54,69 @@ async getAllPublicGroups({ searchString = '', category = '', page = 1, limit = 1
             const isAlreadyInvited = group?.inviteRequests.some(req => req.user.toString() === userId.toString());
             if (!isAlreadyInvited) {
                 group?.inviteRequests.push({ user: userId });
+                await registerNotification({
+                        type: 'group_invite',
+                        title: 'You’ve been invited!',
+                        message: `You’ve been invited to the group "${group.name}"`,
+                        receiverId: userId,
+                        senderId: inviterId,
+                        metadata: { groupId: group._id }
+                      });
             }
         }
         return GroupRepository.save(group);
     }
+
+
+    async respondToInviteOrJoin(groupId, userId, action) {
+  const group = await GroupRepository.findById(groupId);
+  if (!group) throw new Error('Group not found.');
+
+  const isPublic = group.type === 'public';
+  const isPrivate = group.type === 'private';
+
+  const isAlreadyMember = group.members.some(m => m.user.toString() === userId);
+  if (isAlreadyMember) throw new Error('User is already a group member.');
+
+  const inviteRequestIndex = group.inviteRequests.findIndex(req => req.user.toString() === userId);
+
+  if (isPrivate && inviteRequestIndex === -1) {
+    throw new Error('You must be invited to join this private group.');
+  }
+
+  if (action === 'accept') {
+    // Add to members
+    group.members.push({ user: userId, role: 'member' });
+
+    // Remove from inviteRequests
+    if (inviteRequestIndex > -1) {
+      group.inviteRequests.splice(inviteRequestIndex, 1);
+    }
+
+    await registerNotification({
+      type: 'group_joined',
+      title: 'New Member Joined',
+      message: `User joined your group "${group.name}"`,
+      receiverId: group.creator._id,
+      senderId: userId,
+      metadata: { groupId: group._id }
+    });
+
+  } else if (action === 'reject') {
+    // Only reject if user was invited
+    if (inviteRequestIndex > -1) {
+      group.inviteRequests[inviteRequestIndex].status = 'rejected';
+    } else {
+      throw new Error('You have not been invited to this group.');
+    }
+
+  } else {
+    throw new Error('Invalid action. Use "accept" or "reject".');
+  }
+
+  return GroupRepository.save(group);
+}
+
 
     async getMyCreatedGroups(userId, page = 1, limit = 10) {
   const skip = (page - 1) * limit;

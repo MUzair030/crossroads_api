@@ -177,17 +177,43 @@ router.get('/search', async (req, res) => {
 
 
 // 5. Invite Users to Group
-router.get('/invite', passport.authenticate('jwt', { session: false }), async (req, res) => {
-    try {
-        const { groupId, userIds } = req.query;
-        const parsedUserIds = userIds.split(",");
-        await GroupService.inviteUsers(groupId, parsedUserIds, req.user.id);
-        CommonResponse.success(res, { message: 'Users invited successfully.' });
-    } catch (err) {
-        console.error("Error:", err);  // Log the error to debug
-        CommonResponse.error(res, err.message, 400);
+router.post('/:groupId/invite', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const { userIds } = req.body;
+
+    if (!groupId || !Array.isArray(userIds) || userIds.length === 0) {
+      return CommonResponse.error(res, 'groupId (in URL) and userIds (array in body) are required.', 400);
     }
+
+    await GroupService.inviteUsers(groupId, userIds, req.user.id);
+    CommonResponse.success(res, { message: 'Users invited successfully.' });
+  } catch (err) {
+    console.error("Error:", err);
+    CommonResponse.error(res, err.message || 'Something went wrong', 400);
+  }
 });
+
+router.post('/respond', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const { groupId, action } = req.body;
+
+    // Validate inputs
+    if (!groupId || !['accept', 'reject'].includes(action)) {
+      return CommonResponse.error(res, 'Missing or invalid groupId/action.', 400);
+    }
+
+    const result = await GroupService.respondToInviteOrJoin(groupId, req.user.id, action);
+    CommonResponse.success(res, {
+      message: `You have ${action === 'accept' ? 'joined' : 'responded to'} the group.`,
+      group: result
+    });
+  } catch (err) {
+    console.error('Group respond error:', err);
+    CommonResponse.error(res, err.message || 'Failed to respond to group invite.', 400);
+  }
+});
+
 
 // 7. Update Member Roles
 router.patch('/role', async (req, res) => {
