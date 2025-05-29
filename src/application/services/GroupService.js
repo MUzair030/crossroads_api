@@ -137,11 +137,13 @@ async getAllPublicGroups({ searchString = '', category = '', page = 1, limit = 1
 
 async getMyJoinedGroups(userId, page = 1, limit = 10) {
   const skip = (page - 1) * limit;
+    const objectUserId = new mongoose.Types.ObjectId(userId);
+
 
   const groups = await Group.find({
     isDeleted: false,
-    'members.user': userId,
-    creator: { $ne: userId }, // Exclude created groups
+    'members.user': objectUserId,
+    creator: { $ne: objectUserId }, // Exclude created groups
   })
     .sort({ createdAt: -1 })
     .skip(skip)
