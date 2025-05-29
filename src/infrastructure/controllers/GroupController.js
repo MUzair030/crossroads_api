@@ -58,9 +58,6 @@ router.post(
     }
   }
 );
-
-
-
 router.post('/respond', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const { groupId, action } = req.body;
@@ -131,7 +128,23 @@ router.get(
 );
 
 
+// Get paginated groups joined by user
+router.get(
+  '/joined',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const  userId  = req.user.id;
+    const { page = 1, limit = 10 } = req.query;
+    console.log("User ID:", userId, "Page:", page, "Limit:", limit);
 
+    try {
+      const result = await GroupService.getMyJoinedGroups(userId, parseInt(page), parseInt(limit));
+      CommonResponse.success(res, result);
+    } catch (err) {
+      CommonResponse.error(res, err.message, 403);
+    }
+  }
+);
 
 router.get(
   '/group/by-id/:id',
