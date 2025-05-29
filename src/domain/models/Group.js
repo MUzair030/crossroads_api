@@ -39,10 +39,9 @@ const GroupSchema = new mongoose.Schema(
 
     isDeleted: { type: Boolean, default: false },
   },
-  { timestamps: true }
-);
+  { timestamps: true },
 
-GroupSchema.methods.getUserGroupStatus = function (userId) {
+  GroupSchema.methods.getUserGroupStatus = function (userId) {
   if (!userId) return { isMember: false, isAdmin: false, isInvited: false };
 
   const memberEntry = this.members.find(m => m.user.equals(userId));
@@ -54,7 +53,9 @@ GroupSchema.methods.getUserGroupStatus = function (userId) {
   );
 
   return { isMember, isAdmin, isInvited };
-};
+});
+
+
 
 
 const Group = mongoose.model('Group', GroupSchema);
