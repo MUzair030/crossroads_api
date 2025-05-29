@@ -138,6 +138,7 @@ async getAllPublicGroups({ searchString = '', category = '', page = 1, limit = 1
 async getMyJoinedGroups(userId, page = 1, limit = 10) {
   const skip = (page - 1) * limit;
   const objectUserId = new mongoose.Types.ObjectId(userId);
+  console.log("objectUserId", objectUserId);
 
   const groups = await Group.find({
     isDeleted: false,

@@ -135,6 +135,7 @@ router.get(
   async (req, res) => {
     const  userId  = req.user.id;
     const { page = 1, limit = 10 } = req.query;
+    console.log("User ID:", userId, "Page:", page, "Limit:", limit);
 
     try {
       const result = await GroupService.getMyJoinedGroups(userId, parseInt(page), parseInt(limit));
