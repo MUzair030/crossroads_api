@@ -37,7 +37,7 @@ async getAllPublicGroups({ searchString = '', category = '', page = 1, limit = 1
         // Convert groupId and userIds to ObjectId
         const groupIdObject = new mongoose.Types.ObjectId(groupId);
         const userIdsArray = userIds?.map(userId => new mongoose.Types.ObjectId(userId));
-        const group = await GroupRepository.findById(groupIdObject);
+        const group = await Group.findById(groupIdObject);
         if (!group) {
             throw new Error('Group not found.');
         }

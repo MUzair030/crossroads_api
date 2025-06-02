@@ -17,6 +17,7 @@ const eventSchema = new mongoose.Schema({
   // Location options (polls)
   locations: [
     {
+
       coordinates: {
         type: [Number], // [lat, long]
         required: true,
@@ -24,6 +25,10 @@ const eventSchema = new mongoose.Schema({
       votes: {
         type: [String], // userIds
         default: [],
+      },
+      title:{
+        type: String,
+        default:'',
       }
     }
   ],
