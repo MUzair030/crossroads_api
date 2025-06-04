@@ -121,7 +121,7 @@ async getAllPublicGroups({ searchString = '', category = '', page = 1, limit = 1
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
-    .select('name description bannerImages categories tags createdAt');
+    .select('name description bannerImages categories tags createdAt creator').populate('creator', 'name username _id profilePicture');
 
   const total = await Group.countDocuments({ creator: userId, isDeleted: false });
 
