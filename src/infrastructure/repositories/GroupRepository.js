@@ -35,7 +35,8 @@ class GroupRepository {
   .select('name description bannerImages categories tags members inviteRequests creator') // include members & invites
   .skip(skipCount)
   .limit(limit)
-  .populate('creator', 'name username _id profilePicture'); // Populate creator details
+  .populate('creator', 'name username _id profilePicture').populate('inviteRequests.user', 'name username _id profilePicture')
+; // Populate creator details
 
 const groups = await query.exec();
 const total = await Group.countDocuments(baseFilter);
