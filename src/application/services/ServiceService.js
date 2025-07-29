@@ -73,6 +73,13 @@ const ServiceService = {
 
   // 7. Get Services by Vendor (no .lean())
 async getVendorServices(vendorId) {
+  return await Service.find({ 
+    vendorId, 
+    isPublished: true 
+  });
+},
+
+async getMyServices(vendorId) {
   return await Service.find({ vendorId });
 },
 

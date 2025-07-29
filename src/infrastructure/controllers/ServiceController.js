@@ -56,6 +56,19 @@ router.post('/public', async (req, res) => {
   }
 });
 
+// 4. Get my Services (Vendor)
+router.get('/myServices',  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+  const vendorId = req.user?._id;
+;
+  try {
+    const services = await ServiceService.getMyServices(vendorId);
+    CommonResponse.success(res, services);
+  } catch (err) {
+    CommonResponse.error(res, err.message, 400);
+  }
+});
+
 // 4. Get Services by Vendor
 router.get('/vendor/:vendorId', async (req, res) => {
   const { vendorId } = req.params;
