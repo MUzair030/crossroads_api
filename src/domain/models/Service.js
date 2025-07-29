@@ -33,7 +33,7 @@ const ServiceSchema = new mongoose.Schema({
   vendorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 
   title: { type: String, required: true },
-  category: { type: String, enum: ['Location', 'Lighting', 'Sound', 'Artist', 'Decor'], required: true },
+  category: { type: String, required: true },
   description: { type: String },
 
   basePrice: { type: Number, required: true },
