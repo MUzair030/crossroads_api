@@ -51,7 +51,7 @@ async createEvent(data) {
     group.eventIds.push(event._id);
     group.eventStatuses.push({
   eventId: event._id,
-  status: isLive ? 'live' : 'upcoming',
+  status: data.isLive ? 'live' : 'upcoming',
 });
     await GroupRepository.save(group);
   }
