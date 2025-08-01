@@ -66,7 +66,7 @@ return {
 }
 
   async findById(groupId) {
-    return await Group.findById(groupId).lean();
+    return await Group.findById(groupId);
   }
   
 
