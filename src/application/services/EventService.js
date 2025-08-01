@@ -49,9 +49,10 @@ async createEvent(data) {
   if (groupId) {
     const group = await GroupRepository.findById(groupId);
     group.eventIds.push(event._id);
-    group.eventStatuses = group.eventStatuses || {}; // ensure it's at least an object
-
-    group.eventStatuses.set(event._id.toString(), 'upcoming');
+    group.eventStatuses.push({
+  eventId: event._id,
+  status: isLive ? 'live' : 'upcoming',
+});
     await GroupRepository.save(group);
   }
 

@@ -32,10 +32,13 @@ const GroupSchema = new mongoose.Schema(
     stagePosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "StagePost" }],
 
     eventIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
-    eventStatuses: {
-      type: Map,
-      of: String, // e.g., { "eventId": "upcoming" }
-    },
+    eventStatuses: [
+  {
+    eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
+    status: { type: String },
+  }
+]
+,
 
     isDeleted: { type: Boolean, default: false },
 
