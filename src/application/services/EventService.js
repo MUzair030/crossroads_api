@@ -47,15 +47,17 @@ async createEvent(data) {
 
   // 4. Link to group if needed
   if (groupId) {
-    const group = await GroupRepository.findById(groupId);
-    group.eventIds.push(event._id);
-    group.eventStatuses = group.eventStatuses || [];
-    group.eventStatuses.push({
-  eventId: event._id,
-  status: data.isLive ? 'live' : 'upcoming',
-});
-    await GroupRepository.save(group);
-  }
+  const group = await Group.findById(groupId); // 👈 MUST fetch the full document
+  if (!group) throw new Error('Group not found');
+
+  group.eventIds.push(event._id);
+  group.eventStatuses.push({
+    eventId: event._id,
+    status: data.isLive ? 'live' : 'upcoming',
+  });
+
+  await GroupRepository.save(group); // ✅ pass full document, not ID
+}
 
   // 5. Add event to user
   await User.findByIdAndUpdate(

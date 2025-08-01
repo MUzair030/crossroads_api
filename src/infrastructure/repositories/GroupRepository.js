@@ -81,9 +81,13 @@ return {
         return Group.find(filter);
     }
 
-    async save(group) {
-        return group.save();
-    }
+    async  save(group) {
+  if (typeof group?.save === 'function') {
+    return await group.save(); // ✅ document with .save()
+  }
+
+  throw new Error('Tried to save a non-document. Pass the full group object, not an ID.');
+}
 }
 
 export default new GroupRepository();
