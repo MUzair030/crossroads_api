@@ -49,8 +49,7 @@ async createEvent(data) {
   if (groupId) {
     const group = await GroupRepository.findById(groupId);
     group.eventIds.push(event._id);
-    group.eventStatuses=e
-    group.eventStatuses || [];
+    group.eventStatuses = group.eventStatuses || [];
     group.eventStatuses.push({
   eventId: event._id,
   status: data.isLive ? 'live' : 'upcoming',
