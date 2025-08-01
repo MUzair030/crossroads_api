@@ -33,12 +33,11 @@ const GroupSchema = new mongoose.Schema(
 
     eventIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
     eventStatuses: [
-  {
-    eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
-    status: { type: String },
-  }
-]
-,
+      {
+        eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
+        status: { type: String },
+      }
+    ],
 
     isDeleted: { type: Boolean, default: false },
 
