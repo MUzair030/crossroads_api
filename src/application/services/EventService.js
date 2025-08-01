@@ -4,6 +4,7 @@ import Event from "../../domain/models/Event.js";
 import User from "../../domain/models/User.js";
 import Ticket from "../../domain/models/Ticket.js";
 import mongoose from "mongoose";
+import GroupService from "./GroupService.js";
 
 class EventService {
 
@@ -47,7 +48,7 @@ async createEvent(data) {
 
   // 4. Link to group if needed
   if (groupId) {
-  const group = await Group.findById(groupId); // 👈 MUST fetch the full document
+  const group = await GroupRepository.findById(groupId); // 👈 MUST fetch the full document
   if (!group) throw new Error('Group not found');
 
   group.eventIds.push(event._id);
