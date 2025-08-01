@@ -49,6 +49,9 @@ async createEvent(data) {
   if (groupId) {
     const group = await GroupRepository.findById(groupId);
     group.eventIds.push(event._id);
+    if (!group.eventStatuses) {
+  group.eventStatuses = new Map();
+}
     group.eventStatuses.set(event._id.toString(), 'upcoming');
     await GroupRepository.save(group);
   }
