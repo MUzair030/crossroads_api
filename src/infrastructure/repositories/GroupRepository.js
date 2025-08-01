@@ -18,6 +18,8 @@ class GroupRepository {
     isDeleted: false,
   };
 
+  
+
   // Search by name (case-insensitive)
   if (typeof searchString === 'string' && searchString.trim() !== '') {
     baseFilter.name = { $regex: searchString.trim(), $options: 'i' };
@@ -63,7 +65,9 @@ return {
 
 }
 
-
+  async findById(groupId) {
+    return await Group.findById(groupId).lean();
+  }
   
 
     async updateGroup(groupId, updates) {
