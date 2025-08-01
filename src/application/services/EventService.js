@@ -24,9 +24,8 @@ async createEvent(data) {
   if (groupId) {
     const group = await GroupRepository.findById(groupId);
     if (!group) throw new Error('Group not found.');
-    const isAdmin = group.members.some(
-      (m) => m.user.toString() === creatorId && m.role === 'admin'
-    );
+    const isAdmin = data.organizerId===group.creator.toString() || group.members.some(member => member.user.toString() === data.organizerId && member.role === 'admin');
+
     if (!isAdmin) throw new Error('Only group admins can create events.');
   }
 
