@@ -4,12 +4,13 @@ import Event from "../../domain/models/Event.js";
 import User from "../../domain/models/User.js";
 import Ticket from "../../domain/models/Ticket.js";
 import mongoose from "mongoose";
+import GroupService from "./GroupService.js";
 
 class EventService {
 
 
   /// Create a new event
-async createEvent(data, files) {
+async createEvent(data) {
   const { groupId, creatorId } = data;
   const tickets = data.tickets || [];
 
@@ -24,11 +25,8 @@ async createEvent(data, files) {
   if (groupId) {
     const group = await GroupRepository.findById(groupId);
     if (!group) throw new Error('Group not found.');
-    const isAdmin =
-      data.organizerId === group.creator.toString() ||
-      group.members.some(
-        member => member.user.toString() === data.organizerId && member.role === 'admin'
-      );
+    const isAdmin = data.organizerId===group.creator.toString() || group.members.some(member => member.user.toString() === data.organizerId && member.role === 'admin');
+
     if (!isAdmin) throw new Error('Only group admins can create events.');
   }
 
@@ -50,17 +48,17 @@ async createEvent(data, files) {
 
   // 4. Link to group if needed
   if (groupId) {
-    const group = await GroupRepository.findById(groupId);
-    if (!group) throw new Error('Group not found');
+  const group = await GroupRepository.findById(groupId); // 👈 MUST fetch the full document
+  if (!group) throw new Error('Group not found');
 
-    group.eventIds.push(event._id);
-    group.eventStatuses.push({
-      eventId: event._id,
-      status: data.isLive ? 'live' : 'upcoming',
-    });
+  group.eventIds.push(event._id);
+  group.eventStatuses.push({
+    eventId:  event._id,
+    status: data.isLive ? 'live' : 'upcoming',
+  });
 
-    await GroupRepository.save(group);
-  }
+  await GroupRepository.save(group); // ✅ pass full document, not ID
+}
 
   // 5. Add event to user
   await User.findByIdAndUpdate(
@@ -69,27 +67,13 @@ async createEvent(data, files) {
     { new: true }
   );
 
-  // 6. Upload banner media if files provided
-  if (files?.length > 0) {
-    const MediaUploadService = require('./MediaUploadService'); // adjust path
-    const mediaUploadService = new MediaUploadService();
-
-    await mediaUploadService.handleMediaUpload({
-      files,
-      type: 'event',
-      targetId: event._id,
-      userId: creatorId,
-    });
-  }
-
-  // 7. Return event with populated tickets
+  // 6. Return event with populated tickets
   return await Event.findById(event._id).populate('tickets');
 }
 
-
   //Upload Images
-  async uploadEventBannerImage(file, event) {
-      const uniqueFileName = `images/events/${event.id}/${uuidv4()}_${file.originalname}`;
+  async uploadEventBannerImage(file,type, event) {
+      const uniqueFileName = `images/${type}/${event.id}/${uuidv4()}_${file.originalname}`;
       const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
       console.log("uploadResult:::::::: ", uploadResult);
       await this.editEvent(event.id, {bannerImages: uploadResult?.Location});
@@ -246,20 +230,15 @@ async uploadEventBanner(files, event, userId) {
   for (const file of files) {
     const uniqueFileName = `images/users/${uuidv4()}_${file.originalname}`;
     const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
+    console.log("uploadResult:::::::: ", uploadResult);
     if (uploadResult?.Location) {
       bannerImageUrls.push(uploadResult.Location);
     }
   }
 
-  // Fetch current bannerImages to merge
-  const currentEvent = await Event.findById(event.id);
-  const existingImages = currentEvent?.bannerImages || [];
-
-  const updatedImages = [...existingImages, ...bannerImageUrls];
-
-  await this.editEvent(event.id, { bannerImages: updatedImages }, userId);
+  await this.editEvent(event.id, { bannerImages: bannerImageUrls }, userId);
+  
 }
-
 
 
 
