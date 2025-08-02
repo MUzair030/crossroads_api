@@ -151,6 +151,9 @@ event.pool = event.pool instanceof Map ? Object.fromEntries(event.pool) : event.
       ...event,
       isLiked,
       likesCount,
+      isOrganizer,
+      isInvited,
+      isAttending,
     };
   }
 
