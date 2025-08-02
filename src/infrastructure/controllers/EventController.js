@@ -54,6 +54,7 @@ router.post(
         description,
         locations,
         dates,
+        bannerImages,
         tags,
         categories,
         groupId,
@@ -78,7 +79,7 @@ router.post(
           type: 'Point',
           coordinates: [primaryLocation[1], primaryLocation[0]] // GeoJSON: [long, lat]
         },
-      }, bannerImages);
+      });
 
       // Add event ID to user
       await User.findByIdAndUpdate(
@@ -340,6 +341,8 @@ router.get(
     }
   }
 );
+
+
 
 
 
