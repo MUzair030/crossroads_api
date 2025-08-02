@@ -4,7 +4,6 @@ import Event from "../../domain/models/Event.js";
 import User from "../../domain/models/User.js";
 import Ticket from "../../domain/models/Ticket.js";
 import mongoose from "mongoose";
-import MediaUploadService from "./MediaUploadService.js";
 
 class EventService {
 
