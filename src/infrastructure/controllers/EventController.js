@@ -358,7 +358,7 @@ router.post('/:id/banner-image', upload.single('file'), async (req, res) => {
     }
     const event = await EventService.getEventById(id);
     if(event){
-      const uploadResult = await EventService.uploadEventBannerImage(file, event);
+      const uploadResult = await EventService.uploadEventBannerImage(file, 'event-banners',event);
       CommonResponse.success(res, uploadResult);
     }
   } catch (error) {
