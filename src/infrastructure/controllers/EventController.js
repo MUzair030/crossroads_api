@@ -348,15 +348,19 @@ router.get(
 
 
 //18. Upload banner image for an event
-router.post('/:id/banner-image', upload.single('file'), async (req, res) => {
+router.post('/:id/banner-image', upload.single('file'), 
+  passport.authenticate('jwt', { session: false }),
+
+  async (req, res) => {
   try {
-    const  id  = req.params;
+    const  {id}  = req.params;
     const file = req.file;
+    const userId = req.user.id;
 
     if (!file) {
       return CommonResponse.error(res, 'No file uploaded', 400);
     }
-    const event = await EventService.getEventById(id);
+    const event = await EventService.getEventById(id, userId);
     if(event){
       const uploadResult = await EventService.uploadEventBannerImage(file, 'event-banners',event);
       CommonResponse.success(res, uploadResult);
