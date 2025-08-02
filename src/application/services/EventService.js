@@ -3,6 +3,8 @@ import GroupRepository from "../../infrastructure/repositories/GroupRepository.j
 import Event from "../../domain/models/Event.js";
 import User from "../../domain/models/User.js";
 import Ticket from "../../domain/models/Ticket.js";
+import {v4 as uuidv4} from 'uuid';
+
 import mongoose from "mongoose";
 import GroupService from "./GroupService.js";
 
