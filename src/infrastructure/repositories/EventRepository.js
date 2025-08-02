@@ -139,6 +139,9 @@ event.pool = event.pool instanceof Map ? Object.fromEntries(event.pool) : event.
     dateTBA: event.dateTBA,
     likesCount,
     isLiked,
+    isOrganizer,
+    isInvited,
+    isAttending,
     ...(includeLocations && { locations: event.locations }),
     ...(includeDates && { dates: event.dates }),
   };
@@ -165,6 +168,7 @@ event.pool = event.pool instanceof Map ? Object.fromEntries(event.pool) : event.
       whenPoll: event.whenPoll,
       teamSetup: event.teamSetup,
       poolSetup: event.poolSetup,
+      
     };
   }
 
