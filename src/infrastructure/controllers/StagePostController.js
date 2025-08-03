@@ -124,4 +124,23 @@ router.post(
   }
 );
 
+// 10. Get all stage posts for a group or event with pagination
+router.get(
+  '/:refType/:refId',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    try {
+      const { refType, refId } = req.params;
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+
+      const posts = await StagePostService.getStagePosts(refType, refId, page, limit, req.user.id);
+      CommonResponse.success(res, posts);
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+
 export default router;
