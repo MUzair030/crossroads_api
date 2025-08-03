@@ -28,8 +28,10 @@ class StagePostService {
   }
 
  // Create a stage post and associate it with Event or Group
+// Create a stage post and associate it with Event or Group
 async create(refType, refId, postData, userId) {
   const parentDoc = await this.getParentAndCheckAuth(refType, refId, userId);
+  print("Parent Document:", parentDoc.organizerId);
 
   const post = await StagePost.create({
     ...postData,
@@ -38,13 +40,16 @@ async create(refType, refId, postData, userId) {
     refId
   });
 
-  // Add post reference to parent
-  parentDoc.stagePosts = parentDoc.stagePosts || [];
+  if (!Array.isArray(parentDoc.stagePosts)) {
+    parentDoc.stagePosts = [];
+  }
+
   parentDoc.stagePosts.push(post._id);
-  await parentDoc.save();
+  await parentDoc.save(); // Make sure no .lean() was used earlier
 
   return post;
 }
+
 
 
   // Update post text/media
