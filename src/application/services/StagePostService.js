@@ -31,7 +31,7 @@ class StagePostService {
 // Create a stage post and associate it with Event or Group
 async create(refType, refId, postData, userId) {
   const parentDoc = await this.getParentAndCheckAuth(refType, refId, userId);
-  print("Parent Document:", parentDoc.organizerId);
+  console.log("Parent Document:", parentDoc.organizerId);
 
   const post = await StagePost.create({
     ...postData,
