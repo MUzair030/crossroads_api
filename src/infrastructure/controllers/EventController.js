@@ -3,6 +3,8 @@ import passport from '../../application/services/GoogleAuthService.js';
 import CommonResponse from '../../application/common/CommonResponse.js';
 import EventService from '../../application/services/EventService.js';
 import UserManagementService from '../../application/services/EventService.js';
+import Event from "../../domain/models/Event.js";
+
 
 import User from '../../domain//models/User.js'; 
 import multer from 'multer';
@@ -351,7 +353,7 @@ router.get(
 
       const events = await Promise.all(
         paginatedEventIds.map(async eventId =>
-          await Event.findOne({ _id: eventId, })
+          await Event.findById({ _id: eventId, })
               .populate('title dates categories bannerImages locations organizerId organizerName likesCount description dateTBA locationTBA') // whatever you need
               .lean({ virtuals: true })
               .catch(() => null)
