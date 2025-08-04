@@ -359,9 +359,9 @@ router.get(
 
       CommonResponse.success(res, {
         events: filteredEvents,
-        total: user.events.length,
+        total: user.myEventIds.length,
         page: parseInt(page),
-        pages: Math.ceil(user.events.length / parseInt(limit)),
+        pages: Math.ceil(user.myEventIds.length / parseInt(limit)),
       });
     } catch (err) {
       console.error(err);
