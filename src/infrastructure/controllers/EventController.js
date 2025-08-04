@@ -351,7 +351,10 @@ router.get(
 
       const events = await Promise.all(
         paginatedEventIds.map(async eventId =>
-          await EventService.findByIdCapped(eventId).catch(() => null)
+          await Event.findOne({ _id: eventId, })
+              .populate('title dates categories bannerImages locations organizerId organizerName likesCount description dateTBA locationTBA') // whatever you need
+              .lean({ virtuals: true })
+              .catch(() => null)
         )
       );
 
