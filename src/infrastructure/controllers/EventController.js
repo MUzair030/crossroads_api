@@ -352,13 +352,16 @@ router.get(
       const paginatedEventIds = user.myEventIds.slice(startIndex, startIndex + parseInt(limit));
 
       const events = await Promise.all(
-        paginatedEventIds.map(async eventId =>
-          await Event.findById({ _id: eventId, })
-              .populate('title dates categories bannerImages locations organizerId organizerName likesCount description dateTBA locationTBA') // whatever you need
-              .lean({ virtuals: true })
-              .catch(() => null)
-        )
-      );
+  paginatedEventIds.map(async (eventId) =>
+    await Event.findById(eventId)
+      .lean({ virtuals: true })
+      .catch((err) => {
+        console.warn(`Event ${eventId} failed: ${err.message}`);
+        return null;
+      })
+  )
+);
+
 
       const filteredEvents = events.filter(e => e !== null);
 
