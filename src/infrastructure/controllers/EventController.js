@@ -339,6 +339,10 @@ router.get(
 
     try {
       const user = await User.findById(userId).lean();
+      console.log('User found:', user);
+      console.log('myEventIds:', user?.myEventIds);
+console.log('Type:', typeof user?.myEventIds, Array.isArray(user?.myEventIds));
+
       if (!user || !user.myEventIds || !Array.isArray(user.myEventIds)) {
         return CommonResponse.success(res, {
           events: [],
