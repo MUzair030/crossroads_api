@@ -352,15 +352,18 @@ router.get(
       const paginatedEventIds = user.myEventIds.slice(startIndex, startIndex + parseInt(limit));
 
       const events = await Promise.all(
-  paginatedEventIds.map(async (eventId) =>
-    await Event.findById(eventId)
-      .lean({ virtuals: true })
-      .catch((err) => {
-        console.warn(`Event ${eventId} failed: ${err.message}`);
-        return null;
-      })
-  )
+  paginatedEventIds.map(async eventId => {
+    try {
+      const event = await Event.findById(eventId)
+        .lean({ virtuals: true });
+      return event;
+    } catch (e) {
+      console.error(`Error fetching event ${eventId}:`, e.message);
+      return null;
+    }
+  })
 );
+
 
 
       const filteredEvents = events.filter(e => e !== null);
