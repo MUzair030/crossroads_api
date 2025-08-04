@@ -356,7 +356,7 @@ console.log('Type:', typeof user?.myEventIds, Array.isArray(user?.myEventIds));
       const paginatedEventIds = user.myEventIds.slice(startIndex, startIndex + parseInt(limit));
 
       const events = await Promise.all(
-  paginatedEventIds.map(async eventId => {
+  user.myEventIds.map(async eventId => {
     try {
       const event = await Event.findById(eventId)
         .lean({ virtuals: true });
