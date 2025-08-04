@@ -337,7 +337,7 @@ router.get(
 
     try {
       const user = await User.findById(userId).lean();
-      if (!user || !user.events || !Array.isArray(user.events)) {
+      if (!user || !user.myEventIds || !Array.isArray(user.myEventIds)) {
         return CommonResponse.success(res, {
           events: [],
           page: parseInt(page),
@@ -347,7 +347,7 @@ router.get(
       }
 
       const startIndex = (parseInt(page) - 1) * parseInt(limit);
-      const paginatedEventIds = user.events.slice(startIndex, startIndex + parseInt(limit));
+      const paginatedEventIds = user.myEventIds.slice(startIndex, startIndex + parseInt(limit));
 
       const events = await Promise.all(
         paginatedEventIds.map(eventId =>
