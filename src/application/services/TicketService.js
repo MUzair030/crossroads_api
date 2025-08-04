@@ -80,7 +80,7 @@ async  deleteTicket(eventId, userId, ticketId) {
 
 // --- Purchase Ticket ---
 async  purchaseTicket(eventId, ticketId, quantity, userId) {
-      const QRCode = await import('qrcode');
+const QRCode = require('qrcode');
 
   const ticket = await Ticket.findOne({ _id: ticketId, eventId });
   if (!ticket) throw new Error("Ticket not found");

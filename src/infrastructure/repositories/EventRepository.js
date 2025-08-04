@@ -140,6 +140,7 @@ event.pool = event.pool instanceof Map ? Object.fromEntries(event.pool) : event.
     likesCount,
     isLiked,
     isOrganizer,
+    settings: event.settings ?? {}, // ✅ Add settings
     isInvited,
     isAttending,
     ...(includeLocations && { locations: event.locations }),
@@ -154,6 +155,8 @@ event.pool = event.pool instanceof Map ? Object.fromEntries(event.pool) : event.
       isOrganizer,
       isInvited,
       isAttending,
+      settings: event.settings ?? {}, // ✅ Add settings
+
     };
   }
 

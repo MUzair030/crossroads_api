@@ -8,6 +8,23 @@ const eventSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
 
+  settings: {
+  type: new mongoose.Schema({
+    liveStatus: { type: Boolean, default: false },
+    access: { type: String, enum: ['public', 'private'], default: 'public' },
+    postPermissions: {
+      type: String,
+      enum: ['admin_only', 'attendees', 'team_members', 'everyone'],
+      default: 'admin_only',
+    },
+    commentsEnabled: { type: Boolean, default: true },
+    showAttendeesList: { type: Boolean, default: true },
+    allowReshare: { type: Boolean, default: true },
+  }, { _id: false }), // Don't generate _id for sub-schema
+  default: {}
+},
+
+
   isLinkedWithGroup: { type: Boolean, default: false },
   groupId: { type: mongoose.Schema.Types.ObjectId, ref: "Group", default: null },
 
