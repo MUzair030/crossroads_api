@@ -350,8 +350,8 @@ router.get(
       const paginatedEventIds = user.myEventIds.slice(startIndex, startIndex + parseInt(limit));
 
       const events = await Promise.all(
-        paginatedEventIds.map(eventId =>
-          EventService.getEventById(eventId,userId).catch(() => null)
+        paginatedEventIds.map(async eventId =>
+          await EventService.getEventById(eventId,userId).catch(() => null)
         )
       );
 
