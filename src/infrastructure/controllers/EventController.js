@@ -2,6 +2,8 @@ import express from 'express';
 import passport from '../../application/services/GoogleAuthService.js';
 import CommonResponse from '../../application/common/CommonResponse.js';
 import EventService from '../../application/services/EventService.js';
+import UserManagementService from '../../application/services/EventService.js';
+
 import User from '../../domain//models/User.js'; 
 import multer from 'multer';
 
@@ -334,10 +336,36 @@ router.get(
     const { page = 1, limit = 10 } = req.query;
 
     try {
-      const result = await UserService.getMyEvents(userId, parseInt(page), parseInt(limit));
-      CommonResponse.success(res, result);
+      const user = await User.findById(userId).lean();
+      if (!user || !user.events || !Array.isArray(user.events)) {
+        return CommonResponse.success(res, {
+          events: [],
+          page: parseInt(page),
+          total: 0,
+          pages: 0
+        });
+      }
+
+      const startIndex = (parseInt(page) - 1) * parseInt(limit);
+      const paginatedEventIds = user.events.slice(startIndex, startIndex + parseInt(limit));
+
+      const events = await Promise.all(
+        paginatedEventIds.map(eventId =>
+          EventService.findById(eventId).catch(() => null)
+        )
+      );
+
+      const filteredEvents = events.filter(e => e !== null);
+
+      CommonResponse.success(res, {
+        events: filteredEvents,
+        total: user.events.length,
+        page: parseInt(page),
+        pages: Math.ceil(user.events.length / parseInt(limit)),
+      });
     } catch (err) {
-      CommonResponse.error(res, err.message, 403);
+      console.error(err);
+      CommonResponse.error(res, err.message || 'Failed to load user events', 500);
     }
   }
 );
