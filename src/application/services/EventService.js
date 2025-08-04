@@ -111,7 +111,7 @@ async createEvent(data) {
     const allowedUpdates = [
       'title', 'description', 'locations', 'dates',
       'categories', 'bannerImages', 'isLive', 'access',
-      'price', 'maxAttendees', 'tags', 'services',
+      'price', 'maxAttendees', 'tags', 'services','settings'
     ];
 
     Object.keys(updates).forEach(key => {
@@ -226,6 +226,15 @@ async createEvent(data) {
       total: user.myEventIds.length // optional if you want to show total
     }
   };
+}
+
+async findByIdCapped(eventId) {
+  const event = await Event.findOne({ _id: eventId, isDeleted: false })
+    .populate('title dates categories bannerImages locations organizerId organizerName likesCount description dateTBA locationTBA') // whatever you need
+    .lean({ virtuals: true });
+
+  if (!event) throw new Error('Event not found');
+  return event;
 }
 
 async uploadEventBanner(files, event, userId) {

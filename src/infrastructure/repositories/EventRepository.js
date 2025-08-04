@@ -191,6 +191,14 @@ if (!isPublic && !isAttending && !isInvited && !isOrganizer) {
 }  return base;
 };
 
+async findByIdCapped(eventId) {
+  const event = await Event.findOne({ _id: eventId, isDeleted: false })
+    .populate('title dates categories bannerImages locations organizerId organizerName likesCount description dateTBA locationTBA') // whatever you need
+    .lean({ virtuals: true });
+
+  if (!event) throw new Error('Event not found');
+  return event;
+}
 
 
   async updateEvent(eventId, updates) {
