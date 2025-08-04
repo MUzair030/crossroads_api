@@ -3,8 +3,6 @@ import passport from '../../application/services/GoogleAuthService.js';
 import CommonResponse from '../../application/common/CommonResponse.js';
 import EventService from '../../application/services/EventService.js';
 import UserManagementService from '../../application/services/EventService.js';
-import Event from "../../domain/models/Event.js";
-
 
 import User from '../../domain//models/User.js'; 
 import multer from 'multer';
@@ -339,10 +337,6 @@ router.get(
 
     try {
       const user = await User.findById(userId).lean();
-      console.log('User found:', user);
-      console.log('myEventIds:', user?.myEventIds);
-console.log('Type:', typeof user?.myEventIds, Array.isArray(user?.myEventIds));
-
       if (!user || !user.myEventIds || !Array.isArray(user.myEventIds)) {
         return CommonResponse.success(res, {
           events: [],
@@ -353,22 +347,12 @@ console.log('Type:', typeof user?.myEventIds, Array.isArray(user?.myEventIds));
       }
 
       const startIndex = (parseInt(page) - 1) * parseInt(limit);
-      const paginatedEventIds = user.myEventIds.slice(startIndex, startIndex + parseInt(limit));
 
       const events = await Promise.all(
-  user.myEventIds.map(async eventId => {
-    try {
-      const event = await Event.findById(eventId)
-        .lean({ virtuals: true });
-      return event;
-    } catch (e) {
-      console.error(`Error fetching event ${eventId}:`, e.message);
-      return null;
-    }
-  })
-);
-
-
+        user.myEventIds.map(async eventId =>
+          await EventService.findByIdCapped(eventId).catch(() => null)
+        )
+      );
 
       const filteredEvents = events.filter(e => e !== null);
 
