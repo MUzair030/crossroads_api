@@ -399,6 +399,30 @@ router.post('/:id/banner-image', upload.single('file'),
 });
 
 
+// 19. Get events user is invited to (based on RSVPs)
+router.get('/user-invites',
+  passport.authenticate('jwt', { session: false }),
+
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+
+      const events = await EventService.getUserInvitedEvents(userId);
+
+      CommonResponse.success(res, {
+        events,
+        total: events.length
+      });
+
+    } catch (error) {
+      CommonResponse.error(res, error.message, 500);
+    }
+  }
+);
+
+
+
 
 
 

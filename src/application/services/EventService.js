@@ -255,6 +255,15 @@ async uploadEventBanner(files, event, userId) {
 
 
 
+// services/eventService.js
+async  getUserInvitedEvents(userId) {
+  return await Event.find({
+    [`rsvps.${userId}`]: { $exists: true }
+  }).lean({ virtuals: true });
+}
+
+
+
 
 
 

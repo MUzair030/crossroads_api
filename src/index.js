@@ -16,6 +16,7 @@ import eventController from './infrastructure/controllers/EventController.js';
 import serviceController from './infrastructure/controllers/ServiceController.js';
 import stagepostController from './infrastructure/controllers/StagePostController.js';
 import ticketController from './infrastructure/controllers/TicketController.js';
+import bookingController from './infrastructure/controllers/BookingController.js';
 import chatController, {
     getReceiverSocketId,
     handleSendMessage,
@@ -66,6 +67,8 @@ app.use('/api/events', eventController);
 app.use('/api/services', serviceController);
 app.use('/api/stageposts', stagepostController);
 app.use('/api/tickets', ticketController);
+app.use('/api/bookings', bookingController);
+
 
 
 

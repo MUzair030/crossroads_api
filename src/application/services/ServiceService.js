@@ -10,9 +10,43 @@ const ServiceService = {
   },
 
   // 2. Get Service by ID
-  async getServiceById(serviceId) {
-    return await Service.findById(serviceId).lean();
-  },
+
+async  getServiceById(serviceId, userId) {
+  const service = await Service.findById(serviceId).lean();
+  if (!service) return null;
+
+  // Check if user is the vendor
+ if (service.vendorId.toString() === userId.toString()) {
+  const statusCounts = await Booking.aggregate([
+    { $match: { serviceId: service._id } },
+    { $group: { _id: "$status", count: { $sum: 1 } } }
+  ]);
+
+  const counts = {
+    total: 0,
+    pending: 0,
+    countered: 0,
+    accepted: 0,
+    confirmed: 0
+  };
+
+  statusCounts.forEach(stat => {
+    counts.total += stat.count;
+    if (['pending', 'countered', 'accepted', 'confirmed'].includes(stat._id)) {
+      counts[stat._id] = stat.count;
+    }
+  });
+
+  return {
+    ...service,
+    isVendor: true,
+    bookingStats: counts
+  };
+}
+
+  return service;
+},
+
 
   // 3. Get All Published Services with optional filters
   async getAllPublishedServices(filters = {}) {
