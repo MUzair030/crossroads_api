@@ -104,7 +104,7 @@ const service = await Service.findById(serviceId)
   if (filters.vendorId) query.vendorId = filters.vendorId;
 
   return await Service.find(query)
-    .select('title locationAvailable images vendorId basePrice ratings.avgRating customTags')
+    .select('title locationAvailable images vendorId basePrice ratings avgRating customTags')
     .populate({
       path: 'vendorId',
       select: '_id firstName lastName userName userType'
