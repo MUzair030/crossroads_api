@@ -11,8 +11,12 @@ const ServiceService = {
 
 
 async getServiceById(serviceId, userId) {
-  const service = await Service.findById(serviceId).lean();
-  if (!service) return null;
+const service = await Service.findById(serviceId)
+    .populate({
+      path: 'vendorId',
+      select: '_id firstName lastName userName userType'
+    })
+    .lean();  if (!service) return null;
 
   // Extract ratings
   const ratings = service.ratings || {};
