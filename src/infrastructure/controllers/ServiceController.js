@@ -34,11 +34,12 @@ router.post(
 );
 
 // 2. Get Service by ID (Public)
-router.get('/public/:id', async (req, res) => {
-  try {
+router.get('/public/:id',passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
     const serviceId = req.params.id;
     const currentUserId = req.user?._id;
-
+ try {
+    
     const service = await ServiceService.getServiceById(serviceId, currentUserId);
     CommonResponse.success(res, service);
   } catch (err) {
