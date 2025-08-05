@@ -203,7 +203,13 @@ async getVendorServices(vendorId) {
 },
 
 async getMyServices(vendorId) {
-  return await Service.find({ vendorId });
+  return await Service.find({ vendorId })
+    .select('title locationAvailable images vendorId basePrice ratings avgRating customTags')
+    .populate({
+      path: 'vendorId',
+      select: '_id firstName lastName userName userType'
+    })
+    ;
 },
 
 
