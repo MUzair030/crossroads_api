@@ -242,5 +242,32 @@ router.get(
 );
 
 
+// 5. Rate or Unrate Service
+router.post(
+  '/:serviceId/rate',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    const { serviceId } = req.params;
+    const { rating } = req.body; // Expected: number (e.g. 4.5) or null
+    const userId = req.user.id;
+
+    try {
+      const service = await ServiceService.rateOrUnrateService({
+        serviceId,
+        userId,
+        rating,
+      });
+
+      CommonResponse.success(res, {
+        avgRating: service.ratings.avgRating,
+        totalRatings: Object.keys(service.ratings.userRatings || {}).length,
+      });
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+
 
 export default router;

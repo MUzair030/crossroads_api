@@ -46,6 +46,29 @@ const ServiceSchema = new mongoose.Schema({
 
   inclusions: [String],
   exclusions: [String],
+  
+  // ✅ Inlined settings
+settings: {
+  type: new mongoose.Schema({
+    liveStatus: { type: Boolean, default: false },
+    maxConcurrentBookings: { type: Number ,default: 1 },
+    maxBookingsPerDay: { type: Number,default: 1 },  
+    allowReshare: { type: Boolean, default: true },
+  }, { _id: false }), // Don't generate _id for sub-schema
+  default: {}
+},
+
+ ratings: {
+  type: new mongoose.Schema({
+    avgRating: { type: Number, default: 0 },
+    userRatings: {
+      type: Map,
+      of: Number, // rating value
+      default: {},
+    },
+  }, { _id: false }),
+  default: {},
+},
 
   setupTimeBufferHours: { type: Number },
   maxBookingsPerDay: { type: Number },

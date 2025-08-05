@@ -9,55 +9,105 @@ const ServiceService = {
     return await service.save();
   },
 
-  // 2. Get Service by ID
 
-async  getServiceById(serviceId, userId) {
+async getServiceById(serviceId, userId) {
   const service = await Service.findById(serviceId).lean();
   if (!service) return null;
 
-  // Check if user is the vendor
- if (service.vendorId.toString() === userId.toString()) {
-  const statusCounts = await Booking.aggregate([
-    { $match: { serviceId: service._id } },
-    { $group: { _id: "$status", count: { $sum: 1 } } }
-  ]);
+  // Extract ratings
+  const ratings = service.ratings || {};
+  const userRatings = ratings.userRatings || {};
+  const avgRating = ratings.avgRating || 0;
+  const userRating = userRatings[userId] || null;
 
-  const counts = {
-    total: 0,
-    pending: 0,
-    countered: 0,
-    accepted: 0,
-    confirmed: 0
+  const isVendor = service.vendorId.toString() === userId.toString();
+
+  // 🔢 Booking Stats for Vendor
+  let bookingStats = null;
+  if (isVendor) {
+    const statusCounts = await Booking.aggregate([
+      { $match: { serviceId: service._id } },
+      { $group: { _id: "$status", count: { $sum: 1 } } }
+    ]);
+
+    const counts = {
+      total: 0,
+      pending: 0,
+      countered: 0,
+      accepted: 0,
+      confirmed: 0
+    };
+
+    statusCounts.forEach(stat => {
+      counts.total += stat.count;
+      if (['pending', 'countered', 'accepted', 'confirmed'].includes(stat._id)) {
+        counts[stat._id] = stat.count;
+      }
+    });
+
+    bookingStats = counts;
+  }
+
+  // 🧹 Fields to return
+  const publicFields = {
+    _id: service._id,
+    title: service.title,
+    category: service.category,
+    description: service.description,
+    basePrice: service.basePrice,
+    pricingType: service.pricingType,
+    pricingMode: service.pricingMode,
+    images: service.images,
+    addons: service.addons,
+    inclusions: service.inclusions,
+    exclusions: service.exclusions,
+    availability: service.availability,
+    locationAvailable: service.locationAvailable,
+    cancellationPolicy: service.cancellationPolicy,
+    termsAndConditions: service.termsAndConditions,
+    customTags: service.customTags,
+    isPublished: service.isPublished,
+    avgRating,
+    userRating,
+    vendorId: service.vendorId,
+    createdAt: service.createdAt,
+    updatedAt: service.updatedAt,
   };
 
-  statusCounts.forEach(stat => {
-    counts.total += stat.count;
-    if (['pending', 'countered', 'accepted', 'confirmed'].includes(stat._id)) {
-      counts[stat._id] = stat.count;
-    }
-  });
-
-  return {
-    ...service,
+  // ✨ Extra fields for vendors
+  const vendorOnlyFields = {
+    settings: service.settings,
+    ratings: service.ratings, // full map
+    maxBookingsPerDay: service.maxBookingsPerDay,
+    setupTimeBufferHours: service.setupTimeBufferHours,
+    bookingStats,
     isVendor: true,
-    bookingStats: counts
   };
-}
 
-  return service;
-},
+  return isVendor
+    ? { ...publicFields, ...vendorOnlyFields }
+    : publicFields;
+}
+,
 
 
   // 3. Get All Published Services with optional filters
   async getAllPublishedServices(filters = {}) {
-    const query = { isPublished: true };
+  const query = { isPublished: true };
 
-    if (filters.category) query.category = filters.category;
-    if (filters.city) query['locationAvailable.cities'] = filters.city;
-    if (filters.vendorId) query.vendorId = filters.vendorId;
+  if (filters.category) query.category = filters.category;
+  if (filters.city) query['locationAvailable.cities'] = filters.city;
+  if (filters.vendorId) query.vendorId = filters.vendorId;
 
-    return await Service.find(query).lean();
+  return await Service.find(query)
+    .select('title locationAvailable images vendorId basePrice ratings.avgRating customTags')
+    .populate({
+      path: 'vendorId',
+      select: '_id firstName lastName userName userType'
+    })
+    .lean();
   },
+
 
   // 4. Edit Service
   async editService(serviceId, updates, vendorId) {
@@ -70,6 +120,41 @@ async  getServiceById(serviceId, userId) {
     if (!service) throw new Error('Service not found or not authorized.');
     return service;
   },
+
+  // 5. Rate or Unrate Service
+async rateOrUnrateService(serviceId, userId, ratingValue) {
+  const service = await Service.findById(serviceId);
+
+  if (!service) {
+    throw new Error("Service not found");
+  }
+
+  if (!service.ratings) {
+    service.ratings = { avgRating: 0, userRatings: new Map() };
+  }
+
+  // Set or remove rating
+  if (ratingValue === null) {
+    service.ratings.userRatings.delete(userId);
+  } else {
+    service.ratings.userRatings.set(userId, ratingValue);
+  }
+
+  // Recalculate average
+  const ratingsArray = Array.from(service.ratings.userRatings.values());
+  const total = ratingsArray.reduce((sum, r) => sum + r, 0);
+  const avg = ratingsArray.length ? total / ratingsArray.length : 0;
+
+  service.ratings.avgRating = parseFloat(avg.toFixed(2));
+
+  await service.save();
+  return {
+    avgRating: service.ratings.avgRating,
+    userRating: service.ratings.userRatings.get(userId) ?? null,
+  };
+},
+
+
 
   // 5. Soft Delete (Unpublish) Service
   async unpublishService(serviceId, vendorId) {
