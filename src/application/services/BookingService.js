@@ -149,17 +149,25 @@ const BookingService = {
     const userId = req.user.id;
 
     try {
-      const bookings = await Booking.find({ userId })
-        .populate('serviceId', 'title vendorId')
-        .populate({
-          path: 'serviceId',
-          populate: { path: 'vendorId', select: 'name email' },
-        });
+  const bookings = await Booking.find({ userId })
+    .populate({
+      path: 'serviceId',
+      select: 'title vendorId',
+      populate: {
+        path: 'vendorId',
+        select: 'name email',
+      },
+    })
+    .populate({
+      path: 'userId',
+      select: 'name username',
+    });
 
-      return bookings;
-    } catch (err) {
-      return { error: err.message };
-    }
+  return bookings;
+} catch (err) {
+  return { error: err.message };
+}
+
   },
 
   async getMyBookingsAsVendor(req, res) {
