@@ -61,6 +61,18 @@ async sendFriendRequest(senderId, receiverId) {
             if (status === 'accepted') {
                 await this.userRepository.pushToField(receiverId, 'friends', senderId);
                 await this.userRepository.pushToField(senderId, 'friends', receiverId);
+
+                
+      // ✅ Send notification to sender that request was accepted
+      await registerNotification({
+        type: 'friend_accepted',
+        title: 'Friend Request Accepted',
+        message: `${receiver.name || 'Someone'} accepted your friend request.`,
+        receiverId: senderId, // notify the sender
+        senderId: receiverId, // person who accepted
+        metadata: { receiverId }
+      });
+    
             }
 
             await this.userRepository.pullFromField(receiverId, 'friendRequests', { from: senderId });

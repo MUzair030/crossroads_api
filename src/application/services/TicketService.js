@@ -4,6 +4,8 @@ import TicketPurchase from '../../domain/models/TicketPurchase.js';
 import User from '../../domain/models/User.js';
 import Ticket from '../../domain/models/Ticket.js';
 import QRCode from 'qrcode'; // ✅ instead of dynamic import
+import { registerNotification } from '../../application/services/NotificationService.js'; // adjust path as needed
+
 
 
 
@@ -80,9 +82,7 @@ async  deleteTicket(eventId, userId, ticketId) {
   return { message: "Ticket deleted" };
 }
 
-// --- Purchase Ticket ---
-async  purchaseTicket(eventId, ticketId, quantity, userId) {
-
+async purchaseTicket(eventId, ticketId, quantity, userId) {
   const ticket = await Ticket.findOne({ _id: ticketId, eventId });
   if (!ticket) throw new Error("Ticket not found");
 
@@ -109,13 +109,10 @@ async  purchaseTicket(eventId, ticketId, quantity, userId) {
     ticketId: ticketId.toString(),
     quantity,
     issuedAt: purchase.purchaseDate.toISOString(),
-    // optionally add other info like userId or a signature here
   });
 
-  // Generate QR code data URI
+  // Generate QR code
   const qrCodeDataUri = await QRCode.toDataURL(qrPayload);
-
-  // Optionally, save this QR data URI to purchase for quick access
   purchase.qrCode = qrCodeDataUri;
   await purchase.save();
 
@@ -124,14 +121,35 @@ async  purchaseTicket(eventId, ticketId, quantity, userId) {
     $push: { myPasses: purchase._id }
   });
 
+  // 🔔 Notify event creator
+  const event = await Event.findById(eventId);
+  if (event && event.creatorId.toString() !== userId.toString()) {
+    await registerNotification({
+              type: "ticket_purchase",
+
+      receiverId: event.creatorId,
+
+      senderId:userId,
+      title: "🎟️ Ticket Purchased",
+      body: `Someone bought ${quantity} ticket(s) for your event "${event.title}"`,
+      data: {
+        eventId: eventId,
+        ticketId: ticketId,
+        buyerId: userId,
+        purchaseId: purchase._id,
+      }
+    });
+  }
+
   return {
     message: "Purchase successful",
     ticketType: ticket.title,
     quantity,
     purchaseId: purchase._id,
-    qrCode: qrCodeDataUri, // Send QR code back so frontend can show it immediately
+    qrCode: qrCodeDataUri,
   };
 }
+
 
 // --- Get User's Purchased Tickets ---
  async  getUserPasses(userId) {

@@ -1,4 +1,6 @@
 import ChatRepository from "../../infrastructure/repositories/ChatRepository.js";
+import { registerNotification } from '../../application/services/NotificationService.js'; // adjust path as needed
+
 
 
 class ChatService {
@@ -30,28 +32,40 @@ class ChatService {
 
 
     static async addMessage(chatId, senderId, content) {
-    const chat = await ChatRepository.findChatById(chatId);
-    if (!chat) throw new Error('Chat not found');
+  const chat = await ChatRepository.findChatById(chatId);
+  if (!chat) throw new Error('Chat not found');
 
-    // Add the new message
-    chat.messages.push({ sender: senderId, content });
+  // Add the new message
+  chat.messages.push({ sender: senderId, content });
 
-    // Ensure unreadMessageCounts is initialized
-    if (!chat.unreadMessageCounts || chat.unreadMessageCounts.length === 0) {
-        chat.unreadMessageCounts = chat.participants.map(p => ({
-            userId: p.userId,
-            count: 0
-        }));
-    }
+  // Ensure unreadMessageCounts is initialized
+  if (!chat.unreadMessageCounts || chat.unreadMessageCounts.length === 0) {
+    chat.unreadMessageCounts = chat.participants.map(p => ({
+      userId: p.userId,
+      count: 0
+    }));
+  }
 
-    // Increment unread count for every participant except sender
-    chat.unreadMessageCounts.forEach(entry => {
-        if (entry.userId.toString() !== senderId.toString()) {
-            entry.count += 1;
+  // Increment unread count and send notification to all except sender
+  for (const entry of chat.unreadMessageCounts) {
+    if (entry.userId.toString() !== senderId.toString()) {
+      entry.count += 1;
+
+      // Send push notification to the other participant
+      await registerNotification({
+        type: 'new_message',
+        title: 'New Message',
+        message: content.length > 100 ? content.slice(0, 100) + '...' : content,
+        receiverId: entry.userId,
+        senderId,
+        metadata: {
+          chatId
         }
-    });
+      });
+    }
+  }
 
-    return ChatRepository.updateChat(chat);
+  return ChatRepository.updateChat(chat);
 }
 
 

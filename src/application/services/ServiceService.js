@@ -1,6 +1,8 @@
 import Service from '../../domain/models/Service.js';
 import Booking from '../../domain/models/Booking.js';
 import User from '../../domain/models/User.js';
+import { registerNotification } from '../../application/services/NotificationService.js'; // adjust path as needed
+
 
 const ServiceService = {
   // 1. Create Service
@@ -214,13 +216,14 @@ async getMyServices(vendorId) {
 
 
 
-async  bookService(req, res) {
+
+async bookService(req, res) {
   const { serviceId, selectedDates, addons, inquiryMessage } = req.body;
   const userId = req.user.id;
 
   try {
     const service = await Service.findById(serviceId);
-    if (!service) return {message:'Service not found' };
+    if (!service) return { message: 'Service not found' };
 
     const booking = new Booking({
       serviceId,
@@ -228,23 +231,36 @@ async  bookService(req, res) {
       selectedDates,
       addons,
       inquiryMessage,
-      isNegotiable: service.pricingMode === 'negotiable'
+      isNegotiable: service.pricingMode === 'negotiable',
     });
     await booking.save();
 
     // Add to user's own bookings
     await User.findByIdAndUpdate(userId, {
-      $push: { myBookings: booking._id }
+      $push: { myBookings: booking._id },
     });
 
     // Add to vendor's received bookings
     await User.findByIdAndUpdate(service.vendorId, {
-      $push: { receivedBookings: booking._id }
+      $push: { receivedBookings: booking._id },
     });
 
-    return  { bookingId: booking._id };
+    // 🔔 Send notification to the vendor
+    await registerNotification({
+      type: 'service_inquiry',
+      title: 'New Service Inquiry',
+      message: `You have received a new inquiry for "${service.title}".`,
+      receiverId: service.vendorId,
+      senderId: userId,
+      metadata: {
+        bookingId: booking._id,
+        serviceId: service._id
+      }
+    });
+
+    return { bookingId: booking._id };
   } catch (err) {
-    return  { error: err.message };
+    return { error: err.message };
   }
 },
 async acceptBooking(req, res) {
@@ -263,14 +279,29 @@ async acceptBooking(req, res) {
 
     if (!booking) return { error: 'Booking not found' };
 
-    // Notify user (email, notification)
-    return  booking ;
+    const service = await Service.findById(booking.serviceId);
+
+    // 🔔 Notify user
+    await registerNotification({
+      type: 'booking_update',
+      title: 'Booking Accepted',
+      message: `Your booking for "${service.title}" has been accepted.`,
+      receiverId: booking.userId,
+      senderId: service.vendorId,
+      metadata: {
+        bookingId: booking._id,
+        serviceId: service._id
+      }
+    });
+
+    return booking;
   } catch (err) {
     return { error: err.message };
   }
 },
 
-async  rejectBooking(req, res) {
+
+async rejectBooking(req, res) {
   const { bookingId, adminMessage } = req.body;
 
   try {
@@ -285,19 +316,34 @@ async  rejectBooking(req, res) {
 
     if (!booking) return { error: 'Booking not found' };
 
-    // Notify user
-    return (booking);
+    const service = await Service.findById(booking.serviceId);
+
+    // 🔔 Notify user
+    await registerNotification({
+      type: 'booking_update',
+      title: 'Booking Rejected',
+      message: `Your booking for "${service.title}" was rejected.`,
+      receiverId: booking.userId,
+      senderId: service.vendorId,
+      metadata: {
+        bookingId: booking._id,
+        serviceId: service._id
+      }
+    });
+
+    return booking;
   } catch (err) {
     return { error: err.message };
   }
-},
-async  counterOfferBooking(req, res) {
+}
+,
+async counterOfferBooking(req, res) {
   const { bookingId, counterOffer, message } = req.body;
   const userId = req.user.id;
 
   try {
     const booking = await Booking.findById(bookingId);
-    if (!booking) return {error: 'Booking not found'};
+    if (!booking) return { error: 'Booking not found' };
     if (booking.userId.toString() !== userId) {
       return { error: 'Unauthorized', status: 403 };
     }
@@ -310,12 +356,27 @@ async  counterOfferBooking(req, res) {
     };
     await booking.save();
 
-    // Notify admin
+    const service = await Service.findById(booking.serviceId);
+
+    // 🔔 Notify vendor
+    await registerNotification({
+      type: 'booking_response',
+      title: 'Counter Offer Submitted',
+      message: `User submitted a counter offer for "${service.title}".`,
+      receiverId: service.vendorId,
+      senderId: booking.userId,
+      metadata: {
+        bookingId: booking._id,
+        serviceId: service._id
+      }
+    });
+
     return booking;
   } catch (err) {
     return { error: err.message };
   }
 },
+
 
 async confirmBooking(req, res) {
   const { bookingId } = req.body;
@@ -332,18 +393,51 @@ async confirmBooking(req, res) {
     booking.userResponse = { accepted: true };
     await booking.save();
 
-    // Redirect to payment flow (or mark as paid if prepaid)
+    const service = await Service.findById(booking.serviceId);
+
+    // 🔔 Notify vendor
+    await registerNotification({
+      type: 'booking_confirmed',
+      title: 'Booking Confirmed',
+      message: `User confirmed the booking for "${service.title}".`,
+      receiverId: service.vendorId,
+      senderId: booking.userId,
+      metadata: {
+        bookingId: booking._id,
+        serviceId: service._id
+      }
+    });
+
     return booking;
   } catch (err) {
     return { error: err.message };
   }
 },
 
-async  markBookingAsPaid(bookingId) {
-  await Booking.findByIdAndUpdate(bookingId, {
+
+async markBookingAsPaid(bookingId) {
+  const booking = await Booking.findByIdAndUpdate(bookingId, {
     paymentDone: true
-  });
+  }, { new: true });
+
+  if (booking) {
+    const service = await Service.findById(booking.serviceId);
+
+    // 🔔 Notify vendor
+    await registerNotification({
+      type: 'booking_payment',
+      title: 'Payment Completed',
+      message: `Payment has been completed for "${service.title}".`,
+      receiverId: service.vendorId,
+      senderId: booking.userId,
+      metadata: {
+        bookingId: booking._id,
+        serviceId: service._id
+      }
+    });
+  }
 },
+
 
 
 async  getBookingsByServiceId(req, res) {

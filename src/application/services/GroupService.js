@@ -33,39 +33,44 @@ async getAllPublicGroups({ searchString = '', category = '', page = 1, limit = 1
         return GroupRepository.searchPublicGroups(query, category);
     }
 
-    async inviteUsers(groupId, userIds, inviterId) {
-        // Convert groupId and userIds to ObjectId
-        const groupIdObject = new mongoose.Types.ObjectId(groupId);
-        const userIdsArray = userIds?.map(userId => new mongoose.Types.ObjectId(userId));
-        const group = await Group.findById(groupIdObject);
-        if (!group) {
-            throw new Error('Group not found.');
-        }
+    
+async inviteUsers(groupId, userIds, inviterId) {
+  const groupIdObject = new mongoose.Types.ObjectId(groupId);
+  const userIdsArray = userIds?.map(userId => new mongoose.Types.ObjectId(userId));
 
-        console.log("group.members", group.members)
+  const group = await Group.findById(groupIdObject);
+  if (!group) {
+    throw new Error('Group not found.');
+  }
 
-        const isAdmin = group?.members.some(m => m.user && m.user._id.toString() === inviterId && m.role === 'admin');
-        if (!isAdmin) {
-            throw new Error('Only admins can invite users.');
-        }
+  const isAdmin = group?.members.some(
+    m => m.user && m.user._id.toString() === inviterId && m.role === 'admin'
+  );
+  if (!isAdmin) {
+    throw new Error('Only admins can invite users.');
+  }
 
-        // Add users to inviteRequests if they are not already invited
-        for (const userId of userIdsArray) {
-            const isAlreadyInvited = group?.inviteRequests.some(req => req.user.toString() === userId.toString());
-            if (!isAlreadyInvited) {
-                group?.inviteRequests.push({ user: userId });
-                await registerNotification({
-                        type: 'group_invite',
-                        title: 'You’ve been invited!',
-                        message: `You’ve been invited to the group "${group.name}"`,
-                        receiverId: userId,
-                        senderId: inviterId,
-                        metadata: { groupId: group._id }
-                      });
-            }
-        }
-        return GroupRepository.save(group);
+  for (const userId of userIdsArray) {
+    const isAlreadyInvited = group?.inviteRequests.some(
+      req => req.user.toString() === userId.toString()
+    );
+
+    if (!isAlreadyInvited) {
+      group.inviteRequests.push({ user: userId });
+
+      await registerNotification({
+        type: 'group_invite',
+        title: 'Group Invitation',
+        message: `You’ve been invited to join the group "${group.name}".`,
+        receiverId: userId,
+        senderId: inviterId,
+        metadata: { groupId: group._id }
+      });
     }
+  }
+
+  return GroupRepository.save(group);
+}
 
 
     async respondToInviteOrJoin(groupId, userId, action) {

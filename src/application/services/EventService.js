@@ -4,6 +4,8 @@ import Event from "../../domain/models/Event.js";
 import User from "../../domain/models/User.js";
 import Ticket from "../../domain/models/Ticket.js";
 import FileUploadService from "./FileUploadService.js";
+import { registerNotification } from '../../application/services/NotificationService.js'; // adjust path as needed
+
 
 import {v4 as uuidv4} from 'uuid';
 
@@ -180,8 +182,8 @@ async createEvent(data) {
     return event.unvote(type, index, userId);
   }
 
-// Invite users to an event
-  async inviteUsersToEvent(eventId, inviterId, userIds) {
+
+async inviteUsersToEvent(eventId, inviterId, userIds) {
   const event = await Event.findById(eventId);
   if (!event) throw new Error('Event not found');
 
@@ -191,9 +193,27 @@ async createEvent(data) {
     throw new Error('Unauthorized to invite users');
   }
 
-  await event.inviteUsers(userIds, inviterId); // ✅ pass inviterId for notifications
-  return event;
+  await event.inviteUsers(userIds, inviterId); // Add users to the invite list
+
+  // Optional: fetch inviter name
+  const inviter = await User.findById(inviterId);
+  const inviterName = inviter?.name || 'Someone';
+
+  // Send notification to each invited user
+  for (const userId of userIds) {
+    await registerNotification({
+      type: 'event_invite',
+      title: 'Event Invitation',
+      message: `${inviterName} invited you to join an event.`,
+      receiverId: userId,
+      senderId: inviterId,
+      metadata: { eventId, inviterId }
+    });
   }
+
+  return event;
+}
+
 
 //Cancel Invite
 async cancelUserInvites(eventId, adminId, userIds) {
@@ -353,6 +373,7 @@ async removeTeamMember(eventId, removerId, targetUserId) {
   return event;
 }
 
+
 async updateTeamMemberRole(eventId, userId, newRole) {
   const event = await Event.findById(eventId);
   if (!event) throw new Error('Event not found');
@@ -364,6 +385,23 @@ async updateTeamMemberRole(eventId, userId, newRole) {
   event.team.set(userId.toString(), member);
 
   await event.save();
+
+  // Optional: fetch event title or name
+  const eventName = event.title || 'an event';
+
+  // Notify the user about their updated role
+  await registerNotification({
+    type: 'role_update',
+    title: 'Role Updated',
+    message: `Your role in ${eventName} has been updated to "${newRole}".`,
+    receiverId: userId,
+    senderId: event.organizerId || null,
+    metadata: {
+      eventId,
+      newRole,
+    }
+  });
+
   return event;
 }
 

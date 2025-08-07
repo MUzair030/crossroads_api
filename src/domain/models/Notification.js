@@ -5,23 +5,25 @@ const NotificationSchema = new mongoose.Schema({
     type: String,
     required: true,
     enum: [
-      'friend_request',
-      'friend_accepted',
+      'friend_request',//done
+      'friend_accepted',// done
       'mention',
       'new_follower',
-      'ticket_purchased',
+      'role_update',//done
+      'ticket_purchase',//done
       'ticket_received',
       'event_updated',
       'event_reminder',
-      'event_invite',
+      'event_invite',//done
       'event_cancelled',
-      'service_inquiry',
-      'service_booked',
-      'service_review',
-      'service_updated',
-      'message',
+      'service_inquiry',//done initial inquiry 
+      'booking_update',//done accepted/offer by vendor or rejected
+      'booking_response',// done  countered by client if negotiable
+      'booking_confirmed',// done confirmed by client, make payment
+      'booking_payment',//done payment received
+      'message',//done
       'group_chat_mention',
-      'group_invite',
+      'group_invite',//done
       'admin_announcement',
       'account_warning',
       'app_update'
