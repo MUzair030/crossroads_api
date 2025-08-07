@@ -305,6 +305,30 @@ router.post(
   }
 );
 
+
+// Cancel invites to an event
+router.post('/:id/cancel-invites',
+  passport.authenticate('jwt', { session: false }),
+
+  async (req, res) => {
+    try {
+      const eventId = req.params.id;
+      const adminId = req.user._id;
+      const { userIds } = req.body; // Expecting: { userIds: [array of user IDs] }
+
+      if (!Array.isArray(userIds) || userIds.length === 0) {
+        return CommonResponse.error(res, 'No user IDs provided', 400);
+      }
+
+      const cancelled = await EventService.cancelUserInvites(eventId, adminId, userIds);
+      return CommonResponse.success(res, { cancelled });
+    } catch (err) {
+      return CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+
 //13. RSVP to event invite
 router.post(
   '/:eventId/rsvp',
@@ -422,6 +446,112 @@ router.get('/user-invites',
 );
 
 
+//Team Apis
+
+router.post('/:id/join-team',
+  passport.authenticate('jwt', { session: false }),
+
+  async (req, res) => {
+    try {
+      const eventId = req.params.id;
+      const userId = req.user._id;
+      const { role, location } = req.body;
+
+      const event = await EventService.joinEventTeam(eventId, userId, role, location);
+      CommonResponse.success(res, event);
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+
+router.post('/:id/team-location',
+  passport.authenticate('jwt', { session: false }),
+
+  async (req, res) => {
+    try {
+      const eventId = req.params.id;
+      const userId = req.user._id;
+      const { lat, long } = req.body;
+
+      const event = await EventService.updateTeamLocation(eventId, userId, lat, long);
+      CommonResponse.success(res, event);
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+
+router.post('/:id/location-sharing',
+  passport.authenticate('jwt', { session: false }),
+
+  async (req, res) => {
+    try {
+      const eventId = req.params.id;
+      const userId = req.user._id;
+      const { sharing } = req.body;
+
+      const event = await EventService.toggleLocationSharing(eventId, userId, sharing);
+      CommonResponse.success(res, event);
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+
+router.post('/:id/online-status',
+  passport.authenticate('jwt', { session: false }),
+
+  async (req, res) => {
+    try {
+      const eventId = req.params.id;
+      const userId = req.user._id;
+      const { isOnline } = req.body;
+
+      const event = await EventService.updateOnlineStatus(eventId, userId, isOnline);
+      CommonResponse.success(res, event);
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+
+router.post('/:id/remove-team-member',
+  passport.authenticate('jwt', { session: false }),
+
+  async (req, res) => {
+    try {
+      const eventId = req.params.id;
+      const removerId = req.user._id;
+      const { targetUserId } = req.body;
+
+      const event = await EventService.removeTeamMember(eventId, removerId, targetUserId);
+      CommonResponse.success(res, event);
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
+
+router.post('/:id/update-team-role',
+  passport.authenticate('jwt', { session: false }),
+
+  async (req, res) => {
+    try {
+      const eventId = req.params.id;
+      const { userId, newRole } = req.body;
+
+      const event = await EventService.updateTeamMemberRole(eventId, userId, newRole);
+      CommonResponse.success(res, event);
+    } catch (err) {
+      CommonResponse.error(res, err.message, 400);
+    }
+  }
+);
 
 
 

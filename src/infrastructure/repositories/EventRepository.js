@@ -105,6 +105,7 @@ event.rsvps = event.rsvps instanceof Map ? Object.fromEntries(event.rsvps) : eve
 event.pool = event.pool instanceof Map ? Object.fromEntries(event.pool) : event.pool || {};
 
 
+
   // Likes info
   const likesCount = event.likes?.length || 0;
   const isLiked = currentUserId
@@ -116,6 +117,8 @@ event.pool = event.pool instanceof Map ? Object.fromEntries(event.pool) : event.
   const isOrganizer = currentUserId && currentUserId.toString() === event.organizerId._id.toString();
   const isInvited = !!rsvp && !rsvp.status;
   const isAttending = !!rsvp && rsvp.status === 'attending';
+  const isTeamMember = !!event.team?.[currentUserId];
+
   const isPublic = event.access === 'public';
 
   // Handle TBA conditions
@@ -143,6 +146,7 @@ event.pool = event.pool instanceof Map ? Object.fromEntries(event.pool) : event.
     settings: event.settings ?? {}, // ✅ Add settings
     isInvited,
     isAttending,
+    isTeamMember,
     ...(includeLocations && { locations: event.locations }),
     ...(includeDates && { dates: event.dates }),
   };
@@ -155,6 +159,7 @@ event.pool = event.pool instanceof Map ? Object.fromEntries(event.pool) : event.
       isOrganizer,
       isInvited,
       isAttending,
+      isTeamMember,
       settings: event.settings ?? {}, // ✅ Add settings
 
     };

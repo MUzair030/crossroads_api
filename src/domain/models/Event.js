@@ -93,12 +93,31 @@ const eventSchema = new mongoose.Schema({
 
   // Team: Map of userId → role (role can be null or string)
   team: {
-    type: Map,
-    of: {
-      role: { type: String, default: null }
+  type: Map,
+  of: {
+    role: { type: String, default: null },
+
+    // Realtime location info
+    location: {
+      lat: { type: Number, default: null },
+      long: { type: Number, default: null },
     },
-    default: {}
+
+    // Status flags
+    isOnline: { type: Boolean, default: false },
+    sharingLocation: { type: Boolean, default: false },
+
+    // Optional: timestamps for location/activity
+    lastSeen: { type: Date, default: null },
+    lastLocationUpdate: { type: Date, default: null },
+
+    // Optional: device type or other info
+    deviceInfo: { type: String, default: null },
   },
+  default: {},
+},
+
+
 
   // Pool: generic map
   pool: { type: Map, of: mongoose.Schema.Types.Mixed, default: {} },
@@ -247,6 +266,32 @@ eventSchema.methods.inviteUsers = async function (userIds, inviterId = null) {
   await this.save();
   return invited;
 };
+
+//Cancel Invite
+eventSchema.methods.cancelInvites = async function (userIds, cancellerId = null) {
+  const removed = [];
+
+  for (const userId of userIds) {
+    if (this.rsvps.has(userId)) {
+      this.rsvps.delete(userId);
+      removed.push(userId);
+
+      // ✅ Optional: send cancellation notification
+      await registerNotification({
+        type: 'event_invite_cancelled',
+        title: 'Invitation Cancelled',
+        message: `Your invitation to the event "${this.title}" has been cancelled.`,
+        receiverId: userId,
+        senderId: cancellerId,
+        metadata: { eventId: this._id }
+      });
+    }
+  }
+
+  await this.save();
+  return removed;
+};
+
 
 
 // Respond to invite

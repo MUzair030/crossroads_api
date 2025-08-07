@@ -195,6 +195,24 @@ async createEvent(data) {
   return event;
   }
 
+//Cancel Invite
+async cancelUserInvites(eventId, adminId, userIds) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new Error('Event not found');
+
+  const isOrganizer = event.organizerId?.toString() === adminId.toString();
+  const isTeamMember = event.team?.has(adminId.toString());
+
+  if (!isOrganizer && !isTeamMember) {
+    throw new Error('Unauthorized to cancel invites');
+  }
+
+  const cancelled = await event.cancelInvites(userIds, adminId);
+  return cancelled;
+}
+
+
+// Respond to Event Invite
   async respondToEventInvite(eventId, userId, status) {
   const event = await Event.findById(eventId);
   if (!event) throw new Error('Event not found');
@@ -204,7 +222,7 @@ async createEvent(data) {
   }
 
 
-
+//Get My Events
   async getMyEvents(userId, page = 1, limit = 10) {
   const user = await User.findById(userId)
     .populate({
@@ -228,15 +246,7 @@ async createEvent(data) {
   };
 }
 
-async findByIdCapped(eventId) {
-  const event = await Event.findOne({ _id: eventId, isDeleted: false })
-    .populate('title dates categories bannerImages locations organizerId organizerName likesCount description dateTBA locationTBA') // whatever you need
-    .lean({ virtuals: true });
-
-  if (!event) throw new Error('Event not found');
-  return event;
-}
-
+//Image Upload
 async uploadEventBanner(files, event, userId) {
   const bannerImageUrls = [];
 
@@ -262,6 +272,100 @@ async  getUserInvitedEvents(userId) {
   }).lean({ virtuals: true });
 }
 
+
+
+
+///Team Functions
+
+async joinEventTeam(eventId, userId, role, location) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new Error('Event not found');
+
+  event.team.set(userId.toString(), {
+    role,
+    location: location || null,
+    isOnline: true,
+    sharingLocation: false,
+    lastSeen: new Date(),
+  });
+
+  await event.save();
+  return event;
+}
+
+async updateTeamLocation(eventId, userId, lat, long) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new Error('Event not found');
+
+  if (!event.team?.has(userId.toString())) {
+    throw new Error('User not part of event team');
+  }
+
+  const teamMember = event.team.get(userId.toString());
+  teamMember.location = { lat, long };
+  teamMember.lastLocationUpdate = new Date();
+
+  event.team.set(userId.toString(), teamMember);
+  await event.save();
+
+  return event;
+}
+
+async toggleLocationSharing(eventId, userId, sharing) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new Error('Event not found');
+
+  const member = event.team.get(userId.toString());
+  if (!member) throw new Error('User not in team');
+
+  member.sharingLocation = sharing;
+  event.team.set(userId.toString(), member);
+  await event.save();
+
+  return event;
+}
+
+async updateOnlineStatus(eventId, userId, isOnline) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new Error('Event not found');
+
+  const member = event.team.get(userId.toString());
+  if (!member) throw new Error('User not in team');
+
+  member.isOnline = isOnline;
+  member.lastSeen = new Date();
+  event.team.set(userId.toString(), member);
+
+  await event.save();
+  return event;
+}
+
+async removeTeamMember(eventId, removerId, targetUserId) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new Error('Event not found');
+
+  const isOrganizer = event.organizerId?.toString() === removerId.toString();
+  if (!isOrganizer) throw new Error('Only organizer can remove team members');
+
+  event.team.delete(targetUserId.toString());
+  await event.save();
+
+  return event;
+}
+
+async updateTeamMemberRole(eventId, userId, newRole) {
+  const event = await Event.findById(eventId);
+  if (!event) throw new Error('Event not found');
+
+  const member = event.team.get(userId.toString());
+  if (!member) throw new Error('User not in team');
+
+  member.role = newRole;
+  event.team.set(userId.toString(), member);
+
+  await event.save();
+  return event;
+}
 
 
 
