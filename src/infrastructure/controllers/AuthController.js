@@ -6,7 +6,6 @@ import CommonResponse from '../../application/common/CommonResponse.js';
 import jwt from 'jsonwebtoken';
 import config from '../../config/config.js'; // adjust path to where your config is
 import { OAuth2Client } from 'google-auth-library';
-const jwt = require('jsonwebtoken');
 const config = require('../../config/config');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const router = express.Router();
