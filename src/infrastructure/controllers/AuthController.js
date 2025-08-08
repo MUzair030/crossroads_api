@@ -136,7 +136,7 @@ const accessToken = jwt.sign(
 
 const refreshToken = jwt.sign(
   { userId: user._id },
-  config.jwtRefreshSecret,
+  config.refreshTokenSecret,
   { expiresIn: '7d' } // long-lived
 );
 
