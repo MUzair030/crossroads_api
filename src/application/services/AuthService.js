@@ -2,6 +2,12 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import config from '../../config/config.js';
 import emailService from './EmailService.js';
+import jwt from 'jsonwebtoken';
+import config from '../../config/config.js'; // adjust path to where your config is
+import { OAuth2Client } from 'google-auth-library';
+
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 class AuthService {
   constructor(userRepository) {
@@ -171,6 +177,55 @@ async refreshAccessToken(refreshToken) {
     user.isDeleted = true;
     await this.userRepository.update(user);
   }
+
+
+  async  handleGoogleMobileLogin(idToken) {
+  if (!idToken) {
+    throw new Error('Missing ID token');
+  }
+
+  // Verify token with Google
+  const ticket = await client.verifyIdToken({
+    idToken,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+
+  const payload = ticket.getPayload();
+  const googleId = payload.sub;
+  const email = payload.email;
+  const name = payload.name;
+
+  // Check if user exists by Google ID or email
+  let user = await this.userRepository.findByGoogleId(googleId);
+  if (!user) {
+    user = await this.userRepository.findByEmail(email);
+  }
+
+  // Create new user if none found
+  if (!user) {
+    const verificationToken = Math.floor(10000 + Math.random() * 90000).toString();
+    const userData = { googleId, password: null, name, email, verificationToken };
+    user = await userRepository.save(userData);
+    await emailService.sendVerificationEmail(user, verificationToken);
+  }
+
+  // Sign JWT tokens
+  const accessToken = jwt.sign(
+    { userId: user._id },
+    config.jwtSecret,
+    { expiresIn: '60m' }
+  );
+
+  const refreshToken = jwt.sign(
+    { userId: user._id },
+    config.refreshTokenSecret,
+    { expiresIn: '7d' }
+  );
+
+  // Optionally save refreshToken in DB here if needed
+
+  return { accessToken, refreshToken, user };
+}
 
 
 }

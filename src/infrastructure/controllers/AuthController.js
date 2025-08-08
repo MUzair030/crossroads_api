@@ -94,65 +94,17 @@ router.get('/google/callback', (req, res, next) => {
 
 
 
+
 router.post('/google/mobile', async (req, res) => {
-  
   try {
     const { idToken } = req.body;
-
-    if (!idToken) {
-      return res.status(400).json({ message: 'Missing ID token' });
-    }
-
-    // Verify token with Google
-    const ticket = await client.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID, // Must match Web Client ID
-    });
-
-    const payload = ticket.getPayload();
-    const googleId = payload.sub;
-    const email = payload.email;
-    const name = payload.name;
-
-    // Check if user exists by Google ID or email
-    let user = await userRepository.findByGoogleId(googleId);
-    if (!user) {
-      user = await userRepository.findByEmail(email);
-    }
-
-    // Create new user if none found
-    if (!user) {
-      const verificationToken = Math.floor(10000 + Math.random() * 90000).toString();
-      
-          const userData = {googleId,password: null ,name, email, verificationToken };
-           user = await this.userRepository.save(userData);
-          await emailService.sendVerificationEmail(savedUser, verificationToken);
-     
-    }
-
-    // Sign our own JWTs
-  const accessToken = jwt.sign(
-    { userId: user._id },
-    config.jwtSecret,
-    { expiresIn: '60m' } // short-lived
-  );
-
-  const refreshToken = jwt.sign(
-    { userId: user._id },
-    config.refreshTokenSecret,
-    { expiresIn: '7d' } // long-lived
-  );
-
-  // Save refresh token to DB for the user
-
-  return res.json({ accessToken, refreshToken, user });
-    } catch (err) {
-      console.error('Mobile Google login error:', err);
-      return res.status(401).json({ message: 'Invalid Google token' });
-    }
-
+    const result = await authService.handleGoogleMobileLogin(idToken);
+    return res.json(result);
+  } catch (err) {
+    console.error('Mobile Google login error:', err);
+    return res.status(401).json({ message: err.message || 'Invalid Google token' });
+  }
 });
-
 
 
 router.get('/logout', (req, res, next) => {
