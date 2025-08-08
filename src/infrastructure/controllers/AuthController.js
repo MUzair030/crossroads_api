@@ -3,7 +3,8 @@ import passport from '../../application/services/GoogleAuthService.js';
 import UserRepositoryImpl from '../repositories/UserRepositoryImpl.js';
 import AuthService from '../../application/services/AuthService.js';
 import CommonResponse from '../../application/common/CommonResponse.js';
-
+import { OAuth2Client } from 'google-auth-library';
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const router = express.Router();
 const userRepository = new UserRepositoryImpl();
 const authService = new AuthService(userRepository);
