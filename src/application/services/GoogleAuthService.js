@@ -21,7 +21,7 @@ async (accessToken, refreshToken, profile, done) => {
         googleId: profile.id,
         name: profile.displayName,
         email: profile.emails[0].value,
-        password: "googlePass"
+        password: null,
       });
     }
     done(null, user);

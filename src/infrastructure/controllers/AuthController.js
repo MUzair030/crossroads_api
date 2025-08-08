@@ -119,38 +119,39 @@ router.post('/google/mobile', async (req, res) => {
 
     // Create new user if none found
     if (!user) {
-      user = await userRepository.save({
-        googleId,
-        email,
-        name,
-        password: null, // no password for Google accounts
-      });
+      const verificationToken = Math.floor(10000 + Math.random() * 90000).toString();
+      
+          const userData = {googleId,password: null ,name, email, userName, verificationToken };
+           user = await this.userRepository.save(userData);
+          await emailService.sendVerificationEmail(savedUser, verificationToken);
+     
     }
 
     // Sign our own JWTs
-const accessToken = jwt.sign(
-  { userId: user._id },
-  config.jwtSecret,
-  { expiresIn: '60m' } // short-lived
-);
+  const accessToken = jwt.sign(
+    { userId: user._id },
+    config.jwtSecret,
+    { expiresIn: '60m' } // short-lived
+  );
 
-const refreshToken = jwt.sign(
-  { userId: user._id },
-  config.refreshTokenSecret,
-  { expiresIn: '7d' } // long-lived
-);
+  const refreshToken = jwt.sign(
+    { userId: user._id },
+    config.refreshTokenSecret,
+    { expiresIn: '7d' } // long-lived
+  );
 
-// Save refresh token to DB for the user
+  // Save refresh token to DB for the user
 
-return res.json({ accessToken, refreshToken, user });
-  } catch (err) {
-    console.error('Mobile Google login error:', err);
-    return res.status(401).json({ message: 'Invalid Google token' });
-  }
-})
-;
+  return res.json({ accessToken, refreshToken, user });
+    } catch (err) {
+      console.error('Mobile Google login error:', err);
+      return res.status(401).json({ message: 'Invalid Google token' });
+    }
 
-// Handle Logout
+});
+
+
+
 router.get('/logout', (req, res, next) => {
   req.logout((err) => {
     if (err) {
