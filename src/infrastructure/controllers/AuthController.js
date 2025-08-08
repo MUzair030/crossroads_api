@@ -8,6 +8,10 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const router = express.Router();
 const userRepository = new UserRepositoryImpl();
 const authService = new AuthService(userRepository);
+import dotenv from 'dotenv';
+dotenv.config();
+
+
 
 router.post('/signup', async (req, res) => {
   try {
@@ -97,7 +101,7 @@ router.post('/google/mobile', async (req, res) => {
     // Verify token with Google
     const ticket = await client.verifyIdToken({
       idToken,
-      audience: config.googleClientId, // MUST match Web Client ID
+      audience: process.env.GOOGLE_CLIENT_ID, // MUST match Web Client ID
     });
 
     const payload = ticket.getPayload();
