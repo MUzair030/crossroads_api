@@ -83,7 +83,7 @@ class AuthService {
       throw new Error('Invalid credentials');
     }
 
-    const accessToken = jwt.sign({ userId: user.id }, config.jwtSecret, { expiresIn: '15m' });
+    const accessToken = jwt.sign({ userId: user.id }, config.jwtSecret, { expiresIn: '60m' });
     const refreshToken = jwt.sign({ userId: user.id }, config.refreshTokenSecret, { expiresIn: '7d' });
 
     return { accessToken, refreshToken, userId: user.id, isProfileSetup: user.isProfileSetup, isEmailVerified: user.isVerified};
@@ -95,7 +95,7 @@ async refreshAccessToken(refreshToken) {
     const accessToken = jwt.sign(
       { userId: decoded.userId },
       config.jwtSecret,
-      { expiresIn: '15m' }
+      { expiresIn: '60m' }
     );
     return { accessToken };
   } catch (err) {

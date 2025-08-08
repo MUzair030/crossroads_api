@@ -127,10 +127,23 @@ router.post('/google/mobile', async (req, res) => {
       });
     }
 
-    // Sign our own JWT
-    const token = jwt.sign({ userId: user._id }, config.jwtSecret, { expiresIn: '7d' });
+    // Sign our own JWTs
+const accessToken = jwt.sign(
+  { userId: user._id },
+  config.jwtSecret,
+  { expiresIn: '60m' } // short-lived
+);
 
-    return res.json({ token, user });
+const refreshToken = jwt.sign(
+  { userId: user._id },
+  config.jwtRefreshSecret,
+  { expiresIn: '7d' } // long-lived
+);
+
+// Save refresh token to DB for the user
+await userRepository.updateRefreshToken(user._id, refreshToken);
+
+return res.json({ accessToken, refreshToken, user });
   } catch (err) {
     console.error('Mobile Google login error:', err);
     return res.status(401).json({ message: 'Invalid Google token' });
