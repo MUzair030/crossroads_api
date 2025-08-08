@@ -2,7 +2,6 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import config from '../../config/config.js';
 import emailService from './EmailService.js';
-import jwt from 'jsonwebtoken';
 import config from '../../config/config.js'; // adjust path to where your config is
 import { OAuth2Client } from 'google-auth-library';
 
