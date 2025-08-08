@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 import config from '../../config/config.js'; // adjust path to where your config is
 import { OAuth2Client } from 'google-auth-library';
 
+
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const router = express.Router();
 const userRepository = new UserRepositoryImpl();
@@ -114,7 +115,7 @@ router.post('/google/mobile', async (req, res) => {
     const name = payload.name;
 
     // Check if user exists by Google ID or email
-    let user = await UserRepositoryImpl.findByGoogleId(googleId);
+    let user = await userRepository.findByGoogleId(googleId);
     if (!user) {
       user = await userRepository.findByEmail(email);
     }
