@@ -141,7 +141,6 @@ const refreshToken = jwt.sign(
 );
 
 // Save refresh token to DB for the user
-await userRepository.updateRefreshToken(user._id, refreshToken);
 
 return res.json({ accessToken, refreshToken, user });
   } catch (err) {
