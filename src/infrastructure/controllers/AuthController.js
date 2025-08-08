@@ -84,13 +84,19 @@ router.get('/google/callback', (req, res, next) => {
 
 
 
+
 router.post('/google/mobile', async (req, res) => {
   try {
     const { idToken } = req.body;
 
+    if (!idToken) {
+      return res.status(400).json({ message: 'Missing ID token' });
+    }
+
+    // Verify token with Google
     const ticket = await client.verifyIdToken({
       idToken,
-      audience: config.googleClientId,
+      audience: config.googleClientId, // MUST match Web Client ID
     });
 
     const payload = ticket.getPayload();
@@ -98,19 +104,21 @@ router.post('/google/mobile', async (req, res) => {
     const email = payload.email;
     const name = payload.name;
 
+    // Create or find user
     let user = await userRepository.findByGoogleId(googleId);
     if (!user) {
       user = await userRepository.save({
         googleId,
         email,
         name,
-        password: 'googlePass',
+        password: 'googlePass', // random placeholder
       });
     }
 
-    const jwt = jwtSign({ userId: user._id }, config.jwtSecret, { expiresIn: '7d' });
+    // Sign our own JWT
+    const token = jwt.sign({ userId: user._id }, config.jwtSecret, { expiresIn: '7d' });
 
-    return res.json({ token: jwt, user });
+    return res.json({ token, user });
   } catch (err) {
     console.error('Mobile Google login error:', err);
     return res.status(401).json({ message: 'Invalid Google token' });
