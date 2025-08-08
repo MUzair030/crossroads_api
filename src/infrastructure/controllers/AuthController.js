@@ -3,7 +3,11 @@ import passport from '../../application/services/GoogleAuthService.js';
 import UserRepositoryImpl from '../repositories/UserRepositoryImpl.js';
 import AuthService from '../../application/services/AuthService.js';
 import CommonResponse from '../../application/common/CommonResponse.js';
+import jwt from 'jsonwebtoken';
+import config from '../../config/config.js'; // adjust path to where your config is
 import { OAuth2Client } from 'google-auth-library';
+const jwt = require('jsonwebtoken');
+const config = require('../../config/config');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const router = express.Router();
 const userRepository = new UserRepositoryImpl();
@@ -101,7 +105,7 @@ router.post('/google/mobile', async (req, res) => {
     // Verify token with Google
     const ticket = await client.verifyIdToken({
       idToken,
-      audience: process.env.GOOGLE_CLIENT_ID, // MUST match Web Client ID
+      audience: process.env.GOOGLE_CLIENT_ID, // Must match Web Client ID
     });
 
     const payload = ticket.getPayload();
@@ -109,14 +113,19 @@ router.post('/google/mobile', async (req, res) => {
     const email = payload.email;
     const name = payload.name;
 
-    // Create or find user
+    // Check if user exists by Google ID or email
     let user = await userRepository.findByGoogleId(googleId);
+    if (!user) {
+      user = await userRepository.findByEmail(email);
+    }
+
+    // Create new user if none found
     if (!user) {
       user = await userRepository.save({
         googleId,
         email,
         name,
-        password: 'googlePass', // random placeholder
+        password: null, // no password for Google accounts
       });
     }
 
@@ -128,7 +137,8 @@ router.post('/google/mobile', async (req, res) => {
     console.error('Mobile Google login error:', err);
     return res.status(401).json({ message: 'Invalid Google token' });
   }
-});
+})
+;
 
 // Handle Logout
 router.get('/logout', (req, res, next) => {
