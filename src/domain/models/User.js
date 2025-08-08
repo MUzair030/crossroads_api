@@ -12,7 +12,7 @@ const UserSchema = new mongoose.Schema({
   city: { type: String, required: false },
   state: { type: String, required: false },
   country: { type: String, required: false },
-  password: { type: String, required: true },
+  password: { type: String, required: false },
   profilePicture: { type: String, required: false },
   isVerified: { type: Boolean, default: false },
   isProfileSetup: { type: Boolean, default: false },
