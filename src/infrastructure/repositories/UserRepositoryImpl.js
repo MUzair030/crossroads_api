@@ -89,12 +89,12 @@ class UserRepositoryImpl extends UserRepository {
   }
 
   async findFriendRequests(userId) {
-    const user = await User.findOne({_id: userId}).populate('friendRequests.from', 'name email');
+    const user = await User.findOne({_id: userId}).populate('friendRequests.from', 'name email username _id');
     return user ? user.friendRequests : [];
   }
 
   async findFriends(userId) {
-    const user = await User.findOne({_id: userId}).populate('friends', 'name email');
+    const user = await User.findOne({_id: userId}).populate('friends', 'name email username _id');
     return user ? user.friends : [];
   }
 }
