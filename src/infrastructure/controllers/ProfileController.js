@@ -79,10 +79,12 @@ if (!fcmToken || typeof fcmToken !== 'string' || fcmToken.trim() === '') {
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
+      const userId = req.user?.id;
+
     const { id } = req.params;
-    const result = await userService.getUserById(id);
+    const result = await userService.getUserById(id,userId);
     CommonResponse.success(res, result);
   } catch (error) {
     CommonResponse.error(res, error.message, 404);
