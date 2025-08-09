@@ -58,13 +58,13 @@ const eventSchema = new mongoose.Schema({
 
   // Date options (polls)
   dates: [
-    [
+    
       {
         votes: { type: [String], default: [] }, // userIds
         startDate: { type: Date, required: true },
         endDate: { type: Date },
       }
-    ]
+    
   ],
   dateTBA: { type: Boolean, default: false },
 

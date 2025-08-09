@@ -29,6 +29,10 @@ const UserSchema = new mongoose.Schema({
 
   myPasses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'TicketPurchase' }],
 
+stagePosts: [{
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'StagePost'
+}],
 
 
   friendRequests: [
@@ -45,6 +49,32 @@ notifications: [{
   ref: 'Notification'
 }]
 ,
+
+
+  accountSettings: {
+    privacy: {
+      profileVisibility: { 
+        type: String, 
+        enum: ['public', 'friends', 'private'], 
+        default: 'public' 
+      },
+      showEmail: { type: Boolean, default: false },
+      showPhone: { type: Boolean, default: false },
+      allowFriendRequests: { type: Boolean, default: true },
+    },
+    posts: {
+      allowCommentsFrom: { 
+        type: String, 
+        enum: ['everyone', 'friends', 'none'], 
+        default: 'everyone' 
+      },
+      allowTagging: { type: Boolean, default: true }
+    },
+    security: {
+      twoFactorEnabled: { type: Boolean, default: false },
+      loginAlerts: { type: Boolean, default: true },
+    }
+  },
 
 
 

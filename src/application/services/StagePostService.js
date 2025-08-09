@@ -3,35 +3,41 @@ import Group from "../../domain/models/Group.js";
 import StagePost from "../../domain/models/StagePost.js";
 class StagePostService {
   // Helper: Get parent (Event or Group) and check permissions
-  async getParentAndCheckAuth(refType, refId, userId) {
-    let parentDoc;
+ async getParentAndCheckAuth(refType, refId, userId) {
+  let parentDoc;
 
-    if (refType === "Event") {
-      parentDoc = await Event.findById(refId);
-      if (!parentDoc) throw new Error("Event not found");
+  if (refType === "Event") {
+    parentDoc = await Event.findById(refId);
+    if (!parentDoc) throw new Error("Event not found");
 
-      const isOrganizer = parentDoc.organizerId?.equals(userId);
-      const isTeamMember = parentDoc.team?.has(userId.toString());
-      if (!isOrganizer && !isTeamMember) throw new Error("Unauthorized");
-    } else if (refType === "Group") {
-      parentDoc = await Group.findById(refId);
-      if (!parentDoc) throw new Error("Group not found");
+    const isOrganizer = parentDoc.organizerId?.equals(userId);
+    const isTeamMember = parentDoc.team?.has(userId.toString());
+    if (!isOrganizer && !isTeamMember) throw new Error("Unauthorized");
 
-      const isAdmin = parentDoc.admins?.some(admin => admin.equals(userId));
-      const isMod = parentDoc.moderators?.some(mod => mod.equals(userId));
-      if (!isAdmin && !isMod) throw new Error("Unauthorized");
-    } else {
-      throw new Error("Invalid refType");
-    }
+  } else if (refType === "Group") {
+    parentDoc = await Group.findById(refId);
+    if (!parentDoc) throw new Error("Group not found");
 
-    return parentDoc;
+    const isAdmin = parentDoc.admins?.some(admin => admin.equals(userId));
+    const isMod = parentDoc.moderators?.some(mod => mod.equals(userId));
+    if (!isAdmin && !isMod) throw new Error("Unauthorized");
+
+  } else if (refType === "User") {
+    parentDoc = await User.findById(refId);
+    if (!parentDoc) throw new Error("User not found");
+
+    // Only the owner can create stage posts on their profile
+    if (!parentDoc._id.equals(userId)) throw new Error("Unauthorized");
+
+  } else {
+    throw new Error("Invalid refType");
   }
 
- // Create a stage post and associate it with Event or Group
-// Create a stage post and associate it with Event or Group
+  return parentDoc;
+}
+
 async create(refType, refId, postData, userId) {
   const parentDoc = await this.getParentAndCheckAuth(refType, refId, userId);
-  console.log("Parent Document:", parentDoc.organizerId);
 
   const post = await StagePost.create({
     ...postData,
@@ -45,7 +51,7 @@ async create(refType, refId, postData, userId) {
   }
 
   parentDoc.stagePosts.push(post._id);
-  await parentDoc.save(); // Make sure no .lean() was used earlier
+  await parentDoc.save();
 
   return post;
 }
