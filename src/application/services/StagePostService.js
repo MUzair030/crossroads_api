@@ -1,5 +1,6 @@
 import Event from "../../domain/models/Event.js";
 import Group from "../../domain/models/Group.js";
+import User from "../../domain/models/User.js";
 import StagePost from "../../domain/models/StagePost.js";
 class StagePostService {
   // Helper: Get parent (Event or Group) and check permissions
