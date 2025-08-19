@@ -53,7 +53,7 @@ class ChatService {
 
       // Send push notification to the other participant
       await registerNotification({
-        type: 'new_message',
+        type: 'message',
         title: 'New Message',
         message: content.length > 100 ? content.slice(0, 100) + '...' : content,
         receiverId: entry.userId,

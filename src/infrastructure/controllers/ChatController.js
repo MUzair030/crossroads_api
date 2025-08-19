@@ -87,30 +87,33 @@ export async function findChatsByUser(userId) {
     const chats = await Chat.find({ 'participants.userId': userId })
         .populate({
             path: 'participants.userId',
-            select: 'name'
+            select: 'name _id firstName lastName email' // add any needed fields
         })
         .lean();
 
     const chatSummaries = chats.map(chat => {
-        const otherParticipant = chat.participants.find(p => p.userId._id.toString() !== userId.toString());
-        const senderName = otherParticipant ? `${otherParticipant.userId.name}` : 'Unknown';
-        const lastMessage = chat.messages.length > 0 ? chat.messages[chat.messages.length - 1] : null;
+        const otherParticipant = chat.participants.find(
+            p => p.userId._id.toString() !== userId.toString()
+        );
+
+        const lastMessage = chat.messages.length > 0
+            ? chat.messages[chat.messages.length - 1]
+            : null;
 
         return {
-                        
-            //unreadMessageCount: chat.unreadMessageCount,
             chatId: chat._id,
-            senderName: senderName,
+            otherUser: otherParticipant ? otherParticipant.userId : null, // ✅ full populated user object
             lastMessage: lastMessage ? {
                 content: lastMessage.content,
                 sentAt: lastMessage.sentAt,
-                sender: lastMessage.sender
+                sender: lastMessage.sender // optionally populate sender too
             } : null
         };
     });
 
     return chatSummaries;
 }
+
 
 
 const MESSAGES_PER_PAGE = 20;
