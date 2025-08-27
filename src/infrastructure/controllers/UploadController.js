@@ -1,6 +1,10 @@
 import multer from 'multer';
 import express from 'express';
 import CommonResponse from '../../application/common/CommonResponse.js';
+import ServiceService from '../../application/services/ServiceService.js';
+import UserManagementService from '../../application/services/UserManagementService.js';
+import GroupService from '../../application/services/GroupService.js';
+import EventService from '../../application/services/EventService.js';
 
 const router = express.Router();
 const upload = multer(); // in-memory storage for S3
@@ -18,16 +22,16 @@ router.post('/:type/:id/media', upload.array('files'), async (req, res) => {
     for (const file of files) {
       switch (type) {
         case 'user':
-          result.push(await userService.updateProfilePicture(id, file));
+          result.push(await UserManagementService.updateProfilePicture(id, file));
           break;
         case 'group':
-          result.push(await groupService.addBannerImage(id, file));
+          result.push(await GroupService.addBannerImage(id, file));
           break;
         case 'event':
-          result.push(await eventService.addEventMedia(id, file));
+          result.push(await EventService.addEventMedia(id, file));
           break;
         case 'service':
-          result.push(await serviceService.addServiceMedia(id, file));
+          result.push(await ServiceService.addServiceMedia(id, file));
           break;
         default:
           return CommonResponse.error(res, 'Invalid type', 400);
