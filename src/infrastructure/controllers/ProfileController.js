@@ -114,16 +114,17 @@ router.post('/:id/setup', async (req, res) => {
     CommonResponse.error(res, error.message, 404);
   }
 });
-router.post('/:id/profile-picture', upload.single('file'), async (req, res) => {
+router.post('/:id/profile-picture', upload.single('file'), passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
-    const { id } = req.params;
+    const userId = req.user?.id;
+    const id = req.params.id;
     const file = req.file;
 
     if (!file) {
       return CommonResponse.error(res, 'No file uploaded', 400);
     }
 
-    const user = await userService.getUserById(id, id);
+    const user = await userService.getUserById(id, userId);
     if (!user) return CommonResponse.error(res, 'User not found', 404);
 
     const uploadResult = await userService.uploadUserProfilePicture(file, user);
