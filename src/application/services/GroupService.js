@@ -26,7 +26,7 @@ async getAllPublicGroups({ searchString = '', category = '', page = 1, limit = 1
     async editGroup(groupId, updates, userId) {
         const group = await GroupRepository.findById(groupId);
         if (!group) throw new Error('Group not found.');
-        if (group.creator.toString() !== userId) throw new Error('Unauthorized.');
+        //if (group.creator.toString() !== userId) throw new Error('Unauthorized.');
 
         return GroupRepository.updateGroup(groupId, updates);
     }
