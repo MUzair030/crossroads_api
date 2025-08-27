@@ -243,4 +243,4 @@ async updateProfilePicture(userId, file) {
 
 }
 
-export default UserManagementService;
+export default new UserManagementService;
