@@ -104,7 +104,7 @@ class UserRepositoryImpl extends UserRepository {
   async updateProfilePicture(userId, file) {
     const user = await this.findById(userId);
     if (user?.profilePicture) {
-      await FileUploadService.deleteFromS3(user.profilePicture);
+      //await FileUploadService.deleteFromS3(user.profilePicture);
     }
   
     const uniqueFileName = `images/users/${uuidv4()}_${file.originalname}`;
