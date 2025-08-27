@@ -110,7 +110,7 @@ class UserRepositoryImpl extends UserRepository {
     const uniqueFileName = `images/users/${uuidv4()}_${file.originalname}`;
     const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
   
-    await this.updateUserById(userId, { profilePicture: uploadResult.Location });
+    await this.pushToField(userId,profilePicture, uploadResult.Location );
     return uploadResult;
   }
 }
