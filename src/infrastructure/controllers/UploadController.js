@@ -1,6 +1,6 @@
 import multer from 'multer';
 import express from 'express';
-import CommonResponse  from '../utils/CommonResponse.js';
+import CommonResponse from '../../application/common/CommonResponse.js';
 import UploadService from '../application/services/UploadService.js';
 
 const router = express.Router();
