@@ -3,6 +3,8 @@ import GroupRepository from "../../infrastructure/repositories/GroupRepository.j
 import mongoose from "mongoose";
 import Group from "../../domain/models/Group.js";
 import { registerNotification } from '../../application/services/NotificationService.js'; // adjust path as needed
+import {v4 as uuidv4} from 'uuid';
+
 
 
 class GroupService {
