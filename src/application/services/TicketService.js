@@ -81,81 +81,86 @@ async  deleteTicket(eventId, userId, ticketId) {
 
   return { message: "Ticket deleted" };
 }
-
 async purchaseTicket(eventId, ticketId, quantity, userId) {
-  const ticket = await Ticket.findOne({ _id: ticketId, eventId });
-  if (!ticket) throw new Error("Ticket not found");
+  try {
+    // Validate ObjectIds
+    if (!mongoose.Types.ObjectId.isValid(eventId) || 
+        !mongoose.Types.ObjectId.isValid(ticketId) || 
+        !mongoose.Types.ObjectId.isValid(userId)) {
+      throw new Error("Invalid ID format");
+    }
 
-  if (ticket.quantity - ticket.sold < quantity) {
-    throw new Error("Not enough tickets available");
-  }
+    // Fetch Ticket
+    const ticket = await Ticket.findOne({ _id: ticketId, eventId });
+    if (!ticket) throw new Error("Ticket not found");
 
-  // Update sold count
-  ticket.sold += quantity;
-  await ticket.save();
+    // Check availability
+    if ((ticket.quantity - ticket.sold) < quantity) {
+      throw new Error("Not enough tickets available");
+    }
 
-  const purchase = new TicketPurchase({
-    userId,
-    eventId,
-    ticketId,
-    quantity,
-  });
-  await purchase.save();
+    // Update ticket sold count
+    ticket.sold += quantity;
+    await ticket.save();
 
-  console.log({
-  purchaseId: purchase._id,
-  eventId,
-  ticketId,
-  purchaseDate: purchase.purchaseDate,
-});
-
-
-  // Generate QR code payload for this purchase
-  const qrPayload = JSON.stringify({
-    purchaseId: purchase._id.toString(),
-    eventId: eventId.toString(),
-    ticketId: ticketId.toString(),
-    quantity,
-    issuedAt: purchase.purchaseDate.toISOString(),
-  });
-
-  // Generate QR code
-  const qrCodeDataUri = await QRCode.toDataURL(qrPayload);
-  purchase.qrCode = qrCodeDataUri;
-  await purchase.save();
-
-  // Update user's passes
-  await User.findByIdAndUpdate(userId, {
-    $push: { myPasses: purchase._id }
-  });
-
-  // 🔔 Notify event creator
-  const event = await Event.findById(eventId);
-  if (event && event.creatorId.toString() !== userId.toString()) {
-    await registerNotification({
-              type: "ticket_purchase",
-
-      receiverId: event.creatorId,
-
-      senderId:userId,
-      title: "🎟️ Ticket Purchased",
-      body: `Someone bought ${quantity} ticket(s) for your event "${event.title}"`,
-      data: {
-        eventId: eventId,
-        ticketId: ticketId,
-        buyerId: userId,
-        purchaseId: purchase._id,
-      }
+    // Create purchase record
+    const purchase = new TicketPurchase({
+      userId,
+      eventId,
+      ticketId,
+      quantity
     });
-  }
+    await purchase.save();
 
-  return {
-    message: "Purchase successful",
-    ticketType: ticket.title,
-    quantity,
-    purchaseId: purchase._id,
-    qrCode: qrCodeDataUri,
-  };
+    // Generate QR Code payload
+    const qrPayload = JSON.stringify({
+      purchaseId: purchase._id.toString(),
+      eventId: eventId.toString(),
+      ticketId: ticketId.toString(),
+      quantity,
+      issuedAt: purchase.purchaseDate?.toISOString() || new Date().toISOString(),
+    });
+
+    // Generate QR Code as Data URI
+    const qrCodeDataUri = await QRCode.toDataURL(qrPayload);
+    purchase.qrCode = qrCodeDataUri;
+    await purchase.save();
+
+    // Update user's passes
+    await User.findByIdAndUpdate(userId, {
+      $push: { myPasses: purchase._id }
+    });
+
+    // Notify event creator (if not buyer)
+    const event = await Event.findById(eventId);
+    if (event?.creatorId && userId && event.creatorId.toString() !== userId.toString()) {
+      await registerNotification({
+        type: "ticket_purchase",
+        receiverId: event.creatorId,
+        senderId: userId,
+        title: "🎟️ Ticket Purchased",
+        body: `Someone bought ${quantity} ticket(s) for your event "${event.title}"`,
+        data: {
+          eventId,
+          ticketId,
+          buyerId: userId,
+          purchaseId: purchase._id,
+        },
+      });
+    }
+
+    return {
+      success: true,
+      message: "Purchase successful",
+      ticketType: ticket.title,
+      quantity,
+      purchaseId: purchase._id,
+      qrCode: qrCodeDataUri,
+    };
+  } catch (err) {
+    console.error("Purchase Ticket Error:", err);
+    return { success: false, message: err.message };
+  }
 }
 
 
