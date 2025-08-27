@@ -102,7 +102,7 @@ class UserRepositoryImpl extends UserRepository {
 
   
   async updateProfilePicture(userId, file) {
-    const user = await this.getUserById(userId);
+    const user = await this.findById(userId);
     if (user?.profilePicture) {
       await FileUploadService.deleteFromS3(user.profilePicture);
     }
