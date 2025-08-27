@@ -102,6 +102,14 @@ async purchaseTicket(eventId, ticketId, quantity, userId) {
   });
   await purchase.save();
 
+  console.log({
+  purchaseId: purchase._id,
+  eventId,
+  ticketId,
+  purchaseDate: purchase.purchaseDate,
+});
+
+
   // Generate QR code payload for this purchase
   const qrPayload = JSON.stringify({
     purchaseId: purchase._id.toString(),
