@@ -175,16 +175,16 @@ async getMyJoinedGroups(userId, page = 1, limit = 10) {
 
 
 
-async addBannerImage(groupId, file) {
+async addBannerImage(groupId, file,userId) {
   const uniqueFileName = `images/groups/${uuidv4()}_${file.originalname}`;
   const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
 
-  return this.updateGroupById(groupId, { $push: { bannerImages: uploadResult.Location } });
+  return this.editGroup(groupId, { $push: { bannerImages: uploadResult.Location } ,userId});
 }
 
 async deleteBannerImage(groupId, mediaUrl) {
   await FileUploadService.deleteFromS3(mediaUrl);
-  return this.updateGroupById(groupId, { $pull: { bannerImages: mediaUrl } });
+  return this.editGroup(groupId, { $pull: { bannerImages: mediaUrl } });
 }
 
 

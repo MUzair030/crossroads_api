@@ -5,13 +5,16 @@ import ServiceService from '../../application/services/ServiceService.js';
 import UserRepositoryImpl from "../repositories/UserRepositoryImpl.js";
 import GroupService from '../../application/services/GroupService.js';
 import EventService from '../../application/services/EventService.js';
+import { use } from 'passport';
 
 const router = express.Router();
 const userRepository = new UserRepositoryImpl();
 
-const upload = multer(); // in-memory storage for S3
-router.post('/:type/:id/media', upload.array('files'), async (req, res) => {
-  try {
+const upload = multer({ storage: multer.memoryStorage() });
+router.post('/:type/:id/media', upload.array('files'), passport.authenticate('jwt', { session: false }),
+  async (req, res) => {
+    userId = req.user.id;
+    try {
     const { type, id } = req.params;
     const files = req.files;
 
@@ -27,7 +30,7 @@ router.post('/:type/:id/media', upload.array('files'), async (req, res) => {
           result.push(await userRepository.updateProfilePicture(id, file));
           break;
         case 'group':
-          result.push(await GroupService.addBannerImage(id, file));
+          result.push(await GroupService.addBannerImage(id, file,userId));
           break;
         case 'event':
           result.push(await EventService.addEventMedia(id, file));
