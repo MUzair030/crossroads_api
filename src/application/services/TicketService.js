@@ -100,6 +100,8 @@ async purchaseTicket(eventId, ticketId, quantity, userId) {
     if ((ticket.quantity - ticket.sold) < quantity) {
       throw new Error("Not enough tickets available");
     }
+    const user = await User.findById(userId);
+    if (!user) throw new Error("User not found");
 
     // Update ticket sold count
     ticket.sold += quantity;
@@ -121,6 +123,9 @@ async purchaseTicket(eventId, ticketId, quantity, userId) {
       ticketId: ticketId.toString(),
       quantity,
       issuedAt: purchase.purchaseDate?.toISOString() || new Date().toISOString(),
+      userId: user._id.toString(),
+      name: user.name.toString(),
+
     });
 
     // Generate QR Code as Data URI
