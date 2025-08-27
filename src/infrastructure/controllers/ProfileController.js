@@ -123,7 +123,7 @@ router.post('/:id/profile-picture', upload.single('file'), async (req, res) => {
       return CommonResponse.error(res, 'No file uploaded', 400);
     }
 
-    const user = await userService.getUserById(id);
+    const user = await userService.getUserById(id,id);
     if (!user) return CommonResponse.error(res, 'User not found', 404);
 
     const uploadResult = await userService.uploadUserProfilePicture(file, user);
