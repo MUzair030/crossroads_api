@@ -224,23 +224,14 @@ class UserManagementService {
     return true;
   }
 
-
-async updateProfilePicture(userId, file) {
-  const user = await this.getUserById(userId);
-  if (user?.profilePicture) {
-    await FileUploadService.deleteFromS3(user.profilePicture);
+  async uploadUserProfilePicture(file, user) {
+    const uniqueFileName = `images/users/${uuidv4()}_${file.originalname}`;
+    const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
+    console.log("uploadResult:::::::: ", uploadResult);
+    await this.updateUserById(user, {profilePicture: uploadResult?.Location});
+    return uploadResult;
   }
 
-  const uniqueFileName = `images/users/${uuidv4()}_${file.originalname}`;
-  const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
-
-  await this.updateUserById(userId, { profilePicture: uploadResult.Location });
-  return uploadResult;
 }
 
-
- 
-
-}
-
-export default new UserManagementService;
+export default UserManagementService;

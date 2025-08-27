@@ -1,5 +1,7 @@
 import User from '../../domain/models/User.js';
 import UserRepository from '../../domain/repositories/UserRepository.js';
+import {v4 as uuidv4} from 'uuid';
+import FileUploadService from "./FileUploadService.js";
 
 class UserRepositoryImpl extends UserRepository {
   async findById(id) {
@@ -96,6 +98,20 @@ class UserRepositoryImpl extends UserRepository {
   async findFriends(userId) {
     const user = await User.findOne({_id: userId}).populate('friends', 'name email username _id');
     return user ? user.friends : [];
+  }
+
+  
+  async updateProfilePicture(userId, file) {
+    const user = await this.getUserById(userId);
+    if (user?.profilePicture) {
+      await FileUploadService.deleteFromS3(user.profilePicture);
+    }
+  
+    const uniqueFileName = `images/users/${uuidv4()}_${file.originalname}`;
+    const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
+  
+    await this.updateUserById(userId, { profilePicture: uploadResult.Location });
+    return uploadResult;
   }
 }
 

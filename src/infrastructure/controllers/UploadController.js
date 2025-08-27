@@ -2,11 +2,13 @@ import multer from 'multer';
 import express from 'express';
 import CommonResponse from '../../application/common/CommonResponse.js';
 import ServiceService from '../../application/services/ServiceService.js';
-import UserManagementService from '../../application/services/UserManagementService.js';
+import UserRepositoryImpl from "../repositories/UserRepositoryImpl.js";
 import GroupService from '../../application/services/GroupService.js';
 import EventService from '../../application/services/EventService.js';
 
 const router = express.Router();
+const userRepository = new UserRepositoryImpl();
+
 const upload = multer(); // in-memory storage for S3
 router.post('/:type/:id/media', upload.array('files'), async (req, res) => {
   try {
@@ -22,7 +24,7 @@ router.post('/:type/:id/media', upload.array('files'), async (req, res) => {
     for (const file of files) {
       switch (type) {
         case 'user':
-          result.push(await UserManagementService.updateProfilePicture(id, file));
+          result.push(await userRepository.updateProfilePicture(id, file));
           break;
         case 'group':
           result.push(await GroupService.addBannerImage(id, file));
