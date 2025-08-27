@@ -14,7 +14,8 @@ const userRepository = new UserRepositoryImpl();
 const upload = multer({ storage: multer.memoryStorage() });
 router.post('/:type/:id/media', upload.array('files'), passport.authenticate('jwt', { session: false }),
   async (req, res) => {
-    userId = req.user.id;
+    const userId = req.user?.id;
+    console.log("userId", userId);
     try {
     const { type, id } = req.params;
     const files = req.files;
