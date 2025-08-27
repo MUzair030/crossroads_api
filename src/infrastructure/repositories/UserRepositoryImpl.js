@@ -1,7 +1,7 @@
 import User from '../../domain/models/User.js';
 import UserRepository from '../../domain/repositories/UserRepository.js';
 import {v4 as uuidv4} from 'uuid';
-import FileUploadService from "./FileUploadService.js";
+import FileUploadService from "../../application/services/FileUploadService.js";
 
 class UserRepositoryImpl extends UserRepository {
   async findById(id) {
