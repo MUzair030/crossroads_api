@@ -23,6 +23,17 @@ class FileUploadService {
 
     return this.s3.upload(params).promise();
   }
+
+  async deleteFromS3(fileUrl) {
+  if (!fileUrl) return;
+  const key = fileUrl.split('.amazonaws.com/')[1];
+  const params = {
+    Bucket: config.aws.s3Bucket,
+    Key: key,
+  };
+  return this.s3.deleteObject(params).promise();
+}
+
 }
 
 export default new FileUploadService();

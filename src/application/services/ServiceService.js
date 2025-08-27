@@ -483,12 +483,23 @@ async  getMyBookingsAsVendor(req, res) {
   } catch (err) {
     return  {error: err.message};
   }
+},
+
+
+
+
+
+async addServiceMedia(serviceId, file) {
+  const uniqueFileName = `media/services/${uuidv4()}_${file.originalname}`;
+  const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
+
+  return this.updateServiceById(serviceId, { $push: { images: uploadResult.Location } });
+},
+
+async deleteServiceMedia(serviceId, mediaUrl) {
+  await FileUploadService.deleteFromS3(mediaUrl);
+  return this.updateServiceById(serviceId, { $pull: { images: mediaUrl } });
 }
-
-
-
-
-
 
 
 

@@ -17,6 +17,8 @@ import serviceController from './infrastructure/controllers/ServiceController.js
 import stagepostController from './infrastructure/controllers/StagePostController.js';
 import ticketController from './infrastructure/controllers/TicketController.js';
 import bookingController from './infrastructure/controllers/BookingController.js';
+import uploadController from './infrastructure/controllers/UploadController.js';
+
 import chatController, {
     getReceiverSocketId,
     handleSendMessage,
@@ -68,10 +70,7 @@ app.use('/api/services', serviceController);
 app.use('/api/stageposts', stagepostController);
 app.use('/api/tickets', ticketController);
 app.use('/api/bookings', bookingController);
-
-
-
-
+app.use('/api/media', uploadController);
 
 // Socket.IO Connection
 io.on('connection', (socket) => {

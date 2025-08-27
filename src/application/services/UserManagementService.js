@@ -224,6 +224,21 @@ class UserManagementService {
     return true;
   }
 
+
+async updateProfilePicture(userId, file) {
+  const user = await this.getUserById(userId);
+  if (user?.profilePicture) {
+    await FileUploadService.deleteFromS3(user.profilePicture);
+  }
+
+  const uniqueFileName = `images/users/${uuidv4()}_${file.originalname}`;
+  const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
+
+  await this.updateUserById(userId, { profilePicture: uploadResult.Location });
+  return uploadResult;
+}
+
+
   async uploadUserProfilePicture(file, user) {
     const uniqueFileName = `images/users/${uuidv4()}_${file.originalname}`;
     const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
