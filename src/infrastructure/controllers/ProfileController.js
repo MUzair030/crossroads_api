@@ -127,7 +127,7 @@ router.post('/:id/profile-picture', upload.single('file'), passport.authenticate
     const user = await userService.getUserById(id, userId);
     if (!user) return CommonResponse.error(res, 'User not found', 404);
 
-    const uploadResult = await userService.uploadUserProfilePicture(file, user);
+    const uploadResult = await userService.uploadUserProfilePicture(file, userId);
     return CommonResponse.success(res, uploadResult);
   } catch (error) {
     console.error(error);
