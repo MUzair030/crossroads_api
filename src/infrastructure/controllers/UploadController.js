@@ -1,11 +1,12 @@
 import multer from 'multer';
 import express from 'express';
+import passport from '../../application/services/GoogleAuthService.js';
+
 import CommonResponse from '../../application/common/CommonResponse.js';
 import ServiceService from '../../application/services/ServiceService.js';
 import UserRepositoryImpl from "../repositories/UserRepositoryImpl.js";
 import GroupService from '../../application/services/GroupService.js';
 import EventService from '../../application/services/EventService.js';
-import { use } from 'passport';
 
 const router = express.Router();
 const userRepository = new UserRepositoryImpl();
