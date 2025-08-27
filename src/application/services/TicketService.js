@@ -1,6 +1,8 @@
 // services/ticketService.js
 import Event from '../../domain/models/Event.js';
 import TicketPurchase from '../../domain/models/TicketPurchase.js';
+import mongoose from "mongoose";
+
 import User from '../../domain/models/User.js';
 import Ticket from '../../domain/models/Ticket.js';
 import QRCode from 'qrcode'; // ✅ instead of dynamic import
