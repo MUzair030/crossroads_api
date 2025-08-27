@@ -88,7 +88,7 @@ io.on('connection', (socket) => {
     socket.on('getMessages', async (chatId, page = 1) => {
         try {
             const messages = await streamMessages(chatId, page);
-            socket.emit('messages', messages);  // Emit the messages to the client
+            socket.emit('messages', messages, page);  // Emit the messages to the client
         } catch (err) {
             console.error('Error streaming messages:', err);
             socket.emit('error', 'Error fetching messages');

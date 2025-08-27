@@ -84,27 +84,27 @@ notifications: [{
     of: Boolean,
     default: {
       friend_request: true,           // done
-  friend_accepted: true,          // done
-  mention: true,
-  new_follower: true,
-  role_update: true,              // done
-  ticket_purchase: true,         // renamed from ticket_purchased
-  ticket_received: true,
-  event_updated: true,
-  event_reminder: true,
-  event_invite: true,            // new
-  event_cancelled: true,
-  service_inquiry: true,         // done
-  booking_update: true,          // done
-  booking_response: true,        // done
-  booking_confirmed: true,       // done
-  booking_payment: true,         // done
-  message: true,                 // done
-  group_chat_mention: true,
-  group_invite: true,            // done
-  admin_announcement: true,
-  account_warning: true,
-  app_update: true
+      friend_accepted: true,          // done
+      mention: true,
+      new_follower: true,
+      role_update: true,              // done
+      ticket_purchase: true,         // renamed from ticket_purchased
+      ticket_received: true,
+      event_updated: true,
+      event_reminder: true,
+      event_invite: true,            // new
+      event_cancelled: true,
+      service_inquiry: true,         // done
+      booking_update: true,          // done
+      booking_response: true,        // done
+      booking_confirmed: true,       // done
+      booking_payment: true,         // done
+      message: true,                 // done
+      group_chat_mention: true,
+      group_invite: true,            // done
+      admin_announcement: true,
+      account_warning: true,
+      app_update: true
     },
   },
 

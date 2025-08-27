@@ -1,36 +1,40 @@
-import Notification from '../..//domain/models/Notification.js';
+import Notification from '../../domain/models/Notification.js';
 import User from '../../domain/models/User.js';
-// import pushService from '../utils/pushService'; // if you use FCM or OneSignal
+import admin from '../../config/firebase.js'; // Firebase Admin SDK
 
 /**
- * Registers a notification and optionally sends a push if enabled.
- * 
+ * Registers a notification and optionally sends a push notification.
+ *
  * @param {Object} params
  * @param {string} params.type - notification type
- * @param {string} params.title - short heading
- * @param {string} params.message - main message
- * @param {ObjectId} params.receiverId - receiver user ID
+ * @param {string} params.title - heading for push notification
+ * @param {string} params.message - body text for push notification
+ * @param {ObjectId} params.receiverId - receiver's ID
  * @param {ObjectId} [params.senderId] - optional sender
- * @param {Object} [params.metadata] - optional extra info (e.g., eventId, serviceId)
- */import admin from '../../config/firebase.js'; // adjust path as needed
-
-
-
+ * @param {Object} [params.metadata] - optional metadata (e.g., eventId, serviceId)
+ */
 export const registerNotification = async ({
   type,
   title,
   message,
   receiverId,
-  senderId ,
+  senderId,
   metadata = {},
 }) => {
   try {
     const receiver = await User.findById(receiverId);
     if (!receiver) throw new Error('Receiver not found');
 
-    const isEnabled = receiver.notificationSettings?.get(type);
-    if (isEnabled === false) return;
+    // Special case: "message" type -> push only, no DB entry
+    if (type === 'message') {
+      const isEnabled = receiver.notificationSettings?.get(type);
+      if (isEnabled !== false) {
+        await sendPushNotification(receiver, title, message);
+      }
+      return { pushOnly: true };
+    }
 
+    // Save notification in DB for all other types
     const notification = new Notification({
       type,
       title,
@@ -39,33 +43,18 @@ export const registerNotification = async ({
       sender: senderId,
       metadata,
     });
-
     await notification.save();
 
+    // Add notification to user's list and increment unread count
     await User.findByIdAndUpdate(receiverId, {
-      $push: {
-            notifications: notification._id  // just push the ObjectId
-
-      },
+      $push: { notifications: notification._id },
       $inc: { unreadNotificationCount: 1 },
     });
 
-    if (receiver.fcmTokens && receiver.fcmTokens.length > 0) {
-      for (const token of receiver.fcmTokens) {
-  try {
-    const messagee = {
-      notification: {
-        title,
-        body: message,
-      },
-      token,
-    };
-    await admin.messaging().send(messagee);
-    console.log(`Sent to token: ${token}`);
-  } catch (error) {
-    console.error(`Failed to send to token ${token}:`, error.message);
-  }
-}
+    // Check if push is enabled for this type
+    const isEnabled = receiver.notificationSettings?.get(type);
+    if (isEnabled !== false) {
+      await sendPushNotification(receiver, title, message);
     }
 
     return notification;
@@ -73,3 +62,22 @@ export const registerNotification = async ({
     console.error('Failed to register notification:', err.message);
   }
 };
+
+/**
+ * Sends push notification using Firebase Admin SDK
+ */
+async function sendPushNotification(user, title, message) {
+  if (!user.fcmTokens || user.fcmTokens.length === 0) return;
+
+  for (const token of user.fcmTokens) {
+    try {
+      await admin.messaging().send({
+        notification: { title, body: message },
+        token,
+      });
+      console.log(`Push sent to ${token}`);
+    } catch (error) {
+      console.error(`Push failed for ${token}: ${error.message}`);
+    }
+  }
+}
