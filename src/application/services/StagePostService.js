@@ -18,17 +18,18 @@ class StagePostService {
   } else if (refType === "Group") {
     parentDoc = await Group.findById(refId);
     if (!parentDoc) throw new Error("Group not found");
+    const isOrganizer = parentDoc.creator.toString()?.equals(userId);
 
     const isAdmin = parentDoc.admins?.some(admin => admin.equals(userId));
     const isMod = parentDoc.moderators?.some(mod => mod.equals(userId));
-    if (!isAdmin && !isMod) throw new Error("Unauthorized");
+    if (!isAdmin && !isMod && !isOrganizer) throw new Error("Unauthorized");
 
   } else if (refType === "User") {
     parentDoc = await User.findById(refId);
     if (!parentDoc) throw new Error("User not found");
 
     // Only the owner can create stage posts on their profile
-    if (!parentDoc._id.equals(userId)) throw new Error("Unauthorized");
+    if (!(parentDoc._id.equals(userId))) throw new Error("Unauthorized");
 
   } else {
     throw new Error("Invalid refType");
