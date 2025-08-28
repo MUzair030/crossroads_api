@@ -18,7 +18,7 @@ class StagePostService {
   } else if (refType === "Group") {
     parentDoc = await Group.findById(refId);
     if (!parentDoc) throw new Error("Group not found");
-    const isOrganizer = parentDoc.creator.toString()?.equals(userId);
+    const isOrganizer = parentDoc.creator?.equals(userId);
 
     const isAdmin = parentDoc.admins?.some(admin => admin.equals(userId));
     const isMod = parentDoc.moderators?.some(mod => mod.equals(userId));
