@@ -269,7 +269,7 @@ async addEventMedia(eventId, file,userId) {
   const uniqueFileName = `media/events/${uuidv4()}_${file.originalname}`;
   const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
 
-  return this.editEvent(eventId, { $push: { bannerImages: uploadResult.Location } });
+  return this.editEvent(eventId, { $push: { bannerImages: uploadResult.Location } },userId);
 }
 
 async deleteEventMedia(eventId, mediaUrl, userId) {
