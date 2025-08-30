@@ -104,7 +104,7 @@ async createEvent(data) {
       throw new Error('Event not found');
     }
 
- if (organizerId.toString() !== userId.toString()) {
+ if (event.organizerId.toString() !== userId.toString()) {
   throw new Error('Unauthorized to edit this event');
 }
     // Update allowed fields only (optional: whitelist fields)
