@@ -105,7 +105,7 @@ async createEvent(data) {
     }
 
     // Check if the user is authorized to edit (e.g., must be the organizer)
-    if (!event.organizerId.equals(userId)) {
+    if (!event.organizerId.toString().equals(userId)) {
       throw new Error('Unauthorized to edit this event');
     }
 
