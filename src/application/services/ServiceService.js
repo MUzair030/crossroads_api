@@ -508,8 +508,8 @@ async addServiceMedia(serviceId, files, userId) {
     throw new Error('Unauthorized to edit this service');
   }
 
-  // Replace the entire bannerImages array with the new list of URLs
-  service.bannerImages = uniqueFileNames;
+  // Replace the entire images array with the new list of URLs
+  service.images = uniqueFileNames;
 
   // Save the updated service
   await service.save();
