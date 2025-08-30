@@ -489,12 +489,34 @@ async  getMyBookingsAsVendor(req, res) {
 
 
 
-async addServiceMedia(serviceId, file) {
-  const uniqueFileName = `media/services/${uuidv4()}_${file.originalname}`;
-  const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
 
-  return this.updateServiceById(serviceId, { $push: { images: uploadResult.Location } });
+async addServiceMedia(serviceId, files, userId) {
+  // Collect URLs for all uploaded files
+  const uniqueFileNames = await Promise.all(files.map(async (file) => {
+    const uniqueFileName = `media/services/${uuidv4()}_${file.originalname}`;
+    const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
+    return uploadResult.Location; // Collect the URL for each file
+  }));
+
+  // Find the service and check if the user is authorized
+  const service = await Service.findById(serviceId);
+  if (!service) {
+    throw new Error('Service not found');
+  }
+
+  if (service.vendorId.toString() !== userId.toString()) {
+    throw new Error('Unauthorized to edit this service');
+  }
+
+  // Replace the entire bannerImages array with the new list of URLs
+  service.bannerImages = uniqueFileNames;
+
+  // Save the updated service
+  await service.save();
+
+  return uniqueFileNames;  // Return the updated list of URLs
 },
+
 
 async deleteServiceMedia(serviceId, mediaUrl) {
   await FileUploadService.deleteFromS3(mediaUrl);

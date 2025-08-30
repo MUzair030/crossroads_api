@@ -38,7 +38,8 @@ router.post('/:type/:id/media', upload.array('files'), passport.authenticate('jw
             result.push(await GroupService.addBannerImage(id, file, userId));
             break;
           case 'service':
-            result.push(await ServiceService.addServiceMedia(id, file));
+            const serviceFileUrls = await ServiceService.addServiceMedia(id, files, userId);  // Pass all files
+            result.push(serviceFileUrls);  
             break;
           case 'event':
             // Handle event media once and break out of the entire loop
@@ -48,7 +49,7 @@ router.post('/:type/:id/media', upload.array('files'), passport.authenticate('jw
         }
 
         // Break out of the loop after handling event case
-        if (type === 'event') {
+        if (type === 'event'|| type==='service') {
           break;  // This will stop the loop after the event is processed
         }
       }
