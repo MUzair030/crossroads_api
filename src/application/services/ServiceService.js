@@ -2,6 +2,10 @@ import Service from '../../domain/models/Service.js';
 import Booking from '../../domain/models/Booking.js';
 import User from '../../domain/models/User.js';
 import { registerNotification } from '../../application/services/NotificationService.js'; // adjust path as needed
+import {v4 as uuidv4} from 'uuid';
+import FileUploadService from "./FileUploadService.js";
+
+
 
 
 const ServiceService = {
