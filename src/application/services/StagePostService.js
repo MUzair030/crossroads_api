@@ -80,6 +80,7 @@ async create(refType, refId, postData, userId) {
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
+    .populate('creator', 'name _id userName') // only select needed fields
     .lean();
 
   const total = await StagePost.countDocuments({ refType, refId });

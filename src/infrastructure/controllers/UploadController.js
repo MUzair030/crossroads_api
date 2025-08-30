@@ -35,7 +35,7 @@ router.post('/:type/:id/media', upload.array('files'), passport.authenticate('jw
           result.push(await GroupService.addBannerImage(id, file,userId));
           break;
         case 'event':
-          result.push(await EventService.addEventMedia(id, file));
+          result.push(await EventService.addEventMedia(id, file,userId));
           break;
         case 'service':
           result.push(await ServiceService.addServiceMedia(id, file));

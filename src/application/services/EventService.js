@@ -267,16 +267,16 @@ async cancelUserInvites(eventId, adminId, userIds) {
 }
 
 //Image Upload
-async addEventMedia(eventId, file) {
+async addEventMedia(eventId, file,userId) {
   const uniqueFileName = `media/events/${uuidv4()}_${file.originalname}`;
   const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
 
-  return this.updateEventById(eventId, { $push: { bannerImages: uploadResult.Location } });
+  return this.editEvent(eventId, { $push: { bannerImages: uploadResult.Location } });
 }
 
-async deleteEventMedia(eventId, mediaUrl) {
+async deleteEventMedia(eventId, mediaUrl, userId) {
   await FileUploadService.deleteFromS3(mediaUrl);
-  return this.updateEventById(eventId, { $pull: { bannerImages: mediaUrl } });
+  return this.editEvent(eventId, { $pull: { bannerImages: mediaUrl }, userId });
 }
 
 
