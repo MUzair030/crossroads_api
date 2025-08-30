@@ -16,40 +16,49 @@ router.post('/:type/:id/media', upload.array('files'), passport.authenticate('jw
   async (req, res) => {
     const userId = req.user?.id;
     console.log("userId", userId);
+
     try {
-    const { type, id } = req.params;
-    const files = req.files;
+      const { type, id } = req.params;
+      const files = req.files;
 
-    if (!files || files.length === 0) {
-      return CommonResponse.error(res, 'No files uploaded', 400);
-    }
-
-    let result = [];
-
-    for (const file of files) {
-      switch (type) {
-        case 'user':
-          result.push(await userRepository.updateProfilePicture(id, file));
-          break;
-        case 'group':
-          result.push(await GroupService.addBannerImage(id, file,userId));
-          break;
-        case 'event':
-          result.push(await EventService.addEventMedia(id, file,userId));
-          break;
-        case 'service':
-          result.push(await ServiceService.addServiceMedia(id, file));
-          break;
-        default:
-          return CommonResponse.error(res, 'Invalid type', 400);
+      if (!files || files.length === 0) {
+        return CommonResponse.error(res, 'No files uploaded', 400);
       }
-    }
 
-    CommonResponse.success(res, result);
-  } catch (error) {
-    CommonResponse.error(res, error.message, 500);
-  }
-});
+      let result = [];
+
+      // Handle different types of media
+        // Loop through files, handle each type
+      for (const file of files) {
+        switch (type) {
+          case 'user':
+            result.push(await userRepository.updateProfilePicture(id, file));
+            break;
+          case 'group':
+            result.push(await GroupService.addBannerImage(id, file, userId));
+            break;
+          case 'service':
+            result.push(await ServiceService.addServiceMedia(id, file));
+            break;
+          case 'event':
+            // Handle event media once and break out of the entire loop
+            const eventFileUrls = await EventService.addEventMedia(id, files, userId);  // Pass all files
+            result.push(eventFileUrls);  // Add the updated URLs to the result
+            break;
+        }
+
+        // Break out of the loop after handling event case
+        if (type === 'event') {
+          break;  // This will stop the loop after the event is processed
+        }
+      }
+
+      return CommonResponse.success(res, result);
+    } catch (error) {
+      console.error(error);
+      return CommonResponse.error(res, error.message || 'Error uploading files', 500);
+    }
+  });
 
 
 

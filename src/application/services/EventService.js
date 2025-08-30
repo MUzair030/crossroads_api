@@ -265,12 +265,33 @@ async cancelUserInvites(eventId, adminId, userIds) {
 }
 
 //Image Upload
-async addEventMedia(eventId, file,userId) {
-  const uniqueFileName = `media/events/${uuidv4()}_${file.originalname}`;
-  const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
+async addEventMedia(eventId, files, userId) {
+  // Collect URLs for all uploaded files
+  const uniqueFileNames = await Promise.all(files.map(async (file) => {
+    const uniqueFileName = `media/events/${uuidv4()}_${file.originalname}`;
+    const uploadResult = await FileUploadService.uploadToS3(file.buffer, uniqueFileName, file.mimetype);
+    return uploadResult.Location; // Collect the URL for each file
+  }));
 
-  return this.editEvent(eventId, {$push:{ bannerImages: uploadResult.Location}},userId);
+  // Find the event and check if the user is authorized
+  const event = await Event.findById(eventId);
+  if (!event) {
+    throw new Error('Event not found');
+  }
+
+  if (event.organizerId.toString() !== userId.toString()) {
+    throw new Error('Unauthorized to edit this event');
+  }
+
+  // Replace the entire bannerImages array with the new list of URLs
+  event.bannerImages = uniqueFileNames;
+
+  // Save the updated event
+  await event.save();
+
+  return uniqueFileNames;  // Return the updated list of URLs
 }
+
 
 async deleteEventMedia(eventId, mediaUrl, userId) {
   await FileUploadService.deleteFromS3(mediaUrl);
