@@ -104,11 +104,9 @@ async createEvent(data) {
       throw new Error('Event not found');
     }
 
-    // Check if the user is authorized to edit (e.g., must be the organizer)
-    if (!event.organizerId.toString().equals(userId)) {
-      throw new Error('Unauthorized to edit this event');
-    }
-
+ if (organizerId.toString() !== userId.toString()) {
+  throw new Error('Unauthorized to edit this event');
+}
     // Update allowed fields only (optional: whitelist fields)
     const allowedUpdates = [
       'title', 'description', 'locations', 'dates',
