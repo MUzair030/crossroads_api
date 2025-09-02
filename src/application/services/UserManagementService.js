@@ -74,7 +74,11 @@ class UserManagementService {
       pages: Math.ceil(total / limit)
     };
 }
-const user = await User.findById(id)
+
+ async getUserById(id, userId) {
+  if (!id) throw new Error("User ID is required");
+
+  const user = await User.findById(id)
     .populate("notifications")
     .populate("friends", "name userName profilePicture")
     .populate("friendRequests.from", "name userName profilePicture")
