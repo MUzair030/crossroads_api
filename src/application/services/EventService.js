@@ -302,13 +302,13 @@ async deleteEventMedia(eventId, mediaUrl, userId) {
 
 
 
-// services/eventService.js
-async  getUserInvitedEvents(userId) {
+async getUserInvitedEvents(userId) {
   return await Event.find({
     [`rsvps.${userId}`]: { $exists: true }
-  }).lean({ virtuals: true });
+  })
+  .select('title dates categories bannerImages locations organizerId organizerName likesCount description dateTBA locationTBA') // ✅ Limit fields here
+  .lean({ virtuals: true });
 }
-
 
 
 
