@@ -22,7 +22,7 @@ class EventRepository {
   const baseFilter = {
     access: 'public',
     isDeleted: false,
-  'settings.isLive': true, // ✅ use string for nested path
+  'settings.liveStatus': true, // ✅ use string for nested path
   };
 
   // Category filter
