@@ -304,7 +304,7 @@ async deleteEventMedia(eventId, mediaUrl, userId) {
 
 async getUserInvitedEvents(userId) {
   return await Event.find({
-    [`rsvps.${userId}`]: { $exists: true }
+    [`rsvps.${userId}.status`]: 'invited' // ✅ Match only if RSVP status is 'invited'
   })
   .select('title dates categories bannerImages locations organizerId organizerName likesCount description dateTBA locationTBA') // ✅ Limit fields here
   .lean({ virtuals: true });

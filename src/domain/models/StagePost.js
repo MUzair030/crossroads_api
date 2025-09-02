@@ -19,7 +19,7 @@ const stagePostSchema = new Schema({
   comments: [commentSchema],
 
   // Add these two fields
-  refType: { type: String, enum: ["Group", "Event"], required: true },
+  refType: { type: String, enum: ["Group", "Event","User"], required: true },
   refId: { type: Schema.Types.ObjectId, required: true, refPath: "refType" }
 });
 
