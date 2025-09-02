@@ -351,31 +351,32 @@ router.post(
   }
 );
 
-// 13. Get paginated events created by user
 router.get(
   '/:userId/my-events',
   passport.authenticate('jwt', { session: false }),
   async (req, res) => {
     const { userId } = req.params;
-    const { page = 1, limit = 10 } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
 
     try {
       const user = await User.findById(userId).lean();
-      if (!user || !user.myEventIds || !Array.isArray(user.myEventIds)) {
+      if (!user || !Array.isArray(user.myEventIds)) {
         return CommonResponse.success(res, {
           events: [],
-          page: parseInt(page),
+          page,
           total: 0,
           pages: 0
         });
       }
 
-      const startIndex = (parseInt(page) - 1) * parseInt(limit);
-      const paginatedEventIds = user.myEventIds.slice(startIndex, startIndex + parseInt(limit));
+      const total = user.myEventIds.length;
+      const startIndex = (page - 1) * limit;
+      const paginatedEventIds = user.myEventIds.slice(startIndex, startIndex + limit);
 
       const events = await Promise.all(
-        user.myEventIds.map(async eventId =>
-          await EventService.getEventById(eventId,userId).catch(() => null)
+        paginatedEventIds.map(async eventId =>
+          await EventService.getEventById(eventId, userId).catch(() => null)
         )
       );
 
@@ -383,9 +384,9 @@ router.get(
 
       CommonResponse.success(res, {
         events: filteredEvents,
-        total: user.myEventIds.length,
-        page: parseInt(page),
-        pages: Math.ceil(user.myEventIds.length / parseInt(limit)),
+        total,
+        page,
+        pages: Math.ceil(total / limit),
       });
     } catch (err) {
       console.error(err);
@@ -393,6 +394,7 @@ router.get(
     }
   }
 );
+
 
 
 
