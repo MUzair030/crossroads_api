@@ -74,15 +74,17 @@ class UserManagementService {
       pages: Math.ceil(total / limit)
     };
 }
-
- async getUserById(id, userId) {
-  if (!id) throw new Error("User ID is required");
-
-  const user = await User.findById(id)
+const user = await User.findById(id)
     .populate("notifications")
     .populate("friends", "name userName profilePicture")
     .populate("friendRequests.from", "name userName profilePicture")
-    .populate("stagePosts")
+    .populate({
+      path: "stagePosts",
+      populate: {
+        path: "creatorId",
+        select: "name userName profilePicture"
+      }
+    })
     .lean();
 
   if (!user) throw new Error("User not found");
