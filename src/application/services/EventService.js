@@ -240,17 +240,17 @@ async cancelUserInvites(eventId, adminId, userIds) {
   }
 
 
-//Get My Events
-  async getMyEvents(userId, page = 1, limit = 10) {
-  const user = await User.findById(userId)
-    .populate({
-      path: 'myEventIds',
-      options: {
-        sort: { createdAt: -1 },
-        skip: (page - 1) * limit,
-        limit: limit
-      }
-    });
+// Get My Events
+async getMyEvents(userId, page = 1, limit = 10) {
+  const user = await User.findById(userId).populate({
+    path: 'myEventIds',
+    select: 'title dates categories bannerImages locations organizerId organizerName likesCount description dateTBA locationTBA', // ✅ only return these fields from Event
+    options: {
+      sort: { createdAt: -1 },
+      skip: (page - 1) * limit,
+      limit: limit
+    }
+  });
 
   if (!user) throw new Error('User not found');
 
@@ -259,10 +259,11 @@ async cancelUserInvites(eventId, adminId, userIds) {
     pagination: {
       page,
       limit,
-      total: user.myEventIds.length // optional if you want to show total
+      total: user.myEventIds.length // ⚠️ This is just the length of *this page's* events, not total count
     }
   };
 }
+
 
 //Image Upload
 async addEventMedia(eventId, files, userId) {
