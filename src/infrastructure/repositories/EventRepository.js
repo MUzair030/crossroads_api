@@ -22,7 +22,7 @@ class EventRepository {
   const baseFilter = {
     access: 'public',
     isDeleted: false,
-    isLive: true,
+  'settings.isLive': true, // ✅ use string for nested path
   };
 
   // Category filter
@@ -90,7 +90,7 @@ const event = await Event.findOne({ _id: eventId, isDeleted: false })
     path: 'stagePosts',
     populate: {
       path: 'creatorId',
-      select: 'name email profilePicture',
+      select: 'name email profilePicture userName',
     }
   }).populate({
   path: 'tickets',
