@@ -74,13 +74,42 @@ class UserRepositoryImpl extends UserRepository {
     }
   }
 
-  async findByIdAndUpdate(id, updatedData) {
-    try {
-      return await User.findByIdAndUpdate(id, {$set: updatedData}, {new: true, runValidators: true});
-    } catch (error) {
-      throw new Error(`Failed to update user: ${error.message}`);
-    }
+  // Edit an existing user (like your event edit style)
+async findByIdAndUpdate(userIdToUpdate, updatedData, requesterId) {
+  // Find user
+  const user = await User.findById(userIdToUpdate);
+  if (!user) {
+    throw new Error('User not found');
   }
+
+  // Only allow the user themselves to update their settings
+  if (user._id.toString() !== requesterId.toString()) {
+    throw new Error('Unauthorized to edit this user');
+  }
+
+  // Whitelist allowed fields to update
+  const allowedUpdates = [
+    'name',
+    'userName',
+    'profilePicture',
+    'accountSettings',
+    'notificationSettings',
+    'city',
+    'state',
+    'country',
+    // add any other allowed top-level fields
+  ];
+
+  Object.keys(updatedData).forEach((key) => {
+    if (allowedUpdates.includes(key)) {
+      user[key] = updatedData[key];
+    }
+  });
+
+  // Save and return updated user
+  return user.save();
+}
+
 
   async pushToField(userId, field, value) {
     return User.findByIdAndUpdate(userId, { $push: { [field]: value } }, { new: true });

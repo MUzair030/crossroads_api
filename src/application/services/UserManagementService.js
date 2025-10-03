@@ -189,7 +189,7 @@ class UserManagementService {
     const isValid = this.validateUserData(data);
     if(!isValid) throw new Error('User data is not valid / missing required information');
     if(isSetup) data.isProfileSetup = true;
-    const updatedUser = await this.userRepository.findByIdAndUpdate(id, data);
+    const updatedUser = await this.userRepository.findByIdAndUpdate(id, data,id);
     if (!updatedUser) {
       throw new Error('User not found');
     }
