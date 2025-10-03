@@ -75,26 +75,12 @@ class UserRepositoryImpl extends UserRepository {
   }
 
   async findByIdAndUpdate(id, updatedData) {
-  try {
-    const flattenedData = this.flattenUpdateObject(updatedData);
-    return await User.findByIdAndUpdate(id, { $set: flattenedData }, { new: true, runValidators: true });
-  } catch (error) {
-    throw new Error(`Failed to update user: ${error.message}`);
-  }
-}
-
-// helper to flatten nested objects
- flattenUpdateObject(obj, parent = '', res = {}) {
-  for (let key in obj) {
-    if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
-      this.flattenUpdateObject(obj[key], parent ? `${parent}.${key}` : key, res);
-    } else {
-      res[parent ? `${parent}.${key}` : key] = obj[key];
+    try {
+      return await User.findByIdAndUpdate(id, {$set: updatedData}, {new: true, runValidators: true});
+    } catch (error) {
+      throw new Error(`Failed to update user: ${error.message}`);
     }
   }
-  return res;
-}
-
 
   async pushToField(userId, field, value) {
     return User.findByIdAndUpdate(userId, { $push: { [field]: value } }, { new: true });
