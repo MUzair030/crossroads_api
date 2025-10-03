@@ -84,7 +84,7 @@ class UserRepositoryImpl extends UserRepository {
 }
 
 // helper to flatten nested objects
-function flattenUpdateObject(obj, parent = '', res = {}) {
+async flattenUpdateObject(obj, parent = '', res = {}) {
   for (let key in obj) {
     if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
       flattenUpdateObject(obj[key], parent ? `${parent}.${key}` : key, res);
