@@ -182,14 +182,9 @@ class UserManagementService {
     if (!id) {
       throw new Error('User ID is required');
     }
-    if (!updateData || Object.keys(updateData).length === 0) {
-      throw new Error('Update data is required');
-    }
-    const data = updateData;
-    const isValid = this.validateUserData(data);
-    if(!isValid) throw new Error('User data is not valid / missing required information');
-    if(isSetup) data.isProfileSetup = true;
-    const updatedUser = await this.userRepository.findByIdAndUpdate(id, data,id);
+   
+ 
+    const updatedUser = await this.userRepository.findByIdAndUpdate(id, updateData,id);
     if (!updatedUser) {
       throw new Error('User not found');
     }
