@@ -210,7 +210,7 @@ class UserManagementService {
     if (!updatedUser) {
       throw new Error('User not found');
     }
-    return mapToDto(updatedUser);
+    return (updatedUser);
   }
 
   validateUserData = (user) => {
