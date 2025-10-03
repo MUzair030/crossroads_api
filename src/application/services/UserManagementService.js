@@ -78,26 +78,31 @@ class UserManagementService {
  async getUserById(id, userId) {
   if (!id) throw new Error("User ID is required");
 
+  // Fetch user with necessary populates
   const user = await User.findById(id)
     .populate("notifications")
     .populate("friends", "name userName profilePicture")
     .populate("friendRequests.from", "name userName profilePicture")
     .populate({
       path: "stagePosts",
-      populate: {
-        path: "creatorId",
-        select: "name userName profilePicture"
-      }
+      populate: { path: "creatorId", select: "name userName profilePicture" }
     })
-    .lean();
+    .lean(); // returns plain JS object
 
   if (!user) throw new Error("User not found");
 
+  // Ensure nested objects exist to avoid Flutter null errors
+  user.accountSettings ??= {};
+  user.accountSettings.security ??= {};
+  user.accountSettings.privacy ??= {};
+  user.accountSettings.posts ??= {};
+  user.notificationSettings ??= {};
+
+  // Determine relationship flags
   const isSelf = id.toString() === userId.toString();
   const isFriend = user.friends?.some(f => f._id.toString() === userId.toString()) || false;
   const friendsCount = user.friends?.length || 0;
 
-  // Friend request flags
   const friendRequestPendingIncoming = user.friendRequests?.some(
     fr => fr.from._id.toString() === userId.toString() && fr.status === "pending"
   ) || false;
@@ -105,72 +110,50 @@ class UserManagementService {
   const friendRequestPendingOutgoing = user.friendRequests?.some(
     fr => fr.from._id.toString() !== userId.toString() &&
           fr.status === "pending" &&
-          // Need to find if *this user* has a pending request from the viewer
           fr.from._id.toString() === id.toString()
   ) || false;
 
-  // If self → return all details
-  if (isSelf) {
-    return {
-      ...user,
-      isSelf,
-      isFriend,
-      friendRequestPendingIncoming,
-      friendRequestPendingOutgoing,
-      friendsCount
-    };
-  }
-
-  const visibility = user.accountSettings?.privacy?.profileVisibility || "public";
-
-  if (visibility === "private" && !isFriend) {
-    return {
-      _id: user._id,
-      name: user.name,
-      userName: user.userName,
-      profilePicture: user.profilePicture,
-      isSelf,
-      isFriend,
-      friendRequestPendingIncoming,
-      friendRequestPendingOutgoing,
-      friendsCount
-    };
-  }
-
-  if (visibility === "friends" && !isFriend) {
-    return {
-      _id: user._id,
-      name: user.name,
-      userName: user.userName,
-      profilePicture: user.profilePicture,
-      city: user.city,
-      country: user.country,
-      isSelf,
-      isFriend,
-      friendRequestPendingIncoming,
-      friendRequestPendingOutgoing,
-      friendsCount
-    };
-  }
-
-  // Public or friend → more details
-  return {
-    _id: user._id,
-    name: user.name,
-    userName: user.userName,
-    profilePicture: user.profilePicture,
-    city: user.city,
-    state: user.state,
-    country: user.country,
-    friends: user.friends,
-    stagePosts: user.stagePosts,
+  // Prepare base return object with all safe defaults
+  const baseReturn = {
+    ...user,
     isSelf,
     isFriend,
     friendRequestPendingIncoming,
     friendRequestPendingOutgoing,
     friendsCount
   };
+
+  // Apply visibility rules
+  const visibility = user.accountSettings.privacy.profileVisibility || "public";
+
+  if (!isSelf) {
+    if (visibility === "private" && !isFriend) {
+      return {
+        _id: user._id,
+        name: user.name,
+        userName: user.userName,
+        profilePicture: user.profilePicture,
+        ...baseReturn
+      };
+    }
+
+    if (visibility === "friends" && !isFriend) {
+      return {
+        _id: user._id,
+        name: user.name,
+        userName: user.userName,
+        profilePicture: user.profilePicture,
+        city: user.city,
+        country: user.country,
+        ...baseReturn
+      };
+    }
+  }
+
+  // Public or self/friend → full details
+  return baseReturn;
 }
+
 
 
  async getCurrentUser(id) {
