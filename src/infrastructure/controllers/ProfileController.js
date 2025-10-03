@@ -91,13 +91,16 @@ router.get('/:id', passport.authenticate('jwt', { session: false }), async (req,
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', passport.authenticate('jwt', { session: false }), async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
+        const userId = req.user?.id;
+
 
   try {
-    const updatedUser = await userService.updateUserById(id, updateData);
-    CommonResponse.success(res, updatedUser);
+     await userService.updateUserById(id, updateData);
+    const result = await userService.getUserById(id,userId);
+    CommonResponse.success(res, result);
   } catch (error) {
     CommonResponse.error(res, error.message, 404);
   }
