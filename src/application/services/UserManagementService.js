@@ -195,23 +195,32 @@ class UserManagementService {
     return mapToDto(user);
   }
 
-  async updateUserById(id, updateData, isSetup) {
-    if (!id) {
-      throw new Error('User ID is required');
-    }
-    if (!updateData || Object.keys(updateData).length === 0) {
-      throw new Error('Update data is required');
-    }
-    const data = updateData;
-    const isValid = this.validateUserData(data);
-    if(!isValid) throw new Error('User data is not valid / missing required information');
-    if(isSetup) data.isProfileSetup = true;
-    const updatedUser = await this.userRepository.findByIdAndUpdate(id, data);
-    if (!updatedUser) {
-      throw new Error('User not found');
-    }
-    return (updatedUser);
+ async updateUserById(id, updateData, isSetup = false) {
+  if (!id) throw new Error('User ID is required');
+  if (!updateData || Object.keys(updateData).length === 0) 
+    throw new Error('Update data is required');
+
+  // Flatten nested string keys to Mongoose $set paths
+  const flattenedData = this.flattenUpdateObject(updateData);
+
+  if (isSetup) flattenedData['isProfileSetup'] = true;
+
+  const updatedUser = await this.userRepository.findByIdAndUpdate(id, flattenedData);
+
+  if (!updatedUser) throw new Error('User not found');
+
+  return updatedUser;
+}
+
+// helper to convert { "a.b.c": value } into { "a.b.c": value }
+flattenUpdateObject(obj) {
+  const result = {};
+  for (let key in obj) {
+    result[key] = obj[key]; // already flattened from Flutter
   }
+  return result;
+}
+
 
   validateUserData = (user) => {
     if(user && user.userType){
