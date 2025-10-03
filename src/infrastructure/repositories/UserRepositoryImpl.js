@@ -87,7 +87,7 @@ class UserRepositoryImpl extends UserRepository {
  flattenUpdateObject(obj, parent = '', res = {}) {
   for (let key in obj) {
     if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
-      flattenUpdateObject(obj[key], parent ? `${parent}.${key}` : key, res);
+      this.flattenUpdateObject(obj[key], parent ? `${parent}.${key}` : key, res);
     } else {
       res[parent ? `${parent}.${key}` : key] = obj[key];
     }
