@@ -87,7 +87,7 @@ export async function findChatsByUser(userId) {
     const chats = await Chat.find({ 'participants.userId': userId })
         .populate({
             path: 'participants.userId',
-            select: 'name _id firstName lastName email' // add any needed fields
+            select: 'name _id userName email' // add any needed fields
         })
         .lean();
 
