@@ -24,38 +24,53 @@ class UserRepositoryImpl extends UserRepository {
     return User.find();
   }
 
- async searchUsers(query, page = 1, limit = 20) {
+async searchUsers(query, currentUserId, page = 1, limit = 20) {
   if (!query || query.trim() === '') {
     throw new Error('Search query is required');
   }
 
   const regex = new RegExp('^' + query, 'i'); // starts with query
   const skip = (page - 1) * limit;
+  const projection = '_id name email userName profilePicture accountSettings.privacy.profileVisibility friends';
 
-  const projection = '_id name email userName profilePicture';
+  // Get current user (for checking friendships)
+  const currentUser = await User.findById(currentUserId).select('_id friends');
 
-  const [users, total] = await Promise.all([
-    User.find({
-      $or: [
-        { name: { $regex: regex } },
-        { userName: { $regex: regex } },
-        { email: { $regex: regex } }
-      ]
-    })
-    .select(projection)  // ⬅️ Only return these fields
+  // Build query
+  const baseQuery = {
+    $or: [
+      { name: { $regex: regex } },
+      { userName: { $regex: regex } },
+      { email: { $regex: regex } }
+    ],
+    isDeleted: false
+  };
+
+  // Apply privacy filters
+  const users = await User.find(baseQuery)
+    .select(projection)
     .skip(skip)
-    .limit(limit),
+    .limit(limit)
+    .lean();
 
-    User.countDocuments({
-      $or: [
-        { name: { $regex: regex } },
-        { userName: { $regex: regex } },
-        { email: { $regex: regex } }
-      ]
-    })
-  ]);
+  // Filter visibility based on rules
+  const visibleUsers = users.filter(u => {
+    const visibility = u.accountSettings?.privacy?.profileVisibility || 'public';
 
-  return { users, total };
+    if (visibility === 'public') return true;
+    if (visibility === 'friends') {
+      return (
+        u.friends?.some(fid => fid.toString() === currentUserId.toString()) ||
+        currentUser?.friends?.some(fid => fid.toString() === u._id.toString())
+      );
+    }
+    if (visibility === 'private') {
+      return u._id.toString() === currentUserId.toString(); // only self
+    }
+    return false;
+  });
+
+  return { users: visibleUsers, total: visibleUsers.length };
 }
 
 
