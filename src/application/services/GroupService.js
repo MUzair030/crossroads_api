@@ -205,7 +205,10 @@ async deleteBannerImage(groupId, mediaUrl) {
             path: 'creatorId',
             select: 'name email profilePicture',
           }
-        })
+        }).populate({
+      path: 'eventStatuses.eventId', // ✅ populate eventId inside eventStatuses
+      select: 'title dates categories bannerImages locations organizerId organizerName likesCount description dateTBA locationTBA', // pick the basic fields
+    })
         .lean({ virtuals: true });
     
       if (!group) {
