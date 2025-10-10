@@ -194,86 +194,38 @@ async deleteBannerImage(groupId, mediaUrl) {
 
 
 
-      async  findGroupById(groupId, currentUserId = null) {
-      const group = await Group.findOne({ _id: groupId, isDeleted: false })
-        .populate('creator', 'name email profilePicture')
-        .populate('members.user', 'name email profilePicture')
-        .populate('inviteRequests.user', 'name email profilePicture')
-        .populate({
-          path: 'stagePosts',
-          populate: {
-            path: 'creatorId',
-            select: 'name email profilePicture',
-          }
-        }).populate({
-      path: 'eventStatuses.eventId', // ✅ populate eventId inside eventStatuses
-      select: 'title dates categories bannerImages locations organizerId organizerName likesCount description dateTBA locationTBA', // pick the basic fields
+  async findGroupById(groupId, currentUserId = null) {
+  let group = await Group.findOne({ _id: groupId, isDeleted: false })
+    .populate('creator', 'name email profilePicture')
+    .populate('members.user', 'name email profilePicture')
+    .populate('inviteRequests.user', 'name email profilePicture')
+    .populate({
+      path: 'stagePosts',
+      populate: {
+        path: 'creatorId',
+        select: 'name email profilePicture',
+      }
     })
-        .lean({ virtuals: true });
-    
-      if (!group) {
-        throw new Error('Group not found');
-      }
-    
-      const isMember = group.members.some(m => m.user?._id?.toString() === currentUserId?.toString());
-      const isAdmin = group.members.some(m =>
-        m.user?._id?.toString() === currentUserId?.toString() && m.role === 'admin'
-      );
-      const isCreator = group.creator?._id?.toString() === currentUserId?.toString();
-      const isInvited = group.inviteRequests.some(
-        req => req.user?._id?.toString() === currentUserId?.toString() && req.status === 'pending'
-      );
-      const isPublic = group.type === 'public';
-    
-      const base = {
-        _id: group._id,
-        name: group.name,
-        bannerImages: group.bannerImages,
-        categories: group.categories,
-        tags: group.tags,
-        type: group.type,
-        creator: group.creator,
-        createdAt: group.createdAt,
-      };
-    
-      // Admin/Creator full access
-      if (isAdmin || isCreator) {
-        return {
-          ...group,
-          isAdmin,
-          isCreator,
-          isMember,
-          isInvited,
-        };
-      }
-    
-      // Member or Invited to Private Group
-      if (isMember || isInvited) {
-        return {
-          ...base,
-          description: group.description,
-          stagePosts: group.stagePosts,
-          members: group.members,
-          inviteRequests: group.inviteRequests,
-          isAdmin,
-          isCreator,
-          isMember,
-          isInvited,
-        };
-      }
-    
-      // Public Group — show limited data
-      if (isPublic) {
-        return {
-          ...base,
-          description: group.description,
-          stagePosts: group.stagePosts,
-        };
-      }
-    
-      // Private Group + Not Member + Not Invited
-      throw new Error('Unauthorized access to private group');
-    }
+    .populate({
+      path: 'eventStatuses.eventId',
+      select:
+        'title dates categories bannerImages locations organizerId organizerName likesCount description dateTBA locationTBA',
+      match: { isDeleted: false }, // ✅ only populate if not deleted
+    })
+    .lean({ virtuals: true });
+
+  if (!group) {
+    throw new Error('Group not found');
+  }
+
+  // ✅ Filter out empty/null eventStatuses
+  group.eventStatuses = (group.eventStatuses || []).filter(
+    (es) => es.eventId && Object.keys(es.eventId).length > 0
+  );
+
+  return group;
+}
+
 
 }
 
